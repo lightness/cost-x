@@ -1,0 +1,20 @@
+version: '3'
+
+name: cost-x
+
+services:
+  postgres:
+    image: postgres
+    restart: always
+    container_name: cost-x-postgres
+    environment:
+      POSTGRES_PASSWORD: 12345
+      POSTGRES_USER: postgres
+    ports:
+      - "9992:5432"
+    networks:
+      - cost-x-network
+
+networks:
+  cost-x-network:
+
