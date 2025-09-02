@@ -1,11 +1,11 @@
-import { Controller, Delete, Param, ParseIntPipe, Post } from '@nestjs/common';
+import { Controller, Delete, Param, ParseIntPipe, Put } from '@nestjs/common';
 import { ItemTagService } from './item-tag.service';
 
 @Controller()
 export class ItemTagController {
   constructor(private itemTagService: ItemTagService) {}
 
-  @Post('items/:itemId/tags/:tagId')
+  @Put('items/:itemId/tags/:tagId')
   async set(
     @Param('itemId', ParseIntPipe) itemId: number,
     @Param('tagId', ParseIntPipe) tagId: number,

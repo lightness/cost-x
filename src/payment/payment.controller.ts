@@ -20,7 +20,7 @@ export class PaymentController {
     @Param('paymentId', ParseIntPipe) paymentId: number,
     @Body() dto: PaymentInDto,
   ) {
-
+    return this.paymentService.updatePayment(itemId, paymentId, dto);
   }
 
   @Delete('items/:itemId/payments/:paymentId')
@@ -28,6 +28,6 @@ export class PaymentController {
     @Param('itemId', ParseIntPipe) itemId: number,
     @Param('paymentId', ParseIntPipe) paymentId: number,
   ) {
-
+    return this.paymentService.removePayment(itemId, paymentId);
   }
 }
