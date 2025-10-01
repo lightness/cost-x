@@ -12,4 +12,5 @@ export default () => ({
     database: process.env.DB_DATABASE || '',
     logging: process.env.DB_LOGGING === 'true',
   },
+  costCurrency: process.env.COST_CURRENCY || 'USD',
 });

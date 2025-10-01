@@ -1,22 +1,22 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { PaymentInDto } from './dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Payment } from '../database/entities';
 import { Repository } from 'typeorm';
+import { PaymentInDto, PaymentOutDto } from './dto';
+import { Item, Payment } from '../database/entities';
 
 @Injectable()
 export class PaymentService {
   constructor(@InjectRepository(Payment) private paymentRepository: Repository<Payment>) {}
 
-  async addPayment(itemId: number, dto: PaymentInDto) {
-    return this.paymentRepository.save({ ...dto, itemId });
+  async addPayment(item: Item, dto: PaymentInDto): Promise<PaymentOutDto> {
+    return this.paymentRepository.save({ ...dto, itemId: item.id });
   }
 
-  async updatePayment(itemId: number, paymentId: number, dto: PaymentInDto) {
-    const payment = await this.paymentRepository.findOneBy({ id: paymentId, itemId });
+  async updatePayment(item: Item, payment: Payment, dto: PaymentInDto): Promise<PaymentOutDto> {
+    const paymentForItemCount = await this.paymentRepository.countBy({ id: payment.id, itemId: item.id });
 
-    if (!payment) {
-      throw new BadRequestException(`Payment #${paymentId} not found in item #${itemId}`);
+    if (paymentForItemCount === 0) {
+      throw new BadRequestException(`Payment #${payment.id} does not belong to item #${item.id}`);
     }
 
     payment.cost = dto.cost;
@@ -26,13 +26,15 @@ export class PaymentService {
     return this.paymentRepository.save(payment);
   }
 
-  async removePayment(itemId: number, paymentId: number) {
-    const payment = await this.paymentRepository.findOneBy({ id: paymentId, itemId });
+  async removePayment(item: Item, payment: Payment) {
+    const paymentForItemCount = await this.paymentRepository.countBy({ id: payment.id, itemId: item.id });
 
-    if (!payment) {
-      throw new BadRequestException(`Payment #${paymentId} not found in item #${itemId}`);
+    if (paymentForItemCount === 0) {
+      throw new BadRequestException(`Payment #${payment.id} does not belong to item #${item.id}`);
     }
 
     await this.paymentRepository.remove(payment);
   }
+
+  // private async 
 }

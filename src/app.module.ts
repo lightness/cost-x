@@ -6,6 +6,7 @@ import { DatabaseModule } from './database/database.module';
 import { ItemModule } from './item/item.module';
 import { ItemTagModule } from './item-tag/item-tag.module';
 import { PaymentModule } from './payment/payment.module';
+import { CurrencyRateModule } from './currency-rate/currency-rate.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { PaymentModule } from './payment/payment.module';
     ItemModule,
     ItemTagModule,
     PaymentModule,
+    CurrencyRateModule,
   ],
 })
 export class AppModule {}

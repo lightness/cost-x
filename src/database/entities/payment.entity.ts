@@ -21,8 +21,8 @@ class Payment {
   @Column({ name: 'currency', length: 3 })
   currency: Currency;
 
-  @Column({ name: 'date' })
-  date: Date;
+  @Column({ name: 'date', type: 'date' })
+  date: string;
 
   @ManyToOne(() => Item, (item) => item.payments)
   @JoinColumn({ name: 'item_id' })
