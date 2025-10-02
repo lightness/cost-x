@@ -1,32 +1,28 @@
-import { Body, Controller, Delete, Get, Param, ParseBoolPipe, ParseIntPipe, Post, Put, Query } from '@nestjs/common';
-import { ItemService } from './item.service';
-import { ItemInDto } from './dto';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query } from '@nestjs/common';
 import { ItemByIdPipe } from '../common/pipes/item-by-id.pipe';
 import { Item } from '../database/entities';
+import { ItemInDto, ListItemQueryDto } from './dto';
+import { GetItemQueryDto } from './dto/get-item.query.dto';
 import { GetItemService } from './get-item.service';
+import { ItemService } from './item.service';
 
 @Controller()
 export class ItemController {
-  constructor(private itemService: ItemService, private getItemService: GetItemService) {}
+  constructor(private itemService: ItemService, private getItemService: GetItemService) { }
 
   @Get('items')
   async list(
-    @Query('term') term?: string | undefined,
-    @Query('with_tags', new ParseBoolPipe({ optional: true })) withTags?: boolean | undefined,
-    @Query('with_payments', new ParseBoolPipe({ optional: true })) withPayments?: boolean | undefined,
-    @Query('with_item_cost', new ParseBoolPipe({ optional: true })) withItemCost?: boolean | undefined,
+    @Query() query: ListItemQueryDto,
   ) {
-    return this.getItemService.list(term, withTags, withPayments, withItemCost);
+    return this.getItemService.list(query);
   }
 
   @Get('items/:id')
   async get(
     @Param('id', ParseIntPipe, ItemByIdPipe) item: Item,
-    @Query('with_tags', new ParseBoolPipe({ optional: true })) withTags?: boolean | undefined,
-    @Query('with_payments', new ParseBoolPipe({ optional: true })) withPayments?: boolean | undefined,
-    @Query('with_item_cost', new ParseBoolPipe({ optional: true })) withItemCost?: boolean | undefined,
+    @Query() query: GetItemQueryDto,
   ) {
-    return this.getItemService.get(item, withTags, withPayments, withItemCost);
+    return this.getItemService.get(item, query);
   }
 
   @Post('items')

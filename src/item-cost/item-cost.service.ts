@@ -12,7 +12,7 @@ export class ItemCostService {
   async getCost(payments: Payment[]): Promise<CostOutDto> {
     const { costCurrency } = this;
 
-    let value = 0;
+    let cost = 0;
 
     for (const payment of (payments || [])) {
       const [sourceRate, targetRate] = await Promise.all([
@@ -20,10 +20,10 @@ export class ItemCostService {
         this.getRate(costCurrency, payment.date),
       ]);
 
-      value += payment.cost * sourceRate / targetRate;
+      cost += payment.cost * sourceRate / targetRate;
     }
 
-    return { value, currency: costCurrency };
+    return { cost, currency: costCurrency };
   }
 
   private get costCurrency(): Currency {

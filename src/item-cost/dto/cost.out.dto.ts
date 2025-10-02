@@ -1,7 +1,7 @@
 import { Currency } from '../../database/entities/currency.enum';
 
 export class CostOutDto {
-  value: number;
+  cost: number;
 
   currency: Currency;
 }
