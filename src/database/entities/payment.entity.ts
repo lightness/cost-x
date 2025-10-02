@@ -15,6 +15,9 @@ class Payment {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp', select: false })
   updatedAt: Date;
 
+  @Column({ name: 'title', nullable: true })
+  title: string;
+
   @Column({ name: 'cost', type: 'decimal', transformer: new ColumnNumericTransformer() })
   cost: number;
 

@@ -19,6 +19,7 @@ export class PaymentService {
       throw new BadRequestException(`Payment #${payment.id} does not belong to item #${item.id}`);
     }
 
+    payment.title = dto.title;
     payment.cost = dto.cost;
     payment.currency = dto.currency;
     payment.date = dto.date;
@@ -35,6 +36,4 @@ export class PaymentService {
 
     await this.paymentRepository.remove(payment);
   }
-
-  // private async 
 }
