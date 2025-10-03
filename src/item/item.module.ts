@@ -10,5 +10,6 @@ import { ItemCostModule } from '../item-cost/item-cost.module';
   imports: [TypeOrmModule.forFeature([Item]), ItemCostModule],
   providers: [ItemService, GetItemService],
   controllers: [ItemController],
+  exports: [ItemService],
 })
 export class ItemModule {}

@@ -8,6 +8,6 @@ import { PaymentService } from './payment.service';
   imports: [TypeOrmModule.forFeature([Payment, Item])],
   providers: [PaymentService],
   controllers: [PaymentController],
-  exports: [],
+  exports: [PaymentService],
 })
 export class PaymentModule {}

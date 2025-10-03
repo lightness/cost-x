@@ -7,6 +7,9 @@ import { ItemModule } from './item/item.module';
 import { ItemTagModule } from './item-tag/item-tag.module';
 import { PaymentModule } from './payment/payment.module';
 import { CurrencyRateModule } from './currency-rate/currency-rate.module';
+import { SpreadsheetModule } from './spreadsheet/spreadsheet.module';
+import { DataMigrationService } from './data-migration/data-migration.service';
+import { DataMigrationModule } from './data-migration/data-migration.module';
 
 @Module({
   imports: [
@@ -17,6 +20,7 @@ import { CurrencyRateModule } from './currency-rate/currency-rate.module';
     ItemTagModule,
     PaymentModule,
     CurrencyRateModule,
+    DataMigrationModule,
   ],
 })
 export class AppModule {}

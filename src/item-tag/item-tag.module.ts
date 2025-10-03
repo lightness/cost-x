@@ -8,5 +8,6 @@ import { ItemTagService } from './item-tag.service';
   imports: [TypeOrmModule.forFeature([Tag, Item, ItemTag])],
   providers: [ItemTagService],
   controllers: [ItemTagController],
+  exports: [ItemTagService],
 })
 export class ItemTagModule {}

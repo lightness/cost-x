@@ -13,4 +13,20 @@ export default () => ({
     logging: process.env.DB_LOGGING === 'true',
   },
   costCurrency: process.env.COST_CURRENCY || 'USD',
+  spreadsheet: {
+    id: '1oFQIOD0OfztKcVdTntcU9IQ-uM8oAVL3yD9b7cahma4',
+    name: 'Затраты на строительство',
+    scopes: [
+      'https://www.googleapis.com/auth/spreadsheets',
+      'https://www.googleapis.com/auth/drive',
+      'https://www.googleapis.com/auth/calendar',
+    ],
+    columnNames: [
+      'title',
+      'date',
+      'bynCost',
+      'usdCost',
+      'eurCost',
+    ]
+  }
 });

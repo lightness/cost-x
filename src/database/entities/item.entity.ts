@@ -15,7 +15,7 @@ class Item {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp', select: false })
   updatedAt: Date;
 
-  @Column({ name: 'title', length: 100 })
+  @Column({ name: 'title', length: 255 })
   title: string;
 
   @OneToMany(() => ItemTag, (itemTag) => itemTag.item)
