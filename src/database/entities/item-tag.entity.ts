@@ -1,9 +1,10 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, RelationId, UpdateDateColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, MongoRepository, PrimaryGeneratedColumn, RelationId, Unique, UpdateDateColumn } from 'typeorm';
 import { TableName } from '../database.constants';
 import Item from './item.entity';
 import Tag from './tag.entity';
 
 @Entity({ name: TableName.ITEM_TAG })
+@Unique(['itemId', 'tagId'])
 class ItemTag {
   @PrimaryGeneratedColumn({ name: 'id' })
   id: number;
@@ -14,7 +15,7 @@ class ItemTag {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp', select: false })
   updatedAt: Date;
 
-  @ManyToOne(() => Item, (item) => item.itemTags)
+  @ManyToOne(() => Item, (item: Item) => item.itemTags, { nullable: false, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'item_id' })
   item: Item;
 
@@ -22,7 +23,7 @@ class ItemTag {
   @Column({ name: 'item_id', nullable: false })
   itemId: number;
 
-  @ManyToOne(() => Tag, (tag) => tag.itemTags)
+  @ManyToOne(() => Tag, (tag: Tag) => tag.itemTags, { nullable: false, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'tag_id' })
   tag: Tag;
 

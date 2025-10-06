@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { addTransactionalDataSource } from 'typeorm-transactional';
+import { CommonNamingStrategy } from './common.naming-strategy';
 import * as entities from './entities';
 
 @Global()
@@ -23,6 +24,7 @@ import * as entities from './entities';
           logging: configService.get<boolean>('db.logging'),
           trace: false,
           debug: false,
+          namingStrategy: new CommonNamingStrategy(),
         };
       },
       async dataSourceFactory(options) {

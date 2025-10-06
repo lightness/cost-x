@@ -1,15 +1,14 @@
-import config from './app.config';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { TagModule } from './tag/tag.module';
-import { DatabaseModule } from './database/database.module';
-import { ItemModule } from './item/item.module';
-import { ItemTagModule } from './item-tag/item-tag.module';
-import { PaymentModule } from './payment/payment.module';
+import config from './app.config';
 import { CurrencyRateModule } from './currency-rate/currency-rate.module';
-import { SpreadsheetModule } from './spreadsheet/spreadsheet.module';
-import { DataMigrationService } from './data-migration/data-migration.service';
 import { DataMigrationModule } from './data-migration/data-migration.module';
+import { DatabaseModule } from './database/database.module';
+import { ItemMergeModule } from './item-merge/item-merge.module';
+import { ItemTagModule } from './item-tag/item-tag.module';
+import { ItemModule } from './item/item.module';
+import { PaymentModule } from './payment/payment.module';
+import { TagModule } from './tag/tag.module';
 
 @Module({
   imports: [
@@ -18,6 +17,7 @@ import { DataMigrationModule } from './data-migration/data-migration.module';
     TagModule,
     ItemModule,
     ItemTagModule,
+    ItemMergeModule,
     PaymentModule,
     CurrencyRateModule,
     DataMigrationModule,
