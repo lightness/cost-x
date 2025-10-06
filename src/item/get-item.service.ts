@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { FindManyOptions, FindOneOptions, Like, Repository } from 'typeorm';
+import { FindManyOptions, FindOneOptions, In, Like, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { GetItemQueryDto, ItemOutDto, ListItemQueryDto } from './dto';
 import { Item, Payment } from '../database/entities';
@@ -23,14 +23,28 @@ export class GetItemService {
   }
 
   async list(query: ListItemQueryDto): Promise<ItemOutDto[]> {
-    const { term, withTags, withPayments, withPaymentDates, withTotal } = query;
+    const { term, tagIds, withTags, withPayments, withPaymentDates, withTotal } = query;
 
     const options: FindManyOptions<Item> = {
       relations: this.getRelations(withTags, withPayments, withTotal, withPaymentDates),
     };
 
+    options.where = {}
+
     if (term) {
-      options.where = { title: Like(`%${term}%`) };
+      options.where = { 
+        ...options.where, 
+        title: Like(`%${term}%`),
+      };
+    }
+
+    if (tagIds) {
+      options.where = { 
+        ...options.where, 
+        tags: { 
+          id: In(tagIds),
+        },
+      };
     }
 
     const items = await this.itemRepository.find(options);
