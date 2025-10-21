@@ -1,45 +1,41 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Item, Tag } from '../database/entities';
+import { Item, ItemTag, Tag } from '../database/entities';
 
 @Injectable()
 export class ItemTagService {
   constructor(
-    @InjectRepository(Item) private itemRepository: Repository<Item>,
+    @InjectRepository(ItemTag) private itemTagRepository: Repository<ItemTag>,
   ) {}
 
-  async setTag(item: Item, tag: Tag): Promise<Item> {
-    const itemWithTags = await this.itemRepository.findOne({ 
-      where: { id: item.id }, 
-      relations: { tags: true },
+  async setTag(item: Item, tag: Tag): Promise<ItemTag> {
+    const itemTag = await this.itemTagRepository.findOne({ 
+      where: { 
+        itemId: item.id, 
+        tagId: tag.id,
+      }, 
     });
 
-    const alreadyHasTag = itemWithTags.tags.some(({ id }) => id === tag.id);
-
-    if (alreadyHasTag) {
+    if (itemTag) {
       throw new BadRequestException(`Item #${item.id} already has tag #${tag.id}`);
     }
 
-    itemWithTags.tags.push(tag);
-
-    return this.itemRepository.save(itemWithTags);
+    return this.itemTagRepository.save({
+      itemId: item.id,
+      tagId: tag.id,
+    });
   }
 
-  async removeTag(item: Item, tag: Tag): Promise<Item> {
-    const itemWithTags = await this.itemRepository.findOne({ 
-      where: { id: item.id }, 
-      relations: { tags: true },
+  async removeTag(item: Item, tag: Tag): Promise<void> {
+    const itemTag = await this.itemTagRepository.findOne({ 
+      where: { itemId: item.id, tagId: tag.id },
     });
 
-    const missingTag = itemWithTags.tags.every(({ id }) => id !== tag.id);
-
-    if (missingTag) {
+    if (!itemTag) {
       throw new BadRequestException(`Item #${item.id} does not have tag #${tag.id}`);
     }
 
-    itemWithTags.tags = itemWithTags.tags.filter(({ id }) => id !== tag.id);
-
-    return this.itemRepository.save(itemWithTags);
+    await this.itemTagRepository.remove(itemTag);
   }
 }
