@@ -27,7 +27,7 @@ export class SpreadsheetService {
   }
 
   private normalize(rows): RowDto[] {
-    return rows.slice(1).map((row) => {
+    return rows.map((row) => {
       return this.columnNames.map((columnName, index) => ({ [columnName]: row._rawData[index] })).reduce((acc, cur) => ({ ...acc, ...cur }), {});
     })
   }
