@@ -1,10 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { plainToInstance } from 'class-transformer';
 import { GoogleAuth } from 'google-auth-library';
 import { GoogleSpreadsheet } from 'google-spreadsheet';
 import { RowDto } from './dto/row.dto';
-import { validate } from 'class-validator';
-import { plainToClass, plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class SpreadsheetService {
@@ -27,7 +26,7 @@ export class SpreadsheetService {
   }
 
   private normalize(rows): RowDto[] {
-    return rows.map((row) => {
+    return rows.slice(1).map((row) => {
       return this.columnNames.map((columnName, index) => ({ [columnName]: row._rawData[index] })).reduce((acc, cur) => ({ ...acc, ...cur }), {});
     })
   }
