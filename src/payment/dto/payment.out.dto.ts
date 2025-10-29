@@ -1,9 +1,5 @@
-import { Currency } from '../../database/entities/currency.enum';
+import { PaymentInDto } from './payment.in.dto';
 
-export class PaymentOutDto {
+export class PaymentOutDto extends PaymentInDto {
   id: number;
-  title?: string;
-  cost: number;
-  currency: Currency;
-  date: string;
 }

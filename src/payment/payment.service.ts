@@ -3,12 +3,18 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PaymentInDto, PaymentOutDto } from './dto';
 import { Item, Payment } from '../database/entities';
+import { ConsistencyService } from '../consistency/consistency.service';
 
 @Injectable()
 export class PaymentService {
-  constructor(@InjectRepository(Payment) private paymentRepository: Repository<Payment>) {}
+  constructor(
+    @InjectRepository(Payment) private paymentRepository: Repository<Payment>,
+    private consistencyService: ConsistencyService,
+  ) {}
 
   async getPayment(item: Item, payment: Payment): Promise<Payment> {
+    this.consistencyService.paymentToItem.ensureIsBelonging(payment, item);
+
     if (payment.itemId !== item.id) {
       throw new BadRequestException(`Payment #${payment.id} does not belong to item #${item.id}`);
     }
@@ -21,9 +27,7 @@ export class PaymentService {
   }
 
   async updatePayment(item: Item, payment: Payment, dto: PaymentInDto): Promise<PaymentOutDto> {
-    if (payment.itemId !== item.id) {
-      throw new BadRequestException(`Payment #${payment.id} does not belong to item #${item.id}`);
-    }
+    this.consistencyService.paymentToItem.ensureIsBelonging(payment, item);
 
     payment.title = dto.title;
     payment.cost = dto.cost;
@@ -34,11 +38,7 @@ export class PaymentService {
   }
 
   async removePayment(item: Item, payment: Payment) {
-    const paymentForItemCount = await this.paymentRepository.countBy({ id: payment.id, itemId: item.id });
-
-    if (paymentForItemCount === 0) {
-      throw new BadRequestException(`Payment #${payment.id} does not belong to item #${item.id}`);
-    }
+    this.consistencyService.paymentToItem.ensureIsBelonging(payment, item);
 
     await this.paymentRepository.remove(payment);
   }

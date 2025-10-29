@@ -1,6 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import { Tag } from '../database/entities';
 import { TagInDto, TagOutDto } from './dto';
 
@@ -8,7 +8,13 @@ export class TagService {
   constructor(@InjectRepository(Tag) private tagRepository: Repository<Tag>) {}
 
   async list(term?: string): Promise<TagOutDto[]> {
-    const tags = await this.tagRepository.find();
+    let query = {};
+
+    if (term) {
+      query = { ...query, title: Like(`%${term}%`) };
+    }
+
+    const tags = await this.tagRepository.findBy(query);
 
     return tags;
   }
@@ -46,5 +52,4 @@ export class TagService {
 
     await this.tagRepository.remove(tag);
   }
-
 }
