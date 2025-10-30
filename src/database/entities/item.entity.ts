@@ -3,9 +3,12 @@ import { TableName } from '../database.constants';
 import ItemTag from './item-tag.entity';
 import Payment from './payment.entity';
 import Tag from './tag.entity';
+import { Field, Int, ObjectType } from '@nestjs/graphql';
 
+@ObjectType()
 @Entity({ name: TableName.ITEM })
 class Item {
+  @Field(type => Int)
   @PrimaryGeneratedColumn({ name: 'id' })
   id: number;
 
@@ -15,6 +18,7 @@ class Item {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp', select: false })
   updatedAt: Date;
 
+  @Field()
   @Column({ name: 'title', length: 255 })
   title: string;
 

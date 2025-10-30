@@ -6,6 +6,7 @@
   "scripts": {
     "start:dev": "nest start --watch",
     "data:migrate": "nest start --entryFile migrate-data.entrypoint",
+    "graphql:generate:schema": "nest start --entryFile generate-graphql-schema.entrypoint",
     "test": "echo \"Error: no test specified\" && exit 1",
     "docker:up": "docker compose -f ./docker/compose.yml up -d",
     "migration:create": "node --require ts-node/register ./node_modules/typeorm/cli.js migration:create ./src/database/migrations/${migration_name:-Migration}",
