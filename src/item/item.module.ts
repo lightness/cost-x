@@ -4,10 +4,10 @@ import { Item } from '../database/entities';
 import { ItemController } from './item.controller';
 import { ItemService } from './item.service';
 import { GetItemService } from './get-item.service';
-import { ItemCostModule } from '../item-cost/item-cost.module';
+import { DefaultCurrencyCostModule } from '../item-cost/default-currency-cost.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Item]), ItemCostModule],
+  imports: [TypeOrmModule.forFeature([Item]), DefaultCurrencyCostModule],
   providers: [ItemService, GetItemService],
   controllers: [ItemController],
   exports: [ItemService],

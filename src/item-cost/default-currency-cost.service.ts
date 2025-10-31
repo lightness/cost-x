@@ -6,27 +6,27 @@ import { Currency } from '../database/entities/currency.enum';
 import { CurrencyRateService } from '../currency-rate/currency-rate.service';
 
 @Injectable()
-export class ItemCostService {
+export class DefaultCurrencyCostService {
   constructor(private configService: ConfigService, private currencyRateService: CurrencyRateService) {}
 
-  async getCost(payments: Payment[]): Promise<CostOutDto> {
-    const { costCurrency } = this;
+  async getCostInDefaultCurrency(payments: Payment[]): Promise<CostOutDto> {
+    const { defaultCurrency } = this;
 
     let cost = 0;
 
     for (const payment of (payments || [])) {
       const [sourceRate, targetRate] = await Promise.all([
         this.getRate(payment.currency, payment.date),
-        this.getRate(costCurrency, payment.date),
+        this.getRate(defaultCurrency, payment.date),
       ]);
 
       cost += payment.cost * sourceRate / targetRate;
     }
 
-    return { cost, currency: costCurrency };
+    return { cost, currency: defaultCurrency };
   }
 
-  private get costCurrency(): Currency {
+  get defaultCurrency(): Currency {
     return this.configService.getOrThrow<Currency>('costCurrency');
   }
 

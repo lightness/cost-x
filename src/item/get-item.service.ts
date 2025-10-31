@@ -3,11 +3,11 @@ import { FindManyOptions, FindOneOptions, In, Like, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { GetItemQueryDto, ItemOutDto, ListItemQueryDto } from './dto';
 import { Item, Payment } from '../database/entities';
-import { ItemCostService } from '../item-cost/item-cost.service';
+import { DefaultCurrencyCostService } from '../item-cost/default-currency-cost.service';
 
 @Injectable()
 export class GetItemService {
-  constructor(@InjectRepository(Item) private itemRepository: Repository<Item>, private itemCostService: ItemCostService) { }
+  constructor(@InjectRepository(Item) private itemRepository: Repository<Item>, private itemCostService: DefaultCurrencyCostService) { }
 
   async get(item: Item, query: GetItemQueryDto): Promise<ItemOutDto | null> {
     const { withTags, withPayments, withTotal, withPaymentDates } = query;
@@ -79,7 +79,7 @@ export class GetItemService {
 
   private async composeDto(item: Item, withPayments: boolean, withTotal: boolean, withPaymentDates: boolean) {
     const { tags, payments, ...ownProperties } = item;
-    const total = withTotal ? await this.itemCostService.getCost(item.payments) : undefined;
+    const total = withTotal ? await this.itemCostService.getCostInDefaultCurrency(item.payments) : undefined;
     const paymentDates = withPaymentDates ? this.getPaymentDates(payments) : undefined;
 
     return {

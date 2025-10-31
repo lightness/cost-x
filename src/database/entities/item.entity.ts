@@ -8,7 +8,7 @@ import { Field, Int, ObjectType } from '@nestjs/graphql';
 @ObjectType()
 @Entity({ name: TableName.ITEM })
 class Item {
-  @Field(type => Int)
+  @Field(() => Int)
   @PrimaryGeneratedColumn({ name: 'id' })
   id: number;
 
@@ -25,6 +25,7 @@ class Item {
   @OneToMany(() => ItemTag, (itemTag) => itemTag.item)
   itemTags: ItemTag[];
 
+  @Field(() => [Payment])
   @OneToMany(() => Payment, (payment) => payment.item)
   payments: Payment[];
 

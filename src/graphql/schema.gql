@@ -2,12 +2,26 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type Payment {
+  id: Int!
+  title: String
+  cost: Float!
+  currency: String!
+  item: Item!
+  costInDefaultCurrency: Float!
+}
+
 type Item {
   id: Int!
   title: String!
+  payments: [Payment!]!
+  costInDefaultCurrency: Float!
 }
 
 type Query {
   item(id: Int!): Item!
   items: [Item!]!
+  payment(id: Int!): Payment!
+  payments: [Payment!]!
+  defaultCurrency: String!
 }
