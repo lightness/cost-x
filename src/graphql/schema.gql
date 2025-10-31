@@ -12,10 +12,17 @@ type Payment {
   costInDefaultCurrency: Float!
 }
 
+type Tag {
+  id: Int!
+  title: String!
+  items: [Item!]!
+}
+
 type Item {
   id: Int!
   title: String!
   payments: [Payment!]!
+  tags: [Tag!]!
   costInDefaultCurrency: Float!
   firstPaymentDate: String!
   lastPaymentDate: String!

@@ -29,6 +29,7 @@ class Item {
   @OneToMany(() => Payment, (payment) => payment.item)
   payments: Payment[];
 
+  @Field(() => [Tag])
   @ManyToMany(() => Tag, (tag) => tag.items, { cascade: true })
   @JoinTable({
     name: TableName.ITEM_TAG,

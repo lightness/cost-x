@@ -1,11 +1,11 @@
+import { NotFoundException } from '@nestjs/common';
 import { Args, Context, Float, Int, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import { InjectRepository } from '@nestjs/typeorm';
+import { cmp } from 'type-comparator';
 import { Repository } from 'typeorm';
-import { Item, Payment } from '../../database/entities';
-import { NotFoundException } from '@nestjs/common';
+import { Item, Payment, Tag } from '../../database/entities';
 import { DefaultCurrencyCostService } from '../../item-cost/default-currency-cost.service';
 import { IDataloaders } from '../dataloader/interfaces';
-import { cmp } from 'type-comparator';
 
 @Resolver(() => Item)
 export class ItemResolver {
@@ -38,6 +38,20 @@ export class ItemResolver {
     @Context() { loaders }: { loaders: IDataloaders },
   ) {
     return loaders.paymentsByItemIdLoader.load(item.id);
+  }
+
+  @ResolveField(() => [Tag])
+  async tags(
+    @Parent() item: Item,
+  ) {
+    const itemWithTags = await this.itemRepository.findOne({
+      where: { id: item.id },
+      relations: {
+        tags: true,
+      },
+    });
+
+    return itemWithTags.tags;
   }
 
   @ResolveField(() => Float)
