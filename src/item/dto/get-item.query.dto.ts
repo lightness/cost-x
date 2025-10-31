@@ -15,6 +15,11 @@ export class GetItemQueryDto {
   @IsBoolean()
   @IsOptional()
   @Transform(({ value }) => value === 'true')
+  withCostInDefaultCurrency?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  @Transform(({ value }) => value === 'true')
   withTotal?: boolean;
 
   @IsBoolean()
