@@ -5,6 +5,7 @@ import { Item, Payment } from '../../database/entities';
 import { NotFoundException } from '@nestjs/common';
 import { DefaultCurrencyCostService } from '../../item-cost/default-currency-cost.service';
 import { IDataloaders } from '../dataloader/interfaces';
+import { cmp } from 'type-comparator';
 
 @Resolver(() => Item)
 export class ItemResolver {
@@ -48,5 +49,25 @@ export class ItemResolver {
     const dto = await this.defaultCurrencyCostService.getCostInDefaultCurrency(payments);
 
     return dto.cost;
+  }
+
+  @ResolveField(() => String)
+  async firstPaymentDate(
+    @Parent() item: Item,
+    @Context() { loaders }: { loaders: IDataloaders },
+  ) {
+    const payments = await loaders.paymentsByItemIdLoader.load(item.id);
+
+    return payments.map(payment => payment.date).sort(cmp().asc()).at(0);
+  }
+
+  @ResolveField(() => String)
+  async lastPaymentDate(
+    @Parent() item: Item,
+    @Context() { loaders }: { loaders: IDataloaders },
+  ) {
+    const payments = await loaders.paymentsByItemIdLoader.load(item.id);
+
+    return payments.map(payment => payment.date).sort(cmp().desc()).at(0);
   }
 }

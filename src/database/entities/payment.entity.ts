@@ -30,6 +30,7 @@ class Payment {
   @Column({ name: 'currency', length: 3 })
   currency: Currency;
 
+  @Field()
   @Column({ name: 'date', type: 'date' })
   date: string;
 

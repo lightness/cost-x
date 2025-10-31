@@ -7,6 +7,7 @@ type Payment {
   title: String
   cost: Float!
   currency: String!
+  date: String!
   item: Item!
   costInDefaultCurrency: Float!
 }
@@ -16,6 +17,8 @@ type Item {
   title: String!
   payments: [Payment!]!
   costInDefaultCurrency: Float!
+  firstPaymentDate: String!
+  lastPaymentDate: String!
 }
 
 type Query {
