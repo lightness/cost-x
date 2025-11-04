@@ -2,27 +2,24 @@ import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query } 
 import { ItemByIdPipe } from '../common/pipes/item-by-id.pipe';
 import { Item } from '../database/entities';
 import { ItemInDto, ListItemQueryDto } from './dto';
-import { GetItemQueryDto } from './dto/get-item.query.dto';
-import { GetItemService } from './get-item.service';
 import { ItemService } from './item.service';
 
 @Controller()
 export class ItemController {
-  constructor(private itemService: ItemService, private getItemService: GetItemService) { }
+  constructor(private itemService: ItemService) { }
 
   @Get('items')
   async list(
     @Query() query: ListItemQueryDto,
   ) {
-    return this.getItemService.list(query);
+    return this.itemService.list(query);
   }
 
   @Get('items/:id')
   async get(
     @Param('id', ParseIntPipe, ItemByIdPipe) item: Item,
-    @Query() query: GetItemQueryDto,
   ) {
-    return this.getItemService.get(item, query);
+    return item;
   }
 
   @Post('items')

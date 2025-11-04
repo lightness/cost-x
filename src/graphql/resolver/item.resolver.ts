@@ -2,17 +2,20 @@ import { NotFoundException } from '@nestjs/common';
 import { Args, Context, Float, Int, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import { InjectRepository } from '@nestjs/typeorm';
 import { cmp } from 'type-comparator';
-import { FindManyOptions, In, Like, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Item, Payment, Tag } from '../../database/entities';
 import { DefaultCurrencyCostService } from '../../item-cost/default-currency-cost.service';
-import { IDataloaders } from '../dataloader/interfaces';
+import { GetItemService } from '../../item/get-item.service';
 import { GetItemsArgs } from '../args/get-items.args';
+import { IDataloaders } from '../dataloader/interfaces';
+import { ItemService } from '../../item/item.service';
 
 @Resolver(() => Item)
 export class ItemResolver {
   constructor(
     @InjectRepository(Item) private itemRepository: Repository<Item>,
     private defaultCurrencyCostService: DefaultCurrencyCostService,
+    private itemService: ItemService,
   ) { }
 
   @Query(() => Item)
@@ -23,34 +26,12 @@ export class ItemResolver {
       throw new NotFoundException(id);
     }
 
-    return item;
+    return this.itemService.getById(id);
   }
 
   @Query(() => [Item])
   async items(@Args() args: GetItemsArgs): Promise<Item[]> {
-    const { filter = {} } = args;
-
-    let query: FindManyOptions<Item> = {};
-
-    if (filter?.title) {
-      query.where = {
-        ...query.where || {},
-        title: Like(`%${filter.title}%`),
-      };
-    }
-
-    if (filter?.tagIds?.length > 0) {
-      query.where = {
-        ...query.where || {},
-        tags: {
-          id: In(filter.tagIds),
-        }
-      };
-    }
-
-    const items = await this.itemRepository.find(query);
-
-    return items;
+    return this.itemService.list(args.filter);
   }
 
   @ResolveField(() => [Payment])

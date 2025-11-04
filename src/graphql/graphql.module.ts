@@ -10,6 +10,7 @@ import { PaymentResolver } from './resolver/payment.resolver';
 import { ConstantsResolver } from './resolver/constants.resolver';
 import { DataLoaderModule } from './dataloader/dataloader.module';
 import { DataloaderService } from './dataloader/dataloader.service';
+import { ItemModule } from '../item/item.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { DataloaderService } from './dataloader/dataloader.service';
     }),
     TypeOrmModule.forFeature([Item, Payment]),
     DefaultCurrencyCostModule,
+    ItemModule,
   ],
   providers: [
     ItemResolver,
