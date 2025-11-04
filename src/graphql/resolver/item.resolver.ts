@@ -2,7 +2,7 @@ import { NotFoundException } from '@nestjs/common';
 import { Args, Context, Float, Int, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import { InjectRepository } from '@nestjs/typeorm';
 import { cmp } from 'type-comparator';
-import { Like, Repository } from 'typeorm';
+import { FindManyOptions, In, Like, Repository } from 'typeorm';
 import { Item, Payment, Tag } from '../../database/entities';
 import { DefaultCurrencyCostService } from '../../item-cost/default-currency-cost.service';
 import { IDataloaders } from '../dataloader/interfaces';
@@ -28,18 +28,27 @@ export class ItemResolver {
 
   @Query(() => [Item])
   async items(@Args() args: GetItemsArgs): Promise<Item[]> {
-    const { title } = args;
+    const { filter = {} } = args;
 
-    let where = {};
+    let query: FindManyOptions<Item> = {};
 
-    if (title) {
-      where = {
-        ...where,
-        title: Like(`%${title}%`),
+    if (filter?.title) {
+      query.where = {
+        ...query.where || {},
+        title: Like(`%${filter.title}%`),
       };
     }
 
-    const items = await this.itemRepository.find({ where });
+    if (filter?.tagIds?.length > 0) {
+      query.where = {
+        ...query.where || {},
+        tags: {
+          id: In(filter.tagIds),
+        }
+      };
+    }
+
+    const items = await this.itemRepository.find(query);
 
     return items;
   }

@@ -26,6 +26,8 @@ type Tag {
 
 type Item {
   id: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
   title: String!
   payments: [Payment!]!
   tags: [Tag!]!
@@ -34,10 +36,20 @@ type Item {
   lastPaymentDate: String!
 }
 
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
 type Query {
   item(id: Int!): Item!
-  items(title: String): [Item!]!
+  items(filter: ItemsFilter): [Item!]!
   payment(id: Int!): Payment!
   payments: [Payment!]!
   defaultCurrency: Currency!
+}
+
+input ItemsFilter {
+  tagIds: [Int!]
+  title: String
 }
