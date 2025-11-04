@@ -2,10 +2,11 @@ import { NotFoundException } from '@nestjs/common';
 import { Args, Context, Float, Int, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import { InjectRepository } from '@nestjs/typeorm';
 import { cmp } from 'type-comparator';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import { Item, Payment, Tag } from '../../database/entities';
 import { DefaultCurrencyCostService } from '../../item-cost/default-currency-cost.service';
 import { IDataloaders } from '../dataloader/interfaces';
+import { GetItemsArgs } from '../args/get-items.args';
 
 @Resolver(() => Item)
 export class ItemResolver {
@@ -26,8 +27,19 @@ export class ItemResolver {
   }
 
   @Query(() => [Item])
-  async items(): Promise<Item[]> {
-    const items = await this.itemRepository.find();
+  async items(@Args() args: GetItemsArgs): Promise<Item[]> {
+    const { title } = args;
+
+    let where = {};
+
+    if (title) {
+      where = {
+        ...where,
+        title: Like(`%${title}%`),
+      };
+    }
+
+    const items = await this.itemRepository.find({ where });
 
     return items;
   }

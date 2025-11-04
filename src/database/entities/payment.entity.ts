@@ -26,7 +26,7 @@ class Payment {
   @Column({ name: 'cost', type: 'decimal', transformer: new ColumnNumericTransformer() })
   cost: number;
 
-  @Field()
+  @Field(() => Currency)
   @Column({ name: 'currency', length: 3 })
   currency: Currency;
 
