@@ -5,32 +5,24 @@ import { cmp } from 'type-comparator';
 import { Repository } from 'typeorm';
 import { Item, Payment, Tag } from '../../database/entities';
 import { DefaultCurrencyCostService } from '../../item-cost/default-currency-cost.service';
-import { GetItemService } from '../../item/get-item.service';
-import { GetItemsArgs } from '../args/get-items.args';
-import { IDataloaders } from '../dataloader/interfaces';
 import { ItemService } from '../../item/item.service';
+import { FindItemsArgs } from '../args/find-items.args';
+import { IDataloaders } from '../dataloader/interfaces';
 
 @Resolver(() => Item)
 export class ItemResolver {
   constructor(
-    @InjectRepository(Item) private itemRepository: Repository<Item>,
     private defaultCurrencyCostService: DefaultCurrencyCostService,
     private itemService: ItemService,
   ) { }
 
   @Query(() => Item)
   async item(@Args('id', { type: () => Int }) id: number): Promise<Item> {
-    const item = await this.itemRepository.findOneBy({ id });
-
-    if (!item) {
-      throw new NotFoundException(id);
-    }
-
     return this.itemService.getById(id);
   }
 
   @Query(() => [Item])
-  async items(@Args() args: GetItemsArgs): Promise<Item[]> {
+  async items(@Args() args: FindItemsArgs): Promise<Item[]> {
     return this.itemService.list(args.filter);
   }
 
@@ -45,15 +37,9 @@ export class ItemResolver {
   @ResolveField(() => [Tag])
   async tags(
     @Parent() item: Item,
+    @Context() { loaders }: { loaders: IDataloaders },
   ) {
-    const itemWithTags = await this.itemRepository.findOne({
-      where: { id: item.id },
-      relations: {
-        tags: true,
-      },
-    });
-
-    return itemWithTags.tags;
+    return loaders.tagsByItemIdLoader.load(item.id);
   }
 
   @ResolveField(() => Float)

@@ -13,7 +13,7 @@ export class ItemsFilter {
 }
 
 @ArgsType()
-export class GetItemsArgs {
+export class FindItemsArgs {
   @Field(() => ItemsFilter, { nullable: true })
   @IsOptional()
   filter?: ItemsFilter;

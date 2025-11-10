@@ -5,12 +5,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { join } from 'node:path';
 import { Item, Payment } from '../database/entities';
 import { DefaultCurrencyCostModule } from '../item-cost/default-currency-cost.module';
-import { ItemResolver } from './resolver/item.resolver';
-import { PaymentResolver } from './resolver/payment.resolver';
-import { ConstantsResolver } from './resolver/constants.resolver';
+import { ItemModule } from '../item/item.module';
 import { DataLoaderModule } from './dataloader/dataloader.module';
 import { DataloaderService } from './dataloader/dataloader.service';
-import { ItemModule } from '../item/item.module';
+import { ConstantsResolver } from './resolver/constants.resolver';
+import { ItemResolver } from './resolver/item.resolver';
+import { PaymentResolver } from './resolver/payment.resolver';
+import { TagResolver } from './resolver/tag.resolver';
+import { TagModule } from '../tag/tag.module';
 
 @Module({
   imports: [
@@ -31,11 +33,13 @@ import { ItemModule } from '../item/item.module';
     TypeOrmModule.forFeature([Item, Payment]),
     DefaultCurrencyCostModule,
     ItemModule,
+    TagModule,
   ],
   providers: [
+    ConstantsResolver,
     ItemResolver,
     PaymentResolver,
-    ConstantsResolver,
+    TagResolver,
   ],
 })
 export class GraphqlModule { }

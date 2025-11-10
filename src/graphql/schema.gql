@@ -22,6 +22,7 @@ type Tag {
   id: Int!
   title: String!
   items: [Item!]!
+  costInDefaultCurrency: Float!
 }
 
 type Item {
@@ -42,14 +43,20 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 scalar DateTime
 
 type Query {
+  defaultCurrency: Currency!
   item(id: Int!): Item!
   items(filter: ItemsFilter): [Item!]!
   payment(id: Int!): Payment!
   payments: [Payment!]!
-  defaultCurrency: Currency!
+  tag(id: Int!): Tag!
+  tags(filter: TagsFilter): [Tag!]!
 }
 
 input ItemsFilter {
   tagIds: [Int!]
+  title: String
+}
+
+input TagsFilter {
   title: String
 }
