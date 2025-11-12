@@ -25,7 +25,6 @@ class Tag {
   itemTags: ItemTag[];
 
   @Field(() => [Item])
-  @ManyToMany(() => Item, (item) => item.tags)
   items: Item[];
 }
 

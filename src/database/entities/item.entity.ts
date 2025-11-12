@@ -32,12 +32,6 @@ class Item {
   payments: Payment[];
 
   @Field(() => [Tag])
-  @ManyToMany(() => Tag, (tag) => tag.items, { cascade: true })
-  @JoinTable({
-    name: TableName.ITEM_TAG,
-    joinColumn: { name: 'item_id', referencedColumnName: 'id' },
-    inverseJoinColumn: { name: 'tag_id', referencedColumnName: 'id' },
-  })
   tags: Tag[];
 }
 
