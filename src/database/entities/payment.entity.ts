@@ -27,7 +27,7 @@ class Payment {
   @Column({ name: 'date', type: 'date' })
   date: string;
 
-  @ManyToOne(() => Item, (item) => item.payments)
+  @ManyToOne(() => Item, (item) => item.payments, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'item_id' })
   item: Item;
 

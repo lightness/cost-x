@@ -19,9 +19,6 @@ class Tag {
 
   @OneToMany(() => ItemTag, (itemTag) => itemTag.tag)
   itemTags: ItemTag[];
-
-  @ManyToMany(() => Item, (item) => item.tags)
-  items: Item[];
 }
 
 export default Tag;

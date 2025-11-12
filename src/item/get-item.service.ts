@@ -42,8 +42,8 @@ export class GetItemService {
     if (tagIds) {
       options.where = { 
         ...options.where, 
-        tags: { 
-          id: In(tagIds),
+        itemTags: { 
+          tagId: In(tagIds),
         },
       };
     }
@@ -64,7 +64,9 @@ export class GetItemService {
     if (withTags) {
       relations = {
         ...relations,
-        tags: true,
+        itemTags: {
+          tag: true,
+        },
       };
     }
 
@@ -79,7 +81,7 @@ export class GetItemService {
   }
 
   private async composeDto(item: Item, withPayments: boolean, withCostInDefaultCurrency: boolean, withTotal: boolean, withPaymentDates: boolean) {
-    const { tags, ...ownProperties } = item;
+    const { itemTags, ...ownProperties } = item;
     const total = withTotal ? await this.itemCostService.getCost(item.payments) : undefined;
     const paymentDates = withPaymentDates ? this.getPaymentDates(item.payments) : undefined;
     const payments = withCostInDefaultCurrency ? await this.enrichPaymentWithCostInDefaultCurrency(item.payments) : item.payments;
@@ -87,7 +89,7 @@ export class GetItemService {
     return {
       ...ownProperties,
       total,
-      tags,
+      tags: itemTags.map(({ tag }) => tag),
       paymentDates,
       payments: withPayments ? payments : undefined,
     };

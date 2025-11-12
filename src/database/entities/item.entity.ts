@@ -23,14 +23,6 @@ class Item {
 
   @OneToMany(() => Payment, (payment) => payment.item)
   payments: Payment[];
-
-  @ManyToMany(() => Tag, (tag) => tag.items, { cascade: true })
-  @JoinTable({
-    name: TableName.ITEM_TAG,
-    joinColumn: { name: 'item_id', referencedColumnName: 'id' },
-    inverseJoinColumn: { name: 'tag_id', referencedColumnName: 'id' },
-  })
-  tags: Tag[];
 }
 
 export default Item;
