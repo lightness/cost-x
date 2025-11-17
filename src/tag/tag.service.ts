@@ -43,6 +43,7 @@ export class TagService {
     }
 
     tag.title = dto.title;
+    tag.color = dto.color;
 
     return this.tagRepository.save(tag);
   }

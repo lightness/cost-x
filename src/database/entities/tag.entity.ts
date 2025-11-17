@@ -21,6 +21,10 @@ class Tag {
   @Column({ name: 'title', length: 100 })
   title: string;
 
+  @Field()
+  @Column({ name: 'color', length: 6, nullable: false, default: 'FFFFFF' })
+  color: string;
+
   @OneToMany(() => ItemTag, (itemTag) => itemTag.tag)
   itemTags: ItemTag[];
 
