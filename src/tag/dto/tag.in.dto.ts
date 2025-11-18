@@ -6,5 +6,5 @@ export class TagInDto {
 
   @IsOptional()
   @IsHexColor()
-  color: string;
+  color?: string;
 }
