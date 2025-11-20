@@ -1,17 +1,16 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { Provider } from '@nestjs/common';
+import { getRepositoryToken } from '@nestjs/typeorm';
 import DataLoader from 'dataloader';
 import { In, Repository } from 'typeorm';
-import { ItemTag, Tag } from '../../database/entities';
+import { ItemTag, Tag } from '../../../database/entities';
+import { Loader } from '../interfaces';
 
-@Injectable()
-export class TagsByItemIdLoader {
-  constructor(@InjectRepository(ItemTag) private itemTagRepository: Repository<ItemTag>) {}
-
-  public createLoader() {
+export const tagsByItemIdLoaderProvider: Provider = {
+  provide: Loader.TAGS_BY_ITEM_ID,
+  useFactory(itemTagRepository: Repository<ItemTag>) {
     return new DataLoader<number, Tag[]>(async (itemIds: number[]) => {
 
-      const itemTags = await this.itemTagRepository.find({
+      const itemTags = await itemTagRepository.find({
         where: { itemId: In(itemIds) },
         relations: { tag: true },
       });
@@ -24,5 +23,6 @@ export class TagsByItemIdLoader {
 
       return tagsByItemId;
     });
-  }
+  },
+  inject: [getRepositoryToken(ItemTag)],
 }

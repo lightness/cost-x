@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, In, Like, Repository } from 'typeorm';
 import { Item } from '../database/entities';
 import { ItemInDto, ListItemQueryDto } from './dto';
+import { FindItemsResponse } from '../graphql/args/find-items-response.type';
 
 @Injectable()
 export class ItemService {
@@ -31,8 +32,8 @@ export class ItemService {
     if (tagIds) {
       options.where = { 
         ...options.where, 
-        tags: { 
-          id: In(tagIds),
+        itemTags: { 
+          tagId: In(tagIds),
         },
       };
     }
@@ -57,4 +58,12 @@ export class ItemService {
   async delete(item: Item): Promise<void> {
     await this.itemRepository.remove(item);
   }
+
+  // async list(): Promise<FindItemsResponse> {
+  //   const items = await this.itemRepository.find({});
+
+  //   return items;
+  // }
+
+  // private
 }

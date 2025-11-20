@@ -1,19 +1,26 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ItemTag, Payment } from '../../database/entities';
+import { DefaultCurrencyCostModule } from '../../item-cost/default-currency-cost.module';
 import { DataloaderService } from './dataloader.service';
-import { PaymentsByItemIdLoader } from './payments-by-item-id.loader';
-import { TagsByItemIdLoader } from './tags-by-item-id.loader';
-import { ItemsByTagIdLoader } from './items-by-tag-id.loader';
+import { 
+  costByCurrencyByItemIdLoaderProvider, 
+  costInDefaultCurrencyByItemIdLoaderProvider, 
+  itemsByTagIdLoaderProvider, 
+  paymentsByItemIdLoaderProvider, 
+  tagsByItemIdLoaderProvider,
+} from './providers';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Payment, ItemTag])],
+  imports: [TypeOrmModule.forFeature([Payment, ItemTag]), DefaultCurrencyCostModule],
   providers: [
-    DataloaderService, 
-    PaymentsByItemIdLoader, 
-    TagsByItemIdLoader,
-    ItemsByTagIdLoader,
+    DataloaderService,
+    costInDefaultCurrencyByItemIdLoaderProvider,
+    costByCurrencyByItemIdLoaderProvider,
+    tagsByItemIdLoaderProvider,
+    itemsByTagIdLoaderProvider,
+    paymentsByItemIdLoaderProvider,
   ],
   exports: [DataloaderService],
 })
-export class DataLoaderModule {}
+export class DataLoaderModule { }

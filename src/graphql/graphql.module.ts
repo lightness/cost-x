@@ -13,6 +13,8 @@ import { ItemResolver } from './resolver/item.resolver';
 import { PaymentResolver } from './resolver/payment.resolver';
 import { TagResolver } from './resolver/tag.resolver';
 import { TagModule } from '../tag/tag.module';
+import { FindItemsResponseResolver } from './resolver/find-items-response.resolver';
+import { FindItemsAggregatesResolver } from './resolver/find-items-aggregates.resolver';
 
 @Module({
   imports: [
@@ -38,6 +40,8 @@ import { TagModule } from '../tag/tag.module';
   providers: [
     ConstantsResolver,
     ItemResolver,
+    FindItemsResponseResolver,
+    FindItemsAggregatesResolver,
     PaymentResolver,
     TagResolver,
   ],

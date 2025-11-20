@@ -21,6 +21,7 @@ enum Currency {
 type Tag {
   id: Int!
   title: String!
+  color: String!
   items: [Item!]!
   costInDefaultCurrency: Float!
 }
@@ -33,6 +34,7 @@ type Item {
   payments: [Payment!]!
   tags: [Tag!]!
   costInDefaultCurrency: Float!
+  costByCurrency: CostByCurrency!
   firstPaymentDate: String!
   lastPaymentDate: String!
 }
@@ -42,10 +44,27 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+type CostByCurrency {
+  BYN: Float!
+  USD: Float!
+  EUR: Float!
+}
+
+type FindItemsAggregates {
+  count: Int!
+  costByCurrency: CostByCurrency!
+  costInDefaultCurrency: Float!
+}
+
+type FindItemsResponse {
+  data: [Item!]!
+  aggregates: FindItemsAggregates!
+}
+
 type Query {
   defaultCurrency: Currency!
   item(id: Int!): Item!
-  items(filter: ItemsFilter): [Item!]!
+  items(filter: ItemsFilter): FindItemsResponse!
   payment(id: Int!): Payment!
   payments: [Payment!]!
   tag(id: Int!): Tag!

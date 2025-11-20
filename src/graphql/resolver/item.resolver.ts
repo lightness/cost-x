@@ -1,11 +1,9 @@
-import { NotFoundException } from '@nestjs/common';
 import { Args, Context, Float, Int, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
-import { InjectRepository } from '@nestjs/typeorm';
 import { cmp } from 'type-comparator';
-import { Repository } from 'typeorm';
 import { Item, Payment, Tag } from '../../database/entities';
 import { DefaultCurrencyCostService } from '../../item-cost/default-currency-cost.service';
 import { ItemService } from '../../item/item.service';
+import { CostByCurrency, FindItemsResponse } from '../args/find-items-response.type';
 import { FindItemsArgs } from '../args/find-items.args';
 import { IDataloaders } from '../dataloader/interfaces';
 
@@ -21,9 +19,11 @@ export class ItemResolver {
     return this.itemService.getById(id);
   }
 
-  @Query(() => [Item])
-  async items(@Args() args: FindItemsArgs): Promise<Item[]> {
-    return this.itemService.list(args.filter);
+  @Query(() => FindItemsResponse)
+  async items(@Args() args: FindItemsArgs): Promise<FindItemsResponse> {
+    const items = await this.itemService.list(args.filter);
+
+    return { data: items } as FindItemsResponse; // TODO
   }
 
   @ResolveField(() => [Payment])
@@ -47,10 +47,19 @@ export class ItemResolver {
     @Parent() item: Item,
     @Context() { loaders }: { loaders: IDataloaders },
   ) {
-    const payments = await loaders.paymentsByItemIdLoader.load(item.id);
-    const dto = await this.defaultCurrencyCostService.getCostInDefaultCurrency(payments);
+    const costInDefaultCurrency = await loaders.costInDefaultCurrencyByItemIdLoader.load(item.id);
 
-    return dto.cost;
+    return costInDefaultCurrency;
+  }
+
+  @ResolveField(() => CostByCurrency)
+  async costByCurrency(
+    @Parent() item: Item,
+    @Context() { loaders }: { loaders: IDataloaders },
+  ) {
+    const costByCurrency = await loaders.costByCurrencyByItemIdLoader.load(item.id);
+
+    return costByCurrency;
   }
 
   @ResolveField(() => String)
