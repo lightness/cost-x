@@ -3,26 +3,36 @@ import { TableName } from '../database.constants';
 import ItemTag from './item-tag.entity';
 import Payment from './payment.entity';
 import Tag from './tag.entity';
+import { Field, Int, ObjectType } from '@nestjs/graphql';
 
+@ObjectType()
 @Entity({ name: TableName.ITEM })
 class Item {
+  @Field(() => Int)
   @PrimaryGeneratedColumn({ name: 'id' })
   id: number;
 
-  @CreateDateColumn({ name: 'created_at', type: 'timestamp', select: false })
+  @Field(() => Date)
+  @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp', select: false })
+  @Field(() => Date)
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
 
+  @Field()
   @Column({ name: 'title', length: 255 })
   title: string;
 
   @OneToMany(() => ItemTag, (itemTag) => itemTag.item)
   itemTags: ItemTag[];
 
+  @Field(() => [Payment])
   @OneToMany(() => Payment, (payment) => payment.item)
   payments: Payment[];
+
+  @Field(() => [Tag])
+  tags: Tag[];
 }
 
 export default Item;

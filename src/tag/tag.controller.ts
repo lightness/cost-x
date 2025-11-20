@@ -1,24 +1,26 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query } from '@nestjs/common';
-import { TagInDto } from './dto';
+import { ListTagQueryDto, TagInDto } from './dto';
 import { TagService } from './tag.service';
+import { TagByIdPipe } from '../common/pipes/tag-by-id.pipe';
+import { Tag } from '../database/entities';
 
 @Controller()
 export class TagController {
   constructor(private tagService: TagService) {}
 
+  @Get('tags/:id')
+  async get(@Param('id', ParseIntPipe, TagByIdPipe) tag: Tag) {
+    return tag;
+  }
+
   @Get('tags')
-  async list(@Query('term') term?: string | undefined) {
-    return this.tagService.list(term);
+  async list(@Query() query: ListTagQueryDto) {
+    return this.tagService.list(query);
   }
 
   @Post('tags')
   async create(@Body() dto: TagInDto) {
     return this.tagService.create(dto);
-  }
-
-  @Get('tags/:id')
-  async get(@Param('id', ParseIntPipe) id: number) {
-    return this.tagService.get(id);
   }
 
   @Put('tags/:id')
@@ -32,5 +34,4 @@ export class TagController {
 
     return { deleted: true };
   }
-
 }

@@ -1,11 +1,10 @@
-import { IsNumber, IsOptional, IsString } from 'class-validator';
-import { GetItemQueryDto } from './get-item.query.dto';
 import { Transform } from 'class-transformer';
+import { IsNumber, IsOptional, IsString } from 'class-validator';
 
-export class ListItemQueryDto extends GetItemQueryDto {
+export class ListItemQueryDto {
   @IsString()
   @IsOptional()
-  term?: string;
+  title?: string;
 
   @IsNumber({}, { each: true })
   @IsOptional()
