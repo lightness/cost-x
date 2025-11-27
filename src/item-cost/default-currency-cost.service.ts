@@ -1,15 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { CostOutDto } from './dto';
-import { Item, Payment } from '../database/entities';
-import { Currency } from '../database/entities/currency.enum';
 import { CurrencyRateService } from '../currency-rate/currency-rate.service';
+import { Currency } from '../database/entities/currency.enum';
+import { CostOutDto } from './dto';
+import { PaymentLike } from './interfaces';
 
 @Injectable()
 export class DefaultCurrencyCostService {
   constructor(private configService: ConfigService, private currencyRateService: CurrencyRateService) {}
 
-  async getCostInDefaultCurrency(payments: Payment[]): Promise<CostOutDto> {
+  async getCostInDefaultCurrency<T extends PaymentLike>(payments: T[]): Promise<CostOutDto> {
+    console.log('>>>> payments', payments);
+
     const { defaultCurrency } = this;
 
     let cost = 0;
@@ -30,7 +32,7 @@ export class DefaultCurrencyCostService {
     return this.configService.getOrThrow<Currency>('costCurrency');
   }
 
-  private async getRate(fromCurrency: Currency, date: string): Promise<number> {
+  private async getRate(fromCurrency: Currency, date: Date): Promise<number> {
     if (fromCurrency === Currency.BYN) {
       return 1;
     }

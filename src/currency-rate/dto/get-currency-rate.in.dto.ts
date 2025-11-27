@@ -11,5 +11,5 @@ export class GetCurrencyRateInDto {
   toCurrency: Currency;
 
   @IsDateString({ strict: true })
-  date: string;
+  date: Date;
 }

@@ -2,48 +2,6 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-type Payment {
-  id: Int!
-  title: String
-  cost: Float!
-  currency: Currency!
-  date: String!
-  item: Item!
-  costInDefaultCurrency: Float!
-}
-
-enum Currency {
-  USD
-  EUR
-  BYN
-}
-
-type Tag {
-  id: Int!
-  title: String!
-  color: String!
-  items: [Item!]!
-  costInDefaultCurrency: Float!
-}
-
-type Item {
-  id: Int!
-  createdAt: DateTime!
-  updatedAt: DateTime!
-  title: String!
-  payments: [Payment!]!
-  tags: [Tag!]!
-  costInDefaultCurrency: Float!
-  costByCurrency: CostByCurrency!
-  firstPaymentDate: String!
-  lastPaymentDate: String!
-}
-
-"""
-A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
-"""
-scalar DateTime
-
 type CostByCurrency {
   BYN: Float!
   USD: Float!
@@ -51,30 +9,92 @@ type CostByCurrency {
 }
 
 type FindItemsAggregates {
-  count: Int!
-  costByCurrency: CostByCurrency!
-  costInDefaultCurrency: Float!
+  count: Int
+  costByCurrency: CostByCurrency
+  costInDefaultCurrency: Float
+}
+
+type PaymentEntity {
+  id: Int!
+  createdAt: DateIso
+  updatedAt: DateIso
+  title: String
+  cost: Float!
+  currency: Currency!
+  date: Date!
+  item: ItemEntity!
+}
+
+"""Date custom scalar type in ISO format"""
+scalar DateIso
+
+enum Currency {
+  USD
+  EUR
+  BYN
+}
+
+"""Date custom scalar type in YYYY-MM-DD format"""
+scalar Date
+
+type FindPaymentsAggregates {
+  count: Int
+  costByCurrency: CostByCurrency
+  costInDefaultCurrency: Float
+  firstPaymentDate: Date
+  lastPaymentDate: Date
+}
+
+type FindPaymentsResponse {
+  data: [PaymentEntity!]
+  aggregates: FindPaymentsAggregates
+}
+
+type TagEntity {
+  id: Int!
+  title: String!
+  color: String!
+  items: [ItemEntity!]!
+}
+
+type ItemEntity {
+  id: Int!
+  createdAt: DateIso!
+  updatedAt: DateIso!
+  title: String!
+  payments: FindPaymentsResponse!
+  tags: [TagEntity!]!
 }
 
 type FindItemsResponse {
-  data: [Item!]!
-  aggregates: FindItemsAggregates!
+  data: [ItemEntity!]
+  aggregates: FindItemsAggregates
 }
 
 type Query {
   defaultCurrency: Currency!
-  item(id: Int!): Item!
-  items(filter: ItemsFilter): FindItemsResponse!
-  payment(id: Int!): Payment!
-  payments: [Payment!]!
-  tag(id: Int!): Tag!
-  tags(filter: TagsFilter): [Tag!]!
+  item(id: Int!): ItemEntity!
+  items(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): FindItemsResponse!
+  payment(id: Int!): PaymentEntity!
+  payments(paymentsFilter: PaymentsFilter): FindPaymentsResponse!
+  tag(id: Int!): TagEntity!
+  tags(filter: TagsFilter): [TagEntity!]!
 }
 
 input ItemsFilter {
   tagIds: [Int!]
   title: String
 }
+
+input PaymentsFilter {
+  dateFrom: DateTime
+  dateTo: DateTime
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
 
 input TagsFilter {
   title: String

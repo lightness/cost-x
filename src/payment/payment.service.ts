@@ -32,7 +32,7 @@ export class PaymentService {
     payment.title = dto.title;
     payment.cost = dto.cost;
     payment.currency = dto.currency;
-    payment.date = dto.date;
+    payment.date = new Date(dto.date);
 
     return this.paymentRepository.save(payment);
   }

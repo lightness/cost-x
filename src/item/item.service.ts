@@ -1,46 +1,53 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindManyOptions, In, Like, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Item } from '../database/entities';
 import { ItemInDto, ListItemQueryDto } from './dto';
-import { FindItemsResponse } from '../graphql/args/find-items-response.type';
 
 @Injectable()
 export class ItemService {
-  constructor(@InjectRepository(Item) private itemRepository: Repository<Item>) {}
-
+  constructor(@InjectRepository(Item) private itemRepository: Repository<Item>) { }
 
   async getById(id: number): Promise<Item> {
     const item = await this.itemRepository.findOneBy({ id });
-    
+
     return item;
   }
 
   async list(query: ListItemQueryDto): Promise<Item[]> {
-    const { title, tagIds } = query || {};
+    const { title, tagIds, paymentDateFrom, paymentDateTo } = query || {};
 
-    const options: FindManyOptions<Item> = {};
-    options.where = {};
+    const queryBuilder = this.itemRepository
+      .createQueryBuilder('item');
 
     if (title) {
-      options.where = { 
-        ...options.where, 
-        title: Like(`%${title}%`),
-      };
+      queryBuilder.andWhere('item.title LIKE :title', { title: `%${title}%` });
     }
 
-    if (tagIds) {
-      options.where = { 
-        ...options.where, 
-        itemTags: { 
-          tagId: In(tagIds),
-        },
-      };
+    if (tagIds && tagIds.length > 0) {
+      queryBuilder
+        .innerJoin('item.itemTags', 'itemTags')
+        .andWhere('itemTags.tagId IN (:...tagIds)', { tagIds });
     }
 
-    const items = await this.itemRepository.find(options);
+    if (paymentDateFrom || paymentDateTo) {
+      queryBuilder.innerJoin('item.payments', 'payments');
 
-    return items;
+      if (paymentDateFrom && paymentDateTo) {
+        queryBuilder.andWhere('payments.date BETWEEN :paymentDateFrom AND :paymentDateTo', {
+          paymentDateFrom,
+          paymentDateTo
+        });
+      } else if (paymentDateFrom) {
+        queryBuilder.andWhere('payments.date >= :paymentDateFrom', { paymentDateFrom });
+      } else if (paymentDateTo) {
+        queryBuilder.andWhere('payments.date <= :paymentDateTo', { paymentDateTo });
+      }
+    }
+
+    queryBuilder.distinct(true);
+
+    return await queryBuilder.getMany();
   }
 
   async create(dto: ItemInDto): Promise<Item> {

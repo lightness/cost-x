@@ -1,5 +1,5 @@
 import { Transform } from 'class-transformer';
-import { IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsDate, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class ListItemQueryDto {
   @IsString()
@@ -10,4 +10,12 @@ export class ListItemQueryDto {
   @IsOptional()
   @Transform(({ value }) => (value || '').split(',').map(strId => parseInt(strId)))
   tagIds?: number[];
+
+  @IsDate()
+  @IsOptional()
+  paymentDateFrom: Date;
+
+  @IsDate()
+  @IsOptional()
+  paymentDateTo: Date;
 }

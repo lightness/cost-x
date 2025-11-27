@@ -18,7 +18,7 @@ class CurrencyRate {
   toCurrency: Currency;
 
   @Column({ name: 'date', type: 'date' })
-  date: string;
+  date: Date;
 
   @Column({ name: 'rate', type: 'decimal', transformer: new ColumnNumericTransformer()  })
   rate: number;
