@@ -30,7 +30,7 @@ export class PaymentService {
   } 
 
   filterPayments<T extends PaymentLike>(payments: T[], filters: PaymentsFilter): T[] {
-    const { dateFrom, dateTo } = filters;
+    const { dateFrom, dateTo } = filters || {};
 
     return payments.filter(({ date }) => {
       return (dateFrom ? dateFrom <= date : true) 
