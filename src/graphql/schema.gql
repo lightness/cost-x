@@ -71,8 +71,16 @@ type FindItemsResponse {
   aggregates: FindItemsAggregates
 }
 
+type CurrencyRateEntity {
+  fromCurrency: Currency!
+  toCurrency: Currency!
+  date: Date!
+  rate: Float!
+}
+
 type Query {
   defaultCurrency: Currency!
+  currencyRate(date: Date!, fromCurrency: Currency!, toCurrency: Currency!): CurrencyRateEntity!
   item(id: Int!): ItemEntity!
   items(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): FindItemsResponse!
   payment(id: Int!): PaymentEntity!

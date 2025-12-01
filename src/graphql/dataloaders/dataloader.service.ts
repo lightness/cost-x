@@ -1,10 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { IDataloaders, IDataloaderService } from './interfaces';
-import { ItemsByTagIdLoaderService, PaymentsByItemIdLoaderService, TagsByItemIdLoaderService } from './providers';
+import { 
+  CurrencyRateLoaderService, 
+  ItemsByTagIdLoaderService, 
+  PaymentsByItemIdLoaderService, 
+  TagsByItemIdLoaderService,
+} from './providers';
 
 @Injectable()
 export class DataloaderService {
   constructor(
+    private currencyRateLoaderService: CurrencyRateLoaderService,
     private paymentsByItemIdLoaderService: PaymentsByItemIdLoaderService,
     private itemsByTagIdLoaderService: ItemsByTagIdLoaderService,
     private tagsByItemIdLoaderService: TagsByItemIdLoaderService,
@@ -12,6 +18,7 @@ export class DataloaderService {
 
   private get loaderServices() {
     return [
+      this.currencyRateLoaderService,
       this.tagsByItemIdLoaderService,
       this.itemsByTagIdLoaderService,
       this.paymentsByItemIdLoaderService,
@@ -20,7 +27,7 @@ export class DataloaderService {
 
   getLoaders(): IDataloaders {
     return this.loaderServices.reduce(
-      (loaders, loaderService: IDataloaderService<number, unknown>) => {
+      (loaders, loaderService: IDataloaderService<unknown, unknown>) => {
         return {
           ...loaders,
           [loaderService.loaderName]: loaderService.createDataloader(loaders),

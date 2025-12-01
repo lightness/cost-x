@@ -21,6 +21,8 @@ import { TagResolver } from './resolvers/tag.resolver';
 import { DateIsoScalar } from './scalars/date-iso.scalar';
 import { DateScalar } from './scalars/date.scalar';
 import { PaymentService } from './services/payment.service';
+import { CurrencyRateResolver } from './resolvers/currency-rate.resolver';
+import { CurrencyRateModule } from '../currency-rate/currency-rate.module';
 
 @Module({
   imports: [
@@ -52,6 +54,7 @@ import { PaymentService } from './services/payment.service';
     PaymentService,
     // resolvers
     ConstantsResolver,
+    CurrencyRateResolver,
     ItemResolver,
     FindItemsResponseResolver,
     FindItemsAggregatesResolver,

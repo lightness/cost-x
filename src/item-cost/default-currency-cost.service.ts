@@ -1,44 +1,54 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { CurrencyRateService } from '../currency-rate/currency-rate.service';
+import { GetCurrencyRateInDto } from '../currency-rate/dto';
 import { Currency } from '../database/entities/currency.enum';
-import { CostOutDto } from './dto';
-import { PaymentLike } from './interfaces';
+import { CurrencyRateLike, PaymentLike } from './interfaces';
 
 @Injectable()
 export class DefaultCurrencyCostService {
-  constructor(private configService: ConfigService, private currencyRateService: CurrencyRateService) {}
+  constructor(
+    private configService: ConfigService,
+  ) { }
 
-  async getCostInDefaultCurrency<T extends PaymentLike>(payments: T[]): Promise<CostOutDto> {
-    console.log('>>>> payments', payments);
+  getRequiredCurrencyRates<P extends PaymentLike>(payments: P[]): GetCurrencyRateInDto[] {
+    return payments
+      .filter((payment) => payment.currency !== this.defaultCurrency)
+      .map((payment) => ({
+        fromCurrency: payment.currency,
+        toCurrency: this.defaultCurrency,
+        date: payment.date,
+      }));
+  }
 
-    const { defaultCurrency } = this;
-
+  getCostInDefaultCurrency<P extends PaymentLike, CR extends CurrencyRateLike>(payments: P[], currencyRates: CR[]): number {
     let cost = 0;
 
     for (const payment of (payments || [])) {
-      const [sourceRate, targetRate] = await Promise.all([
-        this.getRate(payment.currency, payment.date),
-        this.getRate(defaultCurrency, payment.date),
-      ]);
-
-      cost += payment.cost * sourceRate / targetRate;
+      cost += payment.cost * this.getRate(payment, currencyRates);
     }
 
-    return { cost, currency: defaultCurrency };
+    return cost;
   }
 
   get defaultCurrency(): Currency {
     return this.configService.getOrThrow<Currency>('costCurrency');
   }
 
-  private async getRate(fromCurrency: Currency, date: Date): Promise<number> {
-    if (fromCurrency === Currency.BYN) {
+  private getRate(payment: PaymentLike, currencyRates: CurrencyRateLike[]): number {
+    if (payment.currency === this.defaultCurrency) {
       return 1;
     }
 
-    const { rate } = await this.currencyRateService.get({ fromCurrency, toCurrency: Currency.BYN, date });
+    const currencyRate = currencyRates.find((currencyRate) => {
+      return currencyRate.fromCurrency === payment.currency
+        && currencyRate.toCurrency === this.defaultCurrency
+        && currencyRate.date.getTime() === payment.date.getTime()
+    });
 
-    return rate;
+    if (!currencyRate) {
+      throw new InternalServerErrorException(`Currency rate was not found`);
+    }
+
+    return currencyRate.rate;
   }
 }

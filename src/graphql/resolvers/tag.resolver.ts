@@ -1,5 +1,4 @@
 import { Args, Context, Int, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
-
 import { TagService } from '../../tag/tag.service';
 import { IDataloaders } from '../dataloaders/interfaces';
 import ItemEntity from '../entities/item.entity';
@@ -10,7 +9,6 @@ import { FindTagsArgs } from '../types/find-tags.args';
 export class TagResolver {
   constructor(
     private tagService: TagService, 
-    // private defaultCurrencyCostService: DefaultCurrencyCostService,
   ) {}
 
   @Query(() => TagEntity)

@@ -1,9 +1,12 @@
-import { Float, Int, Parent, ResolveField, Resolver } from '@nestjs/graphql';
+import { Context, Float, Int, Parent, ResolveField, Resolver } from '@nestjs/graphql';
 import { CostByCurrencyService } from '../../item-cost/cost-by-currency.service';
 import { DefaultCurrencyCostService } from '../../item-cost/default-currency-cost.service';
 import { DateScalar } from '../scalars';
 import { PaymentService } from '../services/payment.service';
 import { CostByCurrency, FindPaymentsAggregates } from '../types';
+import { IDataloaders, LoaderName } from '../dataloaders/interfaces';
+import { isNotError } from '../is-not-error';
+import { CurrencyRateEntity } from '../entities/currency-rate.entity';
 
 @Resolver(() => FindPaymentsAggregates)
 export class FindPaymentsAggregatesResolver {
@@ -32,8 +35,23 @@ export class FindPaymentsAggregatesResolver {
   @ResolveField(() => Float)
   async costInDefaultCurrency(
     @Parent() { payments }: FindPaymentsAggregates,
+    @Context('loaders') loaders: IDataloaders,
   ) {
-    const { cost } = await this.defaultCurrencyCostService.getCostInDefaultCurrency(payments);
+    const requiredCurrencyRates = this.defaultCurrencyCostService.getRequiredCurrencyRates(payments);
+
+    const currencyRates = (await loaders[LoaderName.CURRENCY_RATE].loadMany(requiredCurrencyRates))
+      .reduce(
+        (acc, cur, index) => {
+          if (isNotError(cur)) {
+            acc.push({ ...requiredCurrencyRates[index], rate: cur });
+          }
+
+          return acc;
+        },
+        [] as CurrencyRateEntity[]
+      );
+
+    const cost = this.defaultCurrencyCostService.getCostInDefaultCurrency(payments, currencyRates);
 
     return cost;
   }

@@ -7,21 +7,21 @@ import { Currency } from '../database/entities/currency.enum';
 export class CurrencyRateApiService {
   private readonly logger = new Logger(CurrencyRateApiService.name);
 
-  constructor(private readonly httpService: HttpService) {}
+  constructor(private readonly httpService: HttpService) { }
 
-  async pullCurrencyRate(currency: Currency, date: Date): Promise<number> {
-    this.logger.log('🆗', date);
+  async pullCurrencyRate(currency: Currency, datePart: string): Promise<number> {
+    try {
+      const response = await firstValueFrom(
+        this.httpService.get(`https://api.nbrb.by/exrates/rates/${currency}?ondate=${datePart}&parammode=2&periodicity=0`)
+      );
 
-    const [datePart] = date.toISOString().split('T');
+      const { Cur_OfficialRate: rate } = response.data;
 
-    const response = await firstValueFrom(
-      this.httpService.get(`https://api.nbrb.by/exrates/rates/${currency}?ondate=${datePart}&parammode=2&periodicity=0`)
-    );
+      this.logger.log(`Pulled ${currency} rate for ${datePart}: ${rate}`);
 
-    const { Cur_OfficialRate: rate } = response.data;
-
-    this.logger.log(`Pulled ${currency} rate for ${datePart}: ${rate}`);
-
-    return rate;
+      return rate;
+    } catch (e) {
+      this.logger.error(e.request);
+    }
   }
 }
