@@ -1,5 +1,5 @@
-import { Args, Context, Int, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
-import { IDataloaders } from '../graphql/dataloaders/interfaces';
+import { Args, Int, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
+import { ItemsByTagIdLoader } from '../item-tag/dataloaders/items-by-tag-id.loader.service';
 import { FindTagsArgs } from './dto/find-tags.args';
 import Tag from './entities/tag.entity';
 import { TagService } from './tag.service';
@@ -8,6 +8,7 @@ import { TagService } from './tag.service';
 export class TagResolver {
   constructor(
     private tagService: TagService, 
+    private itemsByTagIdLoader: ItemsByTagIdLoader,
   ) {}
 
   @Query(() => Tag)
@@ -23,9 +24,8 @@ export class TagResolver {
   @ResolveField(() => [Tag])
   async items(
     @Parent() tag: Tag,
-    @Context() { loaders }: { loaders: IDataloaders },
   ) {
-    return loaders.itemsByTagIdLoader.load(tag.id);
+    return this.itemsByTagIdLoader.load(tag.id);
   }
 
   // @ResolveField(() => Float)

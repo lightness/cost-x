@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Item, ItemTag } from '../database/entities';
+import { CurrencyRateModule } from '../currency-rate/currency-rate.module';
+import { Item } from '../database/entities';
 import { ItemCostModule } from '../item-cost/default-currency-cost.module';
+import { ItemTagModule } from '../item-tag/item-tag.module';
 import { PaymentModule } from '../payment/payment.module';
-import { ItemsByTagIdLoaderService } from './dataloaders/items-by-tag-id.loader.service';
 import { FindItemsAggregatesResolver } from './find-items-aggregates.resolver';
 import { FindItemsResponseResolver } from './find-items-response.resolver';
 import { ItemController } from './item.controller';
@@ -11,11 +12,15 @@ import { ItemResolver } from './item.resolver';
 import { ItemService } from './item.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Item, ItemTag]), PaymentModule, ItemCostModule],
+  imports: [
+    TypeOrmModule.forFeature([Item]), 
+    ItemTagModule,
+    ItemCostModule,
+    PaymentModule, 
+    CurrencyRateModule,
+  ],
   providers: [
-    ItemService, 
-    // dataloaders
-    ItemsByTagIdLoaderService,
+    ItemService,
     // resolvers
     ItemResolver,
     FindItemsAggregatesResolver,

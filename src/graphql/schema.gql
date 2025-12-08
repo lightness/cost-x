@@ -81,10 +81,16 @@ type FindItemsResponse {
 type Query {
   defaultCurrency: Currency!
   currencyRate(fromCurrency: Currency!, toCurrency: Currency!, date: Date!): CurrencyRate!
+  tag(id: Int!): Tag!
+  tags(filter: TagsFilter): [Tag!]!
   item(id: Int!): Item!
   items(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): FindItemsResponse!
   payment(id: Int!): Payment!
   payments(paymentsFilter: PaymentsFilter): FindPaymentsResponse!
+}
+
+input TagsFilter {
+  title: String
 }
 
 input ItemsFilter {

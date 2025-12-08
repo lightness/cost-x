@@ -3,15 +3,18 @@ import Item from './entities/item.entity';
 import { ItemService } from './item.service';
 import { PaymentService } from '../payment/payment.service';
 import { FindItemsResponse, ItemsFilter } from './dto';
-import { IDataloaders } from '../graphql/dataloaders/interfaces';
 import { Tag } from '../database/entities';
 import { FindPaymentsResponse, PaymentsFilter } from '../payment/dto';
+import { PaymentsByItemIdLoader } from '../payment/dataloaders/payments-by-item-id.loader.service';
+import { TagsByItemIdLoader } from '../item-tag/dataloaders/tags-by-item-id.loader.service';
 
 @Resolver(() => Item)
 export class ItemResolver {
   constructor(
     private itemService: ItemService,
     private paymentService: PaymentService,
+    private paymentsByItemIdLoader: PaymentsByItemIdLoader,
+    private tagsByItemIdLoader: TagsByItemIdLoader,
   ) { }
 
   @Query(() => Item)
@@ -41,9 +44,8 @@ export class ItemResolver {
   async payments(
     @Parent() item: Item,
     @Context('paymentsFilter') paymentsFilter: PaymentsFilter,
-    @Context('loaders') { paymentsByItemIdLoader }: IDataloaders,
   ) {
-    const allPayments = await paymentsByItemIdLoader.load(item.id);
+    const allPayments = await this.paymentsByItemIdLoader.load(item.id);
     const payments = this.paymentService.filterPayments(allPayments, paymentsFilter);
 
     return { data: payments };
@@ -52,8 +54,7 @@ export class ItemResolver {
   @ResolveField(() => [Tag])
   async tags(
     @Parent() item: Item,
-    @Context('loaders') { tagsByItemIdLoader }: IDataloaders,
   ) {
-    return tagsByItemIdLoader.load(item.id);
+    return this.tagsByItemIdLoader.load(item.id);
   }
 }

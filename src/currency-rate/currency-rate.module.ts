@@ -7,6 +7,7 @@ import { CurrencyRateApiService } from './currency-rate-api.service';
 import { CurrencyRateController } from './currency-rate.controller';
 import { CurrencyRateResolver } from './currency-rate.resolver';
 import { CurrencyRateService } from './currency-rate.service';
+import { CurrencyRateLoader } from './dataloaders/currency-rate.loader.service';
 
 @Module({
   imports: [
@@ -21,8 +22,9 @@ import { CurrencyRateService } from './currency-rate.service';
     CurrencyRateService, 
     CurrencyRateApiService,
     CurrencyRateResolver,
+    CurrencyRateLoader,
   ],
   controllers: [CurrencyRateController],
-  exports: [CurrencyRateService],
+  exports: [CurrencyRateService, CurrencyRateLoader],
 })
 export class CurrencyRateModule { }

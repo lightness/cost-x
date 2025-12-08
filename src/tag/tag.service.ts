@@ -1,7 +1,7 @@
 import { BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Like, Repository } from 'typeorm';
-import { Item, Tag } from '../database/entities';
+import { Tag } from '../database/entities';
 import { ListTagQueryDto, TagInDto, TagOutDto } from './dto';
 
 export class TagService {
