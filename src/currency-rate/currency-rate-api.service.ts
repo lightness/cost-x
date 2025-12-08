@@ -1,7 +1,7 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable, Logger } from '@nestjs/common';
 import { firstValueFrom } from 'rxjs';
-import { Currency } from '../database/entities/currency.enum';
+import { Currency } from './entities/currency.enum';
 
 @Injectable()
 export class CurrencyRateApiService {

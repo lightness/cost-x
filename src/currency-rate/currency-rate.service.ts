@@ -2,10 +2,12 @@ import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CurrencyRate } from '../database/entities';
-import { Currency } from '../database/entities/currency.enum';
+import { Currency } from './entities/currency.enum';
 import { DateService } from '../date/date.service';
 import { CurrencyRateApiService } from './currency-rate-api.service';
 import { GetCurrencyRateInDto } from './dto';
+
+type DerivativeMap = Map<Currency, Map<string, number>>;
 
 @Injectable()
 export class CurrencyRateService {
@@ -28,56 +30,42 @@ export class CurrencyRateService {
     return sourceRate / targetRate;
   }
 
-  async getMany(dtos: GetCurrencyRateInDto[]): Promise<number[]> {
-    const derivativeMap = this.getDerivativeMap(dtos);
-
-    for (const fromCurrency of derivativeMap.keys()) {
-      const dates = Array.from(derivativeMap.get(fromCurrency).keys());
-
-      const currencyRates = await this.currencyRateRepository
-        .createQueryBuilder('cr')
-        .where('cr.fromCurrency = :fromCurrency', { fromCurrency })
-        .andWhere('cr.toCurrency = :toCurrency', { toCurrency: Currency.BYN })
-        .andWhere('cr.date IN (:...dates)', { dates })
-        .select('cr.rate', 'rate')
-        .addSelect(`TO_CHAR(cr.date, 'YYYY-MM-DD')`, 'date')
-        .getRawMany()
-
-      for (const currencyRate of currencyRates) {
-        derivativeMap.get(fromCurrency).set(currencyRate.date, Number(currencyRate.rate));
-      }
-
-      for (const [datePart, rate] of derivativeMap.get(fromCurrency).entries()) {
-        if (!rate) {
-          const pulledRate = await this.pullAndSave(fromCurrency, datePart);
-
-          derivativeMap.get(fromCurrency).set(datePart, pulledRate);
-        }
-      }
-    }
+  async getMany(dtos: GetCurrencyRateInDto[]): Promise<CurrencyRate[]> {
+    const derivativeMap = await this.populateDerivativeMap(
+      this.getDerivativeMap(dtos),
+    );
 
     return dtos.map((dto) => {
       const { fromCurrency, toCurrency, date } = dto;
 
-      if (fromCurrency === toCurrency) {
-        return 1;
+      const getRate = () => {
+        if (fromCurrency === toCurrency) {
+          return 1;
+        }
+
+        const datePart = this.dateService.getDatePart(date);
+
+        const sourceRate = fromCurrency !== Currency.BYN
+          ? derivativeMap.get(fromCurrency).get(datePart)
+          : 1;
+
+        const targetRate = toCurrency !== Currency.BYN
+          ? derivativeMap.get(toCurrency).get(datePart)
+          : 1;
+
+        return sourceRate / targetRate;
       }
 
-      const datePart = this.dateService.getDatePart(date);
-
-      const sourceRate = fromCurrency !== Currency.BYN
-        ? derivativeMap.get(fromCurrency).get(datePart)
-        : 1;
-
-      const targetRate = toCurrency !== Currency.BYN
-        ? derivativeMap.get(toCurrency).get(datePart)
-        : 1;
-
-      return sourceRate / targetRate;
+      return {
+        fromCurrency,
+        toCurrency,
+        date,
+        rate: getRate(),
+      } as CurrencyRate;
     });
   }
 
-  private getDerivativeMap(dtos: GetCurrencyRateInDto[]): Map<Currency, Map<string, number>> {
+  private getDerivativeMap(dtos: GetCurrencyRateInDto[]): DerivativeMap {
     return dtos.reduce(
       (acc, cur) => {
         const { fromCurrency, toCurrency, date } = cur;
@@ -108,6 +96,35 @@ export class CurrencyRateService {
       },
       new Map(),
     );
+  }
+
+  private async populateDerivativeMap(derivativeMap: DerivativeMap): Promise<DerivativeMap> {
+    for (const fromCurrency of derivativeMap.keys()) {
+      const dates = Array.from(derivativeMap.get(fromCurrency).keys());
+
+      const currencyRates = await this.currencyRateRepository
+        .createQueryBuilder('cr')
+        .where('cr.fromCurrency = :fromCurrency', { fromCurrency })
+        .andWhere('cr.toCurrency = :toCurrency', { toCurrency: Currency.BYN })
+        .andWhere('cr.date IN (:...dates)', { dates })
+        .select('cr.rate', 'rate')
+        .addSelect(`TO_CHAR(cr.date, 'YYYY-MM-DD')`, 'date')
+        .getRawMany()
+
+      for (const currencyRate of currencyRates) {
+        derivativeMap.get(fromCurrency).set(currencyRate.date, Number(currencyRate.rate));
+      }
+
+      for (const [datePart, rate] of derivativeMap.get(fromCurrency).entries()) {
+        if (!rate) {
+          const pulledRate = await this.pullAndSave(fromCurrency, datePart);
+
+          derivativeMap.get(fromCurrency).set(datePart, pulledRate);
+        }
+      }
+    }
+
+    return derivativeMap;
   }
 
   private async findOrPull(dto: GetCurrencyRateInDto): Promise<number> {

@@ -1,5 +1,5 @@
 import { IsDateString, IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
-import { Currency } from '../../database/entities/currency.enum';
+import { Currency } from '../../currency-rate/entities/currency.enum';
 import { Transform } from 'class-transformer';
 
 export class PaymentInDto {

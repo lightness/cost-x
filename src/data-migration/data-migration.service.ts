@@ -4,7 +4,7 @@ import { TagService } from '../tag/tag.service';
 import { ItemService } from '../item/item.service';
 import { ItemTagService } from '../item-tag/item-tag.service';
 import { PaymentService } from '../payment/payment.service';
-import { Currency } from '../database/entities/currency.enum';
+import { Currency } from '../currency-rate/entities/currency.enum';
 
 @Injectable()
 export class DataMigrationService {

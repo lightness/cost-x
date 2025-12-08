@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PaymentLike } from './interfaces';
 import { CostByCurrencyOutDto } from './dto/cost-by-currency.out.dto';
-import { Currency } from '../database/entities/currency.enum';
+import { Currency } from '../currency-rate/entities/currency.enum';
 
 @Injectable()
 export class CostByCurrencyService {

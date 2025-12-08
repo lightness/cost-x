@@ -1,5 +1,5 @@
 import { IsDate, IsEnum, IsIn } from 'class-validator';
-import { Currency } from '../../database/entities/currency.enum';
+import { Currency } from '../entities/currency.enum';
 
 export class GetCurrencyRateInDto {
   @IsEnum(Currency)

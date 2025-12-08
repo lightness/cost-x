@@ -19,7 +19,7 @@ import * as entities from './entities';
           username: configService.get<string>('db.username'),
           password: configService.get<string>('db.password'),
           database: configService.get<string>('db.database'),
-          entities,
+          entities, // TODO: Refactor. Use discovery
           synchronize: false,
           logging: configService.get<boolean>('db.logging'),
           trace: false,

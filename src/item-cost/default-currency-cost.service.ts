@@ -1,7 +1,7 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { GetCurrencyRateInDto } from '../currency-rate/dto';
-import { Currency } from '../database/entities/currency.enum';
+import { Currency } from '../currency-rate/entities/currency.enum';
 import { CurrencyRateLike, PaymentLike } from './interfaces';
 
 @Injectable()

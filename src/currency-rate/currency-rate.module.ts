@@ -1,11 +1,12 @@
+import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { HttpModule } from '@nestjs/axios';
 import { CurrencyRate } from '../database/entities';
-import { CurrencyRateController } from './currency-rate.controller';
-import { CurrencyRateService } from './currency-rate.service';
-import { CurrencyRateApiService } from './currency-rate-api.service';
 import { DateModule } from '../date/date.module';
+import { CurrencyRateApiService } from './currency-rate-api.service';
+import { CurrencyRateController } from './currency-rate.controller';
+import { CurrencyRateResolver } from './currency-rate.resolver';
+import { CurrencyRateService } from './currency-rate.service';
 
 @Module({
   imports: [
@@ -16,7 +17,11 @@ import { DateModule } from '../date/date.module';
     }),
     DateModule
   ],
-  providers: [CurrencyRateService, CurrencyRateApiService],
+  providers: [
+    CurrencyRateService, 
+    CurrencyRateApiService,
+    CurrencyRateResolver,
+  ],
   controllers: [CurrencyRateController],
   exports: [CurrencyRateService],
 })
