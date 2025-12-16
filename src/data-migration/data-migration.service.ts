@@ -22,7 +22,8 @@ export class DataMigrationService {
     let globalTag;
 
     for (const row of rows) {
-      const { title, date, usdCost, eurCost, bynCost } = row;
+      const { title, usdCost, eurCost, bynCost } = row;
+      const date = new Date(row.date);
 
       if (title && !date && !usdCost && !eurCost && !bynCost) {
         const cleanTitle = title.trim();

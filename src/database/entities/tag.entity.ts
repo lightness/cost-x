@@ -1,7 +1,6 @@
-import { Column, CreateDateColumn, Entity, ManyToMany, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { TableName } from '../database.constants';
 import ItemTag from './item-tag.entity';
-import Item from './item.entity';
 
 @Entity({ name: TableName.TAG })
 class Tag {
@@ -16,6 +15,9 @@ class Tag {
 
   @Column({ name: 'title', length: 100 })
   title: string;
+
+  @Column({ name: 'color', length: 6, nullable: false, default: 'FFFFFF' })
+  color: string;
 
   @OneToMany(() => ItemTag, (itemTag) => itemTag.tag)
   itemTags: ItemTag[];

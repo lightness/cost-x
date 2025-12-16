@@ -1,8 +1,9 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, RelationId, UpdateDateColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, RelationId, UpdateDateColumn } from 'typeorm';
+import { ColumnNumericTransformer } from '../column-numeric.transformer';
 import { TableName } from '../database.constants';
+import { DateTransformer } from '../date.transformer';
 import { Currency } from './currency.enum';
 import Item from './item.entity';
-import { ColumnNumericTransformer } from '../column-numeric.transformer';
 
 @Entity({ name: TableName.PAYMENT })
 class Payment {
@@ -24,8 +25,8 @@ class Payment {
   @Column({ name: 'currency', length: 3 })
   currency: Currency;
 
-  @Column({ name: 'date', type: 'date' })
-  date: string;
+  @Column({ name: 'date', type: 'date', transformer: new DateTransformer() })
+  date: Date;
 
   @ManyToOne(() => Item, (item) => item.payments, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'item_id' })

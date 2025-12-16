@@ -1,5 +1,6 @@
 import { IsDateString, IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
 import { Currency } from '../../database/entities/currency.enum';
+import { Transform } from 'class-transformer';
 
 export class PaymentInDto {
   @IsString()
@@ -13,5 +14,6 @@ export class PaymentInDto {
   currency: Currency;
 
   @IsDateString({ strict: true })
-  date: string;
+  @Transform(({ value }) => new Date(value))
+  date: Date;
 }

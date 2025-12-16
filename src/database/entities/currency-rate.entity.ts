@@ -2,6 +2,7 @@ import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeor
 import { TableName } from '../database.constants';
 import { Currency } from './currency.enum';
 import { ColumnNumericTransformer } from '../column-numeric.transformer';
+import { DateTransformer } from '../date.transformer';
 
 @Entity({ name: TableName.CURRENCY_RATE })
 class CurrencyRate {
@@ -17,8 +18,8 @@ class CurrencyRate {
   @Column({ name: 'to_currency', length: 3 })
   toCurrency: Currency;
 
-  @Column({ name: 'date', type: 'date' })
-  date: string;
+  @Column({ name: 'date', type: 'date', transformer: new DateTransformer() })
+  date: Date;
 
   @Column({ name: 'rate', type: 'decimal', transformer: new ColumnNumericTransformer()  })
   rate: number;

@@ -1,17 +1,27 @@
 import { BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Like, Repository } from 'typeorm';
-import { Tag } from '../database/entities';
-import { TagInDto, TagOutDto } from './dto';
+import { FindOptionsWhere, Like, Repository } from 'typeorm';
+import { Item, Tag } from '../database/entities';
+import { ListTagQueryDto, TagInDto, TagOutDto } from './dto';
 
 export class TagService {
-  constructor(@InjectRepository(Tag) private tagRepository: Repository<Tag>) {}
+  constructor(
+    @InjectRepository(Tag) private tagRepository: Repository<Tag>,
+  ) {}
 
-  async list(term?: string): Promise<TagOutDto[]> {
-    let query = {};
+  async getById(id: number): Promise<Tag | null> {
+    const tag = await this.tagRepository.findOneBy({ id });
 
-    if (term) {
-      query = { ...query, title: Like(`%${term}%`) };
+    return tag;
+  }
+
+  async list(query: ListTagQueryDto): Promise<Tag[]> {
+    let { title } =  query || {};
+
+    const options: FindOptionsWhere<Tag> = {};
+
+    if (title) {
+      options.title = Like(`%${title}%`);
     }
 
     const tags = await this.tagRepository.findBy(query);
@@ -25,12 +35,6 @@ export class TagService {
     return tag;
   }
 
-  async get(id: number): Promise<TagOutDto | null> {
-    const tag = await this.tagRepository.findOneBy({ id });
-
-    return tag;
-  }
-
   async update(id: number, dto: TagInDto): Promise<TagOutDto> {
     const tag = await this.tagRepository.findOneBy({ id });
 
@@ -39,6 +43,7 @@ export class TagService {
     }
 
     tag.title = dto.title;
+    tag.color = dto.color;
 
     return this.tagRepository.save(tag);
   }

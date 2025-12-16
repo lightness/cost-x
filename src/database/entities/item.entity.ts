@@ -1,18 +1,17 @@
-import { Column, CreateDateColumn, Entity, JoinTable, ManyToMany, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { TableName } from '../database.constants';
 import ItemTag from './item-tag.entity';
 import Payment from './payment.entity';
-import Tag from './tag.entity';
 
 @Entity({ name: TableName.ITEM })
 class Item {
   @PrimaryGeneratedColumn({ name: 'id' })
   id: number;
 
-  @CreateDateColumn({ name: 'created_at', type: 'timestamp', select: false })
+  @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp', select: false })
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
 
   @Column({ name: 'title', length: 255 })
