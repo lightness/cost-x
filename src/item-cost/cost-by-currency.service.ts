@@ -5,7 +5,7 @@ import { Currency } from '../currency-rate/entities/currency.enum';
 
 @Injectable()
 export class CostByCurrencyService {
-  async getCostByCurrency(payments: PaymentLike[]): Promise<CostByCurrencyOutDto> {
+  getCostByCurrency(payments: PaymentLike[]): CostByCurrencyOutDto {
     return payments.reduce(
       (acc, cur) => {
         acc[cur.currency] += cur.cost;

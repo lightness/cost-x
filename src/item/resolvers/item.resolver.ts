@@ -1,13 +1,13 @@
 import { Args, Context, Int, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
-import Item from './entities/item.entity';
-import { ItemService } from './item.service';
-import { PaymentService } from '../payment/payment.service';
-import { FindItemsResponse, ItemsFilter } from './dto';
-import { Tag } from '../database/entities';
-import { FindPaymentsResponse, PaymentsFilter } from '../payment/dto';
-import { PaymentsByItemIdLoader } from '../payment/dataloaders/payments-by-item-id.loader.service';
-import { TagsByItemIdLoader } from '../item-tag/dataloaders/tags-by-item-id.loader.service';
-import { PaymentsAggregation } from '../payments-aggregation/entities/payments-aggregation.entity';
+import { Payment, Tag } from '../../database/entities';
+import { TagsByItemIdLoader } from '../../item-tag/dataloaders/tags-by-item-id.loader.service';
+import { PaymentsByItemIdLoader } from '../../payment/dataloaders/payments-by-item-id.loader.service';
+import { PaymentsFilter } from '../../payment/dto';
+import { PaymentService } from '../../payment/payment.service';
+import { PaymentsAggregation } from '../../payments-aggregation/entities/payments-aggregation.entity';
+import { ItemsFilter } from '../dto';
+import Item from '../entities/item.entity';
+import { ItemService } from '../item.service';
 
 @Resolver(() => Item)
 export class ItemResolver {
@@ -23,33 +23,29 @@ export class ItemResolver {
     return this.itemService.getById(id);
   }
 
-  @Query(() => FindItemsResponse)
+  @Query(() => [Item])
   async items(
     @Args('itemsFilter', { nullable: true }) itemsFilter: ItemsFilter,
     @Args('paymentsFilter', { nullable: true }) paymentsFilter: PaymentsFilter,
-    @Context() context,
-  ): Promise<{}> {
-    context.itemsFilter = itemsFilter;
-    context.paymentsFilter = paymentsFilter;
-
+  ): Promise<Item[]> {
     const items = await this.itemService.list({
       ...itemsFilter,
       paymentDateFrom: paymentsFilter.dateFrom,
       paymentDateTo: paymentsFilter.dateTo,
     });
 
-    return { data: items };
+    return items;
   }
 
-  @ResolveField(() => FindPaymentsResponse)
+  @ResolveField(() => [Payment])
   async payments(
     @Parent() item: Item,
-    @Context('paymentsFilter') paymentsFilter: PaymentsFilter,
-  ) {
+    @Args('paymentsFilter', { nullable: true }) paymentsFilter: PaymentsFilter,
+  ): Promise<Payment[]> {
     const allPayments = await this.paymentsByItemIdLoader.load(item.id);
     const payments = this.paymentService.filterPayments(allPayments, paymentsFilter);
 
-    return { data: payments };
+    return payments;
   }
 
   @ResolveField(() => [Tag])

@@ -30,12 +30,12 @@ class Item {
   @OneToMany(() => ItemTag, (itemTag) => itemTag.item)
   itemTags: ItemTag[];
 
-  @Field(() => FindPaymentsResponse)
+  @Field(() => [Payment])
   @OneToMany(() => Payment, (payment) => payment.item)
   payments: Payment[];
 
   @Field(() => PaymentsAggregation)
-  paymentAggregate: PaymentsAggregation;
+  paymentsAggregation: PaymentsAggregation;
 
   @Field(() => [Tag])
   tags: Tag[];

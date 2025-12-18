@@ -18,20 +18,6 @@ enum Currency {
 """Date custom scalar type in YYYY-MM-DD format"""
 scalar Date
 
-type CostByCurrency {
-  BYN: Float!
-  USD: Float!
-  EUR: Float!
-}
-
-type FindPaymentsAggregates {
-  count: Int
-  costByCurrency: CostByCurrency
-  costInDefaultCurrency: Float
-  firstPaymentDate: Date
-  lastPaymentDate: Date
-}
-
 type Payment {
   id: Int!
   createdAt: DateIso
@@ -46,6 +32,20 @@ type Payment {
 """Date custom scalar type in ISO format"""
 scalar DateIso
 
+type CostByCurrency {
+  BYN: Float!
+  USD: Float!
+  EUR: Float!
+}
+
+type FindPaymentsAggregates {
+  count: Int
+  costByCurrency: CostByCurrency
+  costInDefaultCurrency: Float
+  firstPaymentDate: Date
+  lastPaymentDate: Date
+}
+
 type FindPaymentsResponse {
   data: [Payment!]
   aggregates: FindPaymentsAggregates
@@ -54,6 +54,9 @@ type FindPaymentsResponse {
 type PaymentsAggregation {
   count: Int
   costInDefaultCurrency: Float
+  costByCurrency: CostByCurrency
+  firstPaymentDate: Date
+  lastPaymentDate: Date
 }
 
 type Item {
@@ -61,10 +64,9 @@ type Item {
   createdAt: DateIso!
   updatedAt: DateIso!
   title: String!
-  payments: FindPaymentsResponse!
-  paymentAggregate: PaymentsAggregation!
-  tags: [Tag!]!
+  payments(paymentsFilter: PaymentsFilter): [Payment!]!
   paymentsAggregation(paymentsFilter: PaymentsFilter): PaymentsAggregation!
+  tags: [Tag!]!
 }
 
 input PaymentsFilter {
@@ -79,24 +81,13 @@ type Tag {
   items: [Item!]!
 }
 
-type FindItemsAggregates {
-  count: Int
-  costByCurrency: CostByCurrency
-  costInDefaultCurrency: Float
-}
-
-type FindItemsResponse {
-  data: [Item!]
-  aggregates: FindItemsAggregates
-}
-
 type Query {
   defaultCurrency: Currency!
   currencyRate(fromCurrency: Currency!, toCurrency: Currency!, date: Date!): CurrencyRate!
   tag(id: Int!): Tag!
   tags(filter: TagsFilter): [Tag!]!
   item(id: Int!): Item!
-  items(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): FindItemsResponse!
+  items(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): [Item!]!
   payment(id: Int!): Payment!
   payments(paymentsFilter: PaymentsFilter): FindPaymentsResponse!
   paymentsAggregation(paymentsFilter: PaymentsFilter): PaymentsAggregation!

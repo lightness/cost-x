@@ -5,10 +5,8 @@ import { Item } from '../database/entities';
 import { ItemCostModule } from '../item-cost/default-currency-cost.module';
 import { ItemTagModule } from '../item-tag/item-tag.module';
 import { PaymentModule } from '../payment/payment.module';
-import { FindItemsAggregatesResolver } from './find-items-aggregates.resolver';
-import { FindItemsResponseResolver } from './find-items-response.resolver';
 import { ItemController } from './item.controller';
-import { ItemResolver } from './item.resolver';
+import { ItemResolver } from './resolvers/item.resolver';
 import { ItemService } from './item.service';
 
 @Module({
@@ -20,11 +18,10 @@ import { ItemService } from './item.service';
     CurrencyRateModule,
   ],
   providers: [
+    // service
     ItemService,
     // resolvers
     ItemResolver,
-    FindItemsAggregatesResolver,
-    FindItemsResponseResolver,
   ],
   controllers: [ItemController],
   exports: [ItemService],
