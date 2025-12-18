@@ -10,6 +10,7 @@ import { ItemTagModule } from './item-tag/item-tag.module';
 import { ItemModule } from './item/item.module';
 import { PaymentModule } from './payment/payment.module';
 import { TagModule } from './tag/tag.module';
+import { PaymentsAggregationModule } from './payments-aggregation/payments-aggregation.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { TagModule } from './tag/tag.module';
     PaymentModule,
     CurrencyRateModule,
     DataMigrationModule,
+    PaymentsAggregationModule,
   ],
 })
 export class AppModule { }

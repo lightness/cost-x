@@ -6,6 +6,7 @@ import { DateIsoScalar } from '../../graphql/scalars';
 import ItemTag from '../../item-tag/entities/item-tag.entity';
 import { FindPaymentsResponse } from '../../payment/dto';
 import Payment from '../../payment/entities/payment.entity';
+import { PaymentsAggregation } from '../../payments-aggregation/entities/payments-aggregation.entity';
 
 @ObjectType()
 @Entity({ name: TableName.ITEM })
@@ -32,6 +33,9 @@ class Item {
   @Field(() => FindPaymentsResponse)
   @OneToMany(() => Payment, (payment) => payment.item)
   payments: Payment[];
+
+  @Field(() => PaymentsAggregation)
+  paymentAggregate: PaymentsAggregation;
 
   @Field(() => [Tag])
   tags: Tag[];

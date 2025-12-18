@@ -7,6 +7,7 @@ import { Tag } from '../database/entities';
 import { FindPaymentsResponse, PaymentsFilter } from '../payment/dto';
 import { PaymentsByItemIdLoader } from '../payment/dataloaders/payments-by-item-id.loader.service';
 import { TagsByItemIdLoader } from '../item-tag/dataloaders/tags-by-item-id.loader.service';
+import { PaymentsAggregation } from '../payments-aggregation/entities/payments-aggregation.entity';
 
 @Resolver(() => Item)
 export class ItemResolver {
@@ -56,5 +57,16 @@ export class ItemResolver {
     @Parent() item: Item,
   ) {
     return this.tagsByItemIdLoader.load(item.id);
+  }
+
+  @ResolveField(() => PaymentsAggregation)
+  async paymentsAggregation(
+    @Parent() item: Item,
+    @Args('paymentsFilter', { nullable: true }) paymentsFilter: PaymentsFilter
+  ) {
+    return {
+      itemId: item.id,
+      paymentsFilter,
+    };
   }
 }

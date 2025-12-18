@@ -1,24 +1,18 @@
 import { Injectable, Scope } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
-import { Payment } from '../../database/entities';
-import { BaseLoader } from '../../graphql/dataloaders/base.loader';
+import { PaymentsFilter } from '../dto';
+import Payment from '../entities/payment.entity';
+import { PaymentService } from '../payment.service';
+import { FilteredPaymentsLoader } from './filtered-payments.loader.service';
 
 @Injectable({ scope: Scope.REQUEST })
-export class PaymentsByItemIdLoader extends BaseLoader<number, Payment[]> {
-  constructor(@InjectRepository(Payment) private paymentRepository: Repository<Payment>) {
+export class PaymentsByItemIdLoader extends FilteredPaymentsLoader<number, Payment[]> {
+  constructor(private paymentService: PaymentService) {
     super();
   }
 
-  protected async loaderFn(itemIds: number[]): Promise<Payment[][]> {
-    const payments = await this.paymentRepository.find({
-      where: { itemId: In(itemIds) },
-    });
+  protected async loaderWithOptionsFn(itemIds: number[], filter: PaymentsFilter): Promise<Payment[][]> {
+    const paymentsByItemId = await this.paymentService.getPaymentsByItemIds(itemIds, filter);
 
-    const paymentsByItemId = itemIds.map(itemId =>
-      payments.filter(payment => payment.itemId === itemId)
-    );
-
-    return paymentsByItemId;
+    return itemIds.map(itemId => paymentsByItemId.get(itemId) || []);
   }
 }

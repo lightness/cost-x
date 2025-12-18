@@ -51,13 +51,25 @@ type FindPaymentsResponse {
   aggregates: FindPaymentsAggregates
 }
 
+type PaymentsAggregation {
+  count: Int
+  costInDefaultCurrency: Float
+}
+
 type Item {
   id: Int!
   createdAt: DateIso!
   updatedAt: DateIso!
   title: String!
   payments: FindPaymentsResponse!
+  paymentAggregate: PaymentsAggregation!
   tags: [Tag!]!
+  paymentsAggregation(paymentsFilter: PaymentsFilter): PaymentsAggregation!
+}
+
+input PaymentsFilter {
+  dateFrom: Date
+  dateTo: Date
 }
 
 type Tag {
@@ -87,6 +99,7 @@ type Query {
   items(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): FindItemsResponse!
   payment(id: Int!): Payment!
   payments(paymentsFilter: PaymentsFilter): FindPaymentsResponse!
+  paymentsAggregation(paymentsFilter: PaymentsFilter): PaymentsAggregation!
 }
 
 input TagsFilter {
@@ -96,9 +109,4 @@ input TagsFilter {
 input ItemsFilter {
   tagIds: [Int!]
   title: String
-}
-
-input PaymentsFilter {
-  dateFrom: Date
-  dateTo: Date
 }

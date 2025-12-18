@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { cmp } from 'type-comparator';
-import { Between, FindOptionsWhere, LessThan, MoreThan, Repository } from 'typeorm';
+import { Between, FindOptionsWhere, In, LessThan, MoreThan, Repository } from 'typeorm';
 import { ConsistencyService } from '../consistency/consistency.service';
 import { Item, Payment } from '../database/entities';
 import { PaymentLike } from '../item-cost/interfaces';
@@ -13,6 +13,39 @@ export class PaymentService {
     @InjectRepository(Payment) private paymentRepository: Repository<Payment>,
     private consistencyService: ConsistencyService,
   ) { }
+
+  async getPaymentsByItemIds(itemIds: number[], filter: PaymentsFilter): Promise<Map<number, Payment[]>> {
+    const { dateFrom, dateTo } = filter || {};
+
+    const where: FindOptionsWhere<Payment> = {
+      itemId: In(itemIds),
+    };
+
+    if (dateFrom && dateTo) {
+      where.date = Between(dateFrom, dateTo);
+    } else if (dateFrom) {
+      where.date = MoreThan(dateFrom);
+    } else if (dateTo) {
+      where.date = LessThan(dateTo);
+    }
+
+    const payments = await this.paymentRepository.find({ where });
+
+    return payments.reduce(
+      (map: Map<number, Payment[]>, payment: Payment) => {
+        const { itemId } = payment;
+
+        if (map.has(itemId)) {
+          map.set(itemId, [...map.get(itemId), payment]);
+        } else {
+          map.set(itemId, [payment]);
+        }
+
+        return map;
+      },
+      new Map(),
+    );
+  }
 
   async getPayment(item: Item, payment: Payment): Promise<Payment> {
     this.consistencyService.paymentToItem.ensureIsBelonging(payment, item);
