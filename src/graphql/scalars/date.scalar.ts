@@ -10,14 +10,10 @@ export const DateScalar = new GraphQLScalarType({
 
     const date = value instanceof Date ? value : new Date(value);
 
-    console.log(`>>> serialize(${value}) => ${date.toISOString().split('T')[0]}`)
-
     return date.toISOString().split('T')[0];
   },
   parseValue: (value: string) => {
     if (!value) return null;
-
-    console.log(`>>> parseValue(${value}) => ${new Date(`${value}T00:00:00.000Z`)}`);
 
     return new Date(`${value}T00:00:00.000Z`);
   },
