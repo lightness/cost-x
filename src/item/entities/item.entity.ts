@@ -4,7 +4,6 @@ import { TableName } from '../../database/database.constants';
 import { Tag } from '../../database/entities';
 import { DateIsoScalar } from '../../graphql/scalars';
 import ItemTag from '../../item-tag/entities/item-tag.entity';
-import { FindPaymentsResponse } from '../../payment/dto';
 import Payment from '../../payment/entities/payment.entity';
 import { PaymentsAggregation } from '../../payments-aggregation/entities/payments-aggregation.entity';
 

@@ -8,9 +8,10 @@ import { GraphqlModule } from './graphql/graphql.module';
 import { ItemMergeModule } from './item-merge/item-merge.module';
 import { ItemTagModule } from './item-tag/item-tag.module';
 import { ItemModule } from './item/item.module';
+import { ItemsAggregationModule } from './items-aggregation/items-aggregation.module';
 import { PaymentModule } from './payment/payment.module';
-import { TagModule } from './tag/tag.module';
 import { PaymentsAggregationModule } from './payments-aggregation/payments-aggregation.module';
+import { TagModule } from './tag/tag.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { PaymentsAggregationModule } from './payments-aggregation/payments-aggre
     CurrencyRateModule,
     DataMigrationModule,
     PaymentsAggregationModule,
+    ItemsAggregationModule,
   ],
 })
 export class AppModule { }

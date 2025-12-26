@@ -81,6 +81,11 @@ type Tag {
   items: [Item!]!
 }
 
+type ItemsAggregation {
+  count: Int
+  paymentsAggregation(paymentsFilter: PaymentsFilter): PaymentsAggregation
+}
+
 type Query {
   defaultCurrency: Currency!
   currencyRate(fromCurrency: Currency!, toCurrency: Currency!, date: Date!): CurrencyRate!
@@ -91,6 +96,7 @@ type Query {
   payment(id: Int!): Payment!
   payments(paymentsFilter: PaymentsFilter): FindPaymentsResponse!
   paymentsAggregation(paymentsFilter: PaymentsFilter): PaymentsAggregation!
+  itemsAggregation(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): ItemsAggregation!
 }
 
 input TagsFilter {

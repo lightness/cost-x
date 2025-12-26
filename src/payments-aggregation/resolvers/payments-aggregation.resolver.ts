@@ -1,5 +1,7 @@
 import { Args, Float, Int, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
+import { isNotError } from '../../common/functions/is-not-error';
 import { DateScalar } from '../../graphql/scalars';
+import { CostByCurrency } from '../../item-cost/dto';
 import { PaymentsFilter } from '../../payment/dto';
 import { CostByCurrencyByItemIdLoader } from '../dataloaders/cost-by-currency-by-item-id.loader.service';
 import { CostInDefaultCurrencyByItemIdLoader } from '../dataloaders/cost-in-default-currency-by-item-id.loader.service';
@@ -7,18 +9,25 @@ import { FirstPaymentDateByItemIdLoader } from '../dataloaders/first-payment-dat
 import { LastPaymentDateByItemIdLoader } from '../dataloaders/last-payment-date-by-item-id.loader.service';
 import { PaymentsCountByItemIdLoader } from '../dataloaders/payments-count-by-item-id.loader.service';
 import { PaymentsAggregation } from '../entities/payments-aggregation.entity';
+import { CostByCurrencyAggregationService } from '../metrics/cost-by-currency-aggregation.service';
+import { EarliestAggregationService } from '../metrics/earliest-aggregation.service';
+import { LatestAggregationService } from '../metrics/latest-aggregation.service';
+import { SumAggregationService } from '../metrics/sum-aggregation.service';
 import { PaymentsAggregationService } from '../payments-aggregation.service';
-import { CostByCurrency } from '../../item-cost/dto';
 
 @Resolver(PaymentsAggregation)
 export class PaymentsAggregationResolver {
   constructor(
+    private paymentAggregateService: PaymentsAggregationService,
     private paymentCountByItemIdLoader: PaymentsCountByItemIdLoader,
     private costInDefaultCurrencyByItemIdLoader: CostInDefaultCurrencyByItemIdLoader,
     private costByCurrencyByItemIdLoader: CostByCurrencyByItemIdLoader,
     private firstPaymentDateByItemIdLoader: FirstPaymentDateByItemIdLoader,
     private lastPaymentDateByItemIdLoader: LastPaymentDateByItemIdLoader,
-    private paymentAggregateService: PaymentsAggregationService,
+    private sumAggregationService: SumAggregationService,
+    private earliestAggregationService: EarliestAggregationService,
+    private latestAggregationService: LatestAggregationService,
+    private costByCurrencyAggregationService: CostByCurrencyAggregationService,
   ) { }
 
   @Query(() => PaymentsAggregation)
@@ -30,12 +39,16 @@ export class PaymentsAggregationResolver {
   async count(
     @Parent() paymentsAggregation: PaymentsAggregation,
   ) {
-    const { itemId, paymentsFilter } = paymentsAggregation;
+    const { itemIds, paymentsFilter } = paymentsAggregation;
 
-    if (itemId) {
-      return this.paymentCountByItemIdLoader
+    if (itemIds) {
+      const countByItemId = await this.paymentCountByItemIdLoader
         .setOptions(paymentsFilter)
-        .load(itemId);
+        .loadMany(itemIds);
+
+      return countByItemId
+        .filter(isNotError)
+        .reduce(...this.sumAggregationService.reducer)
     }
 
     return this.paymentAggregateService.getPaymentsCount(paymentsFilter);
@@ -43,12 +56,16 @@ export class PaymentsAggregationResolver {
 
   @ResolveField(() => Float)
   async costInDefaultCurrency(@Parent() paymentsAggregation: PaymentsAggregation) {
-    const { itemId, paymentsFilter } = paymentsAggregation;
+    const { itemIds, paymentsFilter } = paymentsAggregation;
 
-    if (itemId) {
-      return this.costInDefaultCurrencyByItemIdLoader
+    if (itemIds) {
+      const costInDefaultCurrencyByItemId = await this.costInDefaultCurrencyByItemIdLoader
         .setOptions(paymentsFilter)
-        .load(itemId);
+        .loadMany(itemIds);
+
+      return costInDefaultCurrencyByItemId
+        .filter(isNotError)
+        .reduce(...this.sumAggregationService.reducer);
     }
 
     return this.paymentAggregateService.getCostInDefaultCurrency(paymentsFilter);
@@ -56,12 +73,16 @@ export class PaymentsAggregationResolver {
 
   @ResolveField(() => CostByCurrency)
   async costByCurrency(@Parent() paymentsAggregation: PaymentsAggregation) {
-    const { itemId, paymentsFilter } = paymentsAggregation;
+    const { itemIds, paymentsFilter } = paymentsAggregation;
 
-    if (itemId) {
-      return this.costByCurrencyByItemIdLoader
+    if (itemIds) {
+      const costByCurrencyByItemId = await this.costByCurrencyByItemIdLoader
         .setOptions(paymentsFilter)
-        .load(itemId);
+        .loadMany(itemIds);
+
+      return costByCurrencyByItemId
+        .filter(isNotError)
+        .reduce(...this.costByCurrencyAggregationService.reducer);
     }
 
     return this.paymentAggregateService.getCostByCurrency(paymentsFilter);
@@ -69,12 +90,16 @@ export class PaymentsAggregationResolver {
 
   @ResolveField(() => DateScalar)
   async firstPaymentDate(@Parent() paymentsAggregation: PaymentsAggregation) {
-    const { itemId, paymentsFilter } = paymentsAggregation;
+    const { itemIds, paymentsFilter } = paymentsAggregation;
 
-    if (itemId) {
-      return this.firstPaymentDateByItemIdLoader
+    if (itemIds) {
+      const firstPaymentDateByItemId = await this.firstPaymentDateByItemIdLoader
         .setOptions(paymentsFilter)
-        .load(itemId);
+        .loadMany(itemIds);
+
+      return firstPaymentDateByItemId
+        .filter(isNotError)
+        .reduce(...this.earliestAggregationService.reducer);
     }
 
     return this.paymentAggregateService.getFirstPaymentDate(paymentsFilter);
@@ -82,12 +107,16 @@ export class PaymentsAggregationResolver {
 
   @ResolveField(() => DateScalar)
   async lastPaymentDate(@Parent() paymentsAggregation: PaymentsAggregation) {
-    const { itemId, paymentsFilter } = paymentsAggregation;
+    const { itemIds, paymentsFilter } = paymentsAggregation;
 
-    if (itemId) {
-      return this.lastPaymentDateByItemIdLoader
+    if (itemIds) {
+      const lastPaymentDateByItemId = await this.lastPaymentDateByItemIdLoader
         .setOptions(paymentsFilter)
-        .load(itemId);
+        .loadMany(itemIds);
+
+      return lastPaymentDateByItemId
+        .filter(isNotError)
+        .reduce(...this.latestAggregationService.reducer);
     }
 
     return this.paymentAggregateService.getLastPaymentDate(paymentsFilter);

@@ -6,7 +6,7 @@ import { CostByCurrency } from '../../item-cost/dto';
 @ObjectType()
 export class PaymentsAggregation {
   @HideField()
-  itemId: number;
+  itemIds?: number[];
 
   @HideField()
   paymentsFilter: PaymentsFilter;

@@ -9,6 +9,10 @@ import { CostInDefaultCurrencyByItemIdLoader } from './dataloaders/cost-in-defau
 import { FirstPaymentDateByItemIdLoader } from './dataloaders/first-payment-date-by-item-id.loader.service';
 import { LastPaymentDateByItemIdLoader } from './dataloaders/last-payment-date-by-item-id.loader.service';
 import { PaymentsCountByItemIdLoader } from './dataloaders/payments-count-by-item-id.loader.service';
+import { CostByCurrencyAggregationService } from './metrics/cost-by-currency-aggregation.service';
+import { EarliestAggregationService } from './metrics/earliest-aggregation.service';
+import { LatestAggregationService } from './metrics/latest-aggregation.service';
+import { SumAggregationService } from './metrics/sum-aggregation.service';
 import { PaymentsAggregationService } from './payments-aggregation.service';
 import { PaymentsAggregationResolver } from './resolvers/payments-aggregation.resolver';
 
@@ -30,6 +34,11 @@ import { PaymentsAggregationResolver } from './resolvers/payments-aggregation.re
     PaymentsAggregationResolver,
     // service
     PaymentsAggregationService,
+    // aggregation service
+    SumAggregationService,
+    EarliestAggregationService,
+    LatestAggregationService,
+    CostByCurrencyAggregationService,
   ]
 })
 export class PaymentsAggregationModule {}

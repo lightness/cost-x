@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CurrencyRateService } from '../currency-rate/currency-rate.service';
+import { DateTransformer } from '../database/date.transformer';
 import { Payment } from '../database/entities';
 import { CostByCurrencyService } from '../item-cost/cost-by-currency.service';
 import { DefaultCurrencyCostService } from '../item-cost/default-currency-cost.service';
@@ -19,6 +20,8 @@ export class PaymentsAggregationService {
     private currencyRateService: CurrencyRateService,
   ) { }
 
+  private dateTransformer = new DateTransformer();
+
   // count
 
   async getPaymentsCount(paymentsFilter: PaymentsFilter): Promise<number> {
@@ -26,9 +29,9 @@ export class PaymentsAggregationService {
       .createQueryBuilder('p')
       .where(this.getWhereClause(paymentsFilter), paymentsFilter)
       .select('COUNT(*)', 'count')
-      .getRawOne<{ count: number }>()
+      .getRawOne<{ count: string }>()
 
-    return row.count;
+    return Number(row.count);
   }
 
   async getPaymentsCountByItemIds(itemIds: number[], paymentsFilter: PaymentsFilter): Promise<Map<number, number>> {
@@ -39,9 +42,9 @@ export class PaymentsAggregationService {
       .groupBy('p.itemId')
       .select('p.itemId', 'itemId')
       .addSelect('COUNT(*)', 'count')
-      .getRawMany<{ itemId: number; count: number }>()
+      .getRawMany<{ itemId: number; count: string }>()
 
-    return new Map(rows.map(({ itemId, count }) => [itemId, count]));
+    return new Map(rows.map(({ itemId, count }) => [itemId, Number(count)]));
   }
 
   // costInDefaultCurrency
@@ -93,10 +96,10 @@ export class PaymentsAggregationService {
     const row = await this.paymentRepository
       .createQueryBuilder('p')
       .where(this.getWhereClause(paymentsFilter), paymentsFilter)
-      .select('MIN(p.date)', 'firstPaymentDate')
-      .getRawOne<{ firstPaymentDate: Date }>()
+      .select('CAST(MIN(p.date) AS VARCHAR)', 'firstPaymentDate')
+      .getRawOne<{ firstPaymentDate: string }>()
 
-    return row.firstPaymentDate;
+    return this.dateTransformer.from(row.firstPaymentDate);
   }
 
   async getFirstPaymentDateByItemId(itemIds: number[], paymentsFilter: PaymentsFilter): Promise<Map<number, Date>> {
@@ -106,10 +109,10 @@ export class PaymentsAggregationService {
       .andWhere('p.itemId IN (:...itemIds)', { itemIds })
       .groupBy('p.itemId')
       .select('p.itemId', 'itemId')
-      .addSelect('MIN(p.date)', 'firstPaymentDate')
-      .getRawMany<{ itemId: number; firstPaymentDate: Date }>()
+      .addSelect('CAST(MIN(p.date) AS VARCHAR)', 'firstPaymentDate')
+      .getRawMany<{ itemId: number; firstPaymentDate: string }>()
 
-    return new Map(rows.map(({ itemId, firstPaymentDate }) => [itemId, firstPaymentDate]));
+    return new Map(rows.map(({ itemId, firstPaymentDate }) => [itemId, this.dateTransformer.from(firstPaymentDate)]));
   }
 
   // lastPaymentDate
@@ -118,10 +121,10 @@ export class PaymentsAggregationService {
     const row = await this.paymentRepository
       .createQueryBuilder('p')
       .where(this.getWhereClause(paymentsFilter), paymentsFilter)
-      .select('MAX(p.date)', 'lastPaymentDate')
-      .getRawOne<{ lastPaymentDate: Date }>()
+      .select('CAST(MAX(p.date) AS VARCHAR)', 'lastPaymentDate')
+      .getRawOne<{ lastPaymentDate: string }>()
 
-    return row.lastPaymentDate;
+    return this.dateTransformer.from(row.lastPaymentDate);
   }
 
   async getLastPaymentDateByItemId(itemIds: number[], paymentsFilter: PaymentsFilter): Promise<Map<number, Date>> {
@@ -131,10 +134,10 @@ export class PaymentsAggregationService {
       .andWhere('p.itemId IN (:...itemIds)', { itemIds })
       .groupBy('p.itemId')
       .select('p.itemId', 'itemId')
-      .addSelect('MAX(p.date)', 'lastPaymentDate')
-      .getRawMany<{ itemId: number; lastPaymentDate: Date }>()
+      .addSelect('CAST(MAX(p.date) AS VARCHAR)', 'lastPaymentDate')
+      .getRawMany<{ itemId: number; lastPaymentDate: string }>()
 
-    return new Map(rows.map(({ itemId, lastPaymentDate }) => [itemId, lastPaymentDate]));
+    return new Map(rows.map(({ itemId, lastPaymentDate }) => [itemId, this.dateTransformer.from(lastPaymentDate)]));
   }
 
   // other

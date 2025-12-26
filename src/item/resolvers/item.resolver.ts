@@ -61,7 +61,7 @@ export class ItemResolver {
     @Args('paymentsFilter', { nullable: true }) paymentsFilter: PaymentsFilter
   ) {
     return {
-      itemId: item.id,
+      itemIds: [item.id],
       paymentsFilter,
     };
   }
