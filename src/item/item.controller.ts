@@ -3,10 +3,16 @@ import { ItemByIdPipe } from '../common/pipes/item-by-id.pipe';
 import { Item } from '../database/entities';
 import { ItemInDto, ListItemQueryDto } from './dto';
 import { ItemService } from './item.service';
+import { TestItemService } from './test-item.service';
 
 @Controller()
 export class ItemController {
-  constructor(private itemService: ItemService) { }
+  constructor(private itemService: ItemService, private testItemService: TestItemService) { }
+
+  @Get('test-items')
+  async testItems() {
+    return this.testItemService.test();
+  }
 
   @Get('items')
   async list(

@@ -11,6 +11,7 @@ export default () => ({
     password: process.env.DB_PASSWORD || '',
     database: process.env.DB_DATABASE || '',
     logging: process.env.DB_LOGGING === 'true',
+    url: process.env.DATABASE_URL,
   },
   costCurrency: process.env.COST_CURRENCY || 'USD',
   spreadsheet: {

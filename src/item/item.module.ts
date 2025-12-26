@@ -8,10 +8,13 @@ import { PaymentModule } from '../payment/payment.module';
 import { ItemController } from './item.controller';
 import { ItemResolver } from './resolvers/item.resolver';
 import { ItemService } from './item.service';
+import { PrismaModule } from '../prisma/prisma.module';
+import { TestItemService } from './test-item.service';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Item]), 
+    PrismaModule,
     ItemTagModule,
     ItemCostModule,
     PaymentModule, 
@@ -20,6 +23,7 @@ import { ItemService } from './item.service';
   providers: [
     // service
     ItemService,
+    TestItemService, // temp
     // resolvers
     ItemResolver,
   ],
