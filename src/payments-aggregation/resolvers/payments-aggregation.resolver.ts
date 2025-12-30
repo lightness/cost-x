@@ -10,6 +10,7 @@ import { LastPaymentDateByItemIdLoader } from '../dataloaders/last-payment-date-
 import { PaymentsCountByItemIdLoader } from '../dataloaders/payments-count-by-item-id.loader.service';
 import { PaymentsAggregation } from '../entities/payments-aggregation.entity';
 import { CostByCurrencyAggregationService } from '../metrics/cost-by-currency-aggregation.service';
+import { DecimalSumAggregationService } from '../metrics/decimal-sum-aggregation.service';
 import { EarliestAggregationService } from '../metrics/earliest-aggregation.service';
 import { LatestAggregationService } from '../metrics/latest-aggregation.service';
 import { SumAggregationService } from '../metrics/sum-aggregation.service';
@@ -25,6 +26,7 @@ export class PaymentsAggregationResolver {
     private firstPaymentDateByItemIdLoader: FirstPaymentDateByItemIdLoader,
     private lastPaymentDateByItemIdLoader: LastPaymentDateByItemIdLoader,
     private sumAggregationService: SumAggregationService,
+    private decimalSumAggregationService: DecimalSumAggregationService,
     private earliestAggregationService: EarliestAggregationService,
     private latestAggregationService: LatestAggregationService,
     private costByCurrencyAggregationService: CostByCurrencyAggregationService,
@@ -43,7 +45,7 @@ export class PaymentsAggregationResolver {
 
     if (itemIds) {
       const countByItemId = await this.paymentCountByItemIdLoader
-        .setOptions(paymentsFilter)
+        .withOptions(paymentsFilter)
         .loadMany(itemIds);
 
       return countByItemId
@@ -60,12 +62,12 @@ export class PaymentsAggregationResolver {
 
     if (itemIds) {
       const costInDefaultCurrencyByItemId = await this.costInDefaultCurrencyByItemIdLoader
-        .setOptions(paymentsFilter)
+        .withOptions(paymentsFilter)
         .loadMany(itemIds);
 
       return costInDefaultCurrencyByItemId
         .filter(isNotError)
-        .reduce(...this.sumAggregationService.reducer);
+        .reduce(...this.decimalSumAggregationService.reducer);
     }
 
     return this.paymentAggregateService.getCostInDefaultCurrency(paymentsFilter);
@@ -77,7 +79,7 @@ export class PaymentsAggregationResolver {
 
     if (itemIds) {
       const costByCurrencyByItemId = await this.costByCurrencyByItemIdLoader
-        .setOptions(paymentsFilter)
+        .withOptions(paymentsFilter)
         .loadMany(itemIds);
 
       return costByCurrencyByItemId
@@ -94,7 +96,7 @@ export class PaymentsAggregationResolver {
 
     if (itemIds) {
       const firstPaymentDateByItemId = await this.firstPaymentDateByItemIdLoader
-        .setOptions(paymentsFilter)
+        .withOptions(paymentsFilter)
         .loadMany(itemIds);
 
       return firstPaymentDateByItemId
@@ -111,7 +113,7 @@ export class PaymentsAggregationResolver {
 
     if (itemIds) {
       const lastPaymentDateByItemId = await this.lastPaymentDateByItemIdLoader
-        .setOptions(paymentsFilter)
+        .withOptions(paymentsFilter)
         .loadMany(itemIds);
 
       return lastPaymentDateByItemId

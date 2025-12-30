@@ -1,7 +1,8 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Decimal } from '@prisma/client/runtime/client';
+import { Currency } from '../../generated/prisma/enums';
 import { GetCurrencyRateInDto } from '../currency-rate/dto';
-import { Currency } from '../currency-rate/entities/currency.enum';
 import { CurrencyRateLike, PaymentLike } from './interfaces';
 
 @Injectable()
@@ -20,11 +21,11 @@ export class DefaultCurrencyCostService {
       }));
   }
 
-  getCostInDefaultCurrency<P extends PaymentLike, CR extends CurrencyRateLike>(payments: P[], currencyRates: CR[]): number {
-    let cost = 0;
+  getCostInDefaultCurrency<P extends PaymentLike, CR extends CurrencyRateLike>(payments: P[], currencyRates: CR[]): Decimal {
+    let cost = new Decimal(0);
 
     for (const payment of (payments || [])) {
-      cost += payment.cost * this.getRate(payment, currencyRates);
+      cost = Decimal.add(cost, payment.cost.times(this.getRate(payment, currencyRates)));
     }
 
     return cost;
@@ -34,9 +35,9 @@ export class DefaultCurrencyCostService {
     return this.configService.getOrThrow<Currency>('costCurrency');
   }
 
-  private getRate(payment: PaymentLike, currencyRates: CurrencyRateLike[]): number {
+  private getRate(payment: PaymentLike, currencyRates: CurrencyRateLike[]): Decimal {
     if (payment.currency === this.defaultCurrency) {
-      return 1;
+      return new Decimal(1);
     }
 
     const currencyRate = currencyRates.find((currencyRate) => {

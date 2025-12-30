@@ -1,11 +1,10 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { Item, Payment } from '../database/entities';
 import { ItemsAggregationService } from './items-aggregation.service';
 import { ItemsAggregationResolver } from './resolvers/items-aggregation.resolver';
+import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Item, Payment])],
+  imports: [PrismaModule],
   providers: [
     // service
     ItemsAggregationService,

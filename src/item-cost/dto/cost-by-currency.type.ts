@@ -1,14 +1,16 @@
-import { Field, Float, ObjectType } from '@nestjs/graphql';
+import { Field, ObjectType } from '@nestjs/graphql';
+import { Decimal } from '@prisma/client/runtime/client';
+import { DecimalScalar } from '../../graphql/scalars';
 import { Currency } from '../../currency-rate/entities/currency.enum';
 
 @ObjectType()
 export class CostByCurrency {
-  @Field(() => Float)
-  [Currency.BYN]: number;
+  @Field(() => DecimalScalar)
+  [Currency.BYN]: Decimal;
 
-  @Field(() => Float)
-  [Currency.USD]: number;
+  @Field(() => DecimalScalar)
+  [Currency.USD]: Decimal;
 
-  @Field(() => Float)
-  [Currency.EUR]: number;
+  @Field(() => DecimalScalar)
+  [Currency.EUR]: Decimal;
 }

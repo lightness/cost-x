@@ -1,12 +1,9 @@
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
-import { initializeTransactionalContext } from 'typeorm-transactional';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  initializeTransactionalContext();
-
   const app = await NestFactory.create(AppModule);
 
   const expressApp = app.getHttpAdapter().getInstance();

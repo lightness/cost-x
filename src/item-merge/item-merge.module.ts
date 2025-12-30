@@ -1,11 +1,10 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { ItemMergeController } from './item-merge.controller';
 import { ItemMergeService } from './item-merge.service';
-import { Item, Payment } from '../database/entities';
+import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Item, Payment])],
+  imports: [PrismaModule],
   providers: [ItemMergeService],
   controllers: [ItemMergeController],
 })

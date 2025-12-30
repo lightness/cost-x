@@ -21,6 +21,6 @@ export class CurrencyRateLoader extends BaseLoader<GetCurrencyRateArgs, Currency
   protected cacheFn(request: GetCurrencyRateInDto): string {
     const { fromCurrency, toCurrency, date } = request;
 
-    return `${fromCurrency}->${toCurrency}:${this.dateService.getDatePart(date)}`;
+    return `${fromCurrency}->${toCurrency}:${this.dateService.toString(date)}`;
   }
 }

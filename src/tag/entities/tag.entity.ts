@@ -1,35 +1,28 @@
-import { Field, Int, ObjectType } from '@nestjs/graphql';
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
-import { TableName } from '../../database/database.constants';
-import { Item } from '../../database/entities';
+import { Field, HideField, Int, ObjectType } from '@nestjs/graphql';
+import { Tag as PrismaTag } from '../../../generated/prisma/client';
+import { DateIsoScalar } from '../../graphql/scalars';
 import ItemTag from '../../item-tag/entities/item-tag.entity';
+import Item from '../../item/entities/item.entity';
 
 @ObjectType()
-@Entity({ name: TableName.TAG })
-class Tag {
+class Tag implements PrismaTag {
   @Field(() => Int)
-  @PrimaryGeneratedColumn({ name: 'id' })
   id: number;
 
-  @CreateDateColumn({ name: 'created_at', type: 'timestamp', select: false })
+  @Field(() => DateIsoScalar)
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp', select: false })
+  @Field(() => DateIsoScalar)
   updatedAt: Date;
 
-  @Field()
-  @Column({ name: 'title', length: 100 })
+  @Field(() => String)
   title: string;
 
-  @Field()
-  @Column({ name: 'color', length: 6, nullable: false, default: 'FFFFFF' })
+  @Field(() => String)
   color: string;
 
-  @OneToMany(() => ItemTag, (itemTag) => itemTag.tag)
-  itemTags: ItemTag[];
-
-  @Field(() => [Item])
-  items: Item[];
+  @Field(() => [Item], { nullable: true })
+  items?: Item[];
 }
 
 export default Tag;

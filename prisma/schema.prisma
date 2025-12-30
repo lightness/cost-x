@@ -7,42 +7,42 @@ datasource db {
   provider = "postgresql"
 }
 
-model currencyRate {
-  id            Int      @id(map: "PK_currency_rate_id") @default(autoincrement())
-  createdAt     DateTime @default(now()) @db.Timestamp(6) @map("created_at")
-  fromCurrency  String   @db.VarChar(3) @map("from_currency")
-  toCurrency    String   @db.VarChar(3) @map("to_currency")
-  date          DateTime @db.Date
-  rate          Decimal  @db.Decimal
+model CurrencyRate {
+  id           Int      @id(map: "PK_currency_rate_id") @default(autoincrement())
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  date         DateTime @db.Date
+  rate         Decimal  @db.Decimal
+  fromCurrency Currency @map("from_currency")
+  toCurrency   Currency @map("to_currency")
 
   @@map("currency_rate")
 }
 
-model item {
-  id         Int        @id(map: "PK_item_id") @default(autoincrement())
-  createdAt  DateTime   @default(now()) @db.Timestamp(6) @map("created_at")
-  updatedAt  DateTime   @default(now()) @db.Timestamp(6) @map("updated_at")
-  title      String     @db.VarChar(255)
-  itemTag    itemTag[]
-  payment    payment[]
+model Item {
+  id        Int       @id(map: "PK_item_id") @default(autoincrement())
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt DateTime  @default(now()) @map("updated_at") @db.Timestamp(6)
+  title     String    @db.VarChar(255)
+  itemTag   ItemTag[]
+  payment   Payment[]
 
   @@map("item")
 }
 
-model itemTag {
-  id         Int      @id(map: "PK_item_tag_id") @default(autoincrement())
-  createdAt  DateTime @default(now()) @db.Timestamp(6) @map("created_at")
-  updatedAt  DateTime @default(now()) @db.Timestamp(6) @map("updated_at")
-  itemId     Int      @map("item_id")
-  tagId      Int      @map("tag_id")
-  item       item     @relation(fields: [itemId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_item_tag_item_id_item_id")
-  tag        tag      @relation(fields: [tagId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_item_tag_tag_id_tag_id")
+model ItemTag {
+  id        Int      @id(map: "PK_item_tag_id") @default(autoincrement())
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamp(6)
+  itemId    Int      @map("item_id")
+  tagId     Int      @map("tag_id")
+  item      Item     @relation(fields: [itemId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_item_tag_item_id_item_id")
+  tag       Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_item_tag_tag_id_tag_id")
 
-  @@map("item_tag")
   @@unique([itemId, tagId], map: "UQ_item_tag_item_id_tag_id")
+  @@map("item_tag")
 }
 
-model migration {
+model Migration {
   id        Int    @id(map: "PK_migration_id") @default(autoincrement())
   timestamp BigInt
   name      String @db.VarChar
@@ -50,27 +50,33 @@ model migration {
   @@map("migration")
 }
 
-model payment {
-  id         Int      @id(map: "PK_payment_id") @default(autoincrement())
-  createdAt  DateTime @default(now()) @db.Timestamp(6) @map("created_at")
-  updatedAt  DateTime @default(now()) @db.Timestamp(6) @map("updated_at")
-  cost       Decimal  @db.Decimal
-  currency   String   @db.VarChar(3)
-  itemId     Int      @map("item_id")
-  date       DateTime @db.Date
-  title      String?  @db.VarChar
-  item       item     @relation(fields: [itemId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_payment_item_id_item_id")
+model Payment {
+  id        Int      @id(map: "PK_payment_id") @default(autoincrement())
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamp(6)
+  cost      Decimal  @db.Decimal
+  itemId    Int      @map("item_id")
+  date      DateTime @db.Date
+  title     String?  @db.VarChar
+  currency  Currency
+  item      Item     @relation(fields: [itemId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_payment_item_id_item_id")
 
   @@map("payment")
 }
 
-model tag {
-  id         Int        @id(map: "PK_tag_id") @default(autoincrement())
-  createdAt  DateTime   @default(now()) @db.Timestamp(6) @map("created_at")
-  updatedAt  DateTime   @default(now()) @db.Timestamp(6) @map("updated_at")
-  title      String     @db.VarChar(100)
-  color      String     @default("FFFFFF") @db.VarChar(6)
-  itemTag   itemTag[]
+model Tag {
+  id        Int       @id(map: "PK_tag_id") @default(autoincrement())
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt DateTime  @default(now()) @map("updated_at") @db.Timestamp(6)
+  title     String    @db.VarChar(100)
+  color     String    @default("FFFFFF") @db.VarChar(6)
+  itemTag   ItemTag[]
 
   @@map("tag")
+}
+
+enum Currency {
+  BYN
+  USD
+  EUR
 }

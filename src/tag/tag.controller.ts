@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query } 
 import { ListTagQueryDto, TagInDto } from './dto';
 import { TagService } from './tag.service';
 import { TagByIdPipe } from '../common/pipes/tag-by-id.pipe';
-import { Tag } from '../database/entities';
+import Tag from './entities/tag.entity';
 
 @Controller()
 export class TagController {

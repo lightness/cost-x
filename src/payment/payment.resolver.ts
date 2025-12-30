@@ -1,22 +1,21 @@
 import { NotFoundException } from '@nestjs/common';
 import { Args, Int, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Item, Payment } from '../database/entities';
 import { FindPaymentsResponse, PaymentsFilter } from './dto';
 import { PaymentService } from './payment.service';
+import Payment from './entities/payment.entity';
+import Item from '../item/entities/item.entity';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Resolver(() => Payment)
 export class PaymentResolver {
   constructor(
-    @InjectRepository(Item) private itemRepository: Repository<Item>,
-    @InjectRepository(Payment) private paymentRepository: Repository<Payment>,
+    private prisma: PrismaService,
     private paymentService: PaymentService,
   ) {}
 
   @Query(() => Payment)
   async payment(@Args('id', { type: () => Int }) id: number) {
-    const payment = await this.paymentRepository.findOneBy({ id });
+    const payment = await this.prisma.payment.findFirst({ where: { id } });
 
     if (!payment) {
       throw new NotFoundException(id);
@@ -38,7 +37,7 @@ export class PaymentResolver {
   async item(@Parent() payment: Payment) {
     const { itemId } = payment;
 
-    const item = await this.itemRepository.findOneBy({ id: itemId });
+    const item = await this.prisma.item.findFirst({ where: { id: itemId } });
 
     if (!item) {
       throw new NotFoundException(`Item with ID ${itemId} not found`);

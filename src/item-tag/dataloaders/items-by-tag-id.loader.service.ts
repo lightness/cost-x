@@ -1,19 +1,22 @@
 import { Injectable, Scope } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
-import { Item, ItemTag } from '../../database/entities';
 import { BaseLoader } from '../../graphql/dataloaders/base.loader';
+import { PrismaService } from '../../prisma/prisma.service';
+import Item from '../../item/entities/item.entity';
 
 @Injectable({ scope: Scope.REQUEST })
 export class ItemsByTagIdLoader extends BaseLoader<number, Item[]> {
-  constructor(@InjectRepository(ItemTag) private itemTagRepository: Repository<ItemTag>) {
+  constructor(private prisma: PrismaService) {
     super();
   }
 
   protected async loaderFn(tagIds: number[]): Promise<Item[][]> {
-    const itemTags = await this.itemTagRepository.find({
-      where: { tagId: In(tagIds) },
-      relations: { item: true },
+    const itemTags = await this.prisma.itemTag.findMany({
+      where: {
+        tagId: { in: tagIds },
+      },
+      include: {
+        item: true,
+      },
     });
 
     const itemsByTagId = tagIds.map(tagId =>

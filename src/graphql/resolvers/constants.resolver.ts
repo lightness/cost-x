@@ -1,7 +1,7 @@
 
 import { Query, Resolver } from '@nestjs/graphql';
-import { Currency } from '../../currency-rate/entities/currency.enum';
 import { DefaultCurrencyCostService } from '../../item-cost/default-currency-cost.service';
+import { Currency } from '../../../generated/prisma/enums';
 
 @Resolver()
 export class ConstantsResolver {

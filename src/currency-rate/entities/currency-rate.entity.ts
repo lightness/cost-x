@@ -1,35 +1,28 @@
-import { Field, Float, ObjectType } from '@nestjs/graphql';
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
-import { ColumnNumericTransformer } from '../../database/column-numeric.transformer';
-import { TableName } from '../../database/database.constants';
-import { DateTransformer } from '../../database/date.transformer';
-import { DateScalar } from '../../graphql/scalars';
-import { Currency } from './currency.enum';
+import { Field, Int, ObjectType } from '@nestjs/graphql';
+import { Decimal } from '@prisma/client/runtime/client';
+import { CurrencyRate as PrismaCurrencyRate } from '../../../generated/prisma/client';
+import { Currency } from '../entities/currency.enum';
+import { DateIsoScalar, DateScalar, DecimalScalar } from '../../graphql/scalars';
 
 @ObjectType()
-@Entity({ name: TableName.CURRENCY_RATE })
-class CurrencyRate {
-  @PrimaryGeneratedColumn({ name: 'id' })
+class CurrencyRate implements PrismaCurrencyRate {
+  @Field(() => Int)
   id: number;
 
-  @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
+  @Field(() => DateIsoScalar)
   createdAt: Date;
 
   @Field(() => Currency)
-  @Column({ name: 'from_currency', length: 3 })
   fromCurrency: Currency;
 
   @Field(() => Currency)
-  @Column({ name: 'to_currency', length: 3 })
   toCurrency: Currency;
 
   @Field(() => DateScalar)
-  @Column({ name: 'date', type: 'date', transformer: new DateTransformer() })
   date: Date;
 
-  @Field(() => Float)
-  @Column({ name: 'rate', type: 'decimal', transformer: new ColumnNumericTransformer() })
-  rate: number;
+  @Field(() => DecimalScalar)
+  rate: Decimal;
 }
 
 export default CurrencyRate;

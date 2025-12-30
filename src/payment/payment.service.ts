@@ -1,35 +1,31 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { cmp } from 'type-comparator';
-import { Between, FindOptionsWhere, In, LessThan, MoreThan, Repository } from 'typeorm';
 import { ConsistencyService } from '../consistency/consistency.service';
-import { Item, Payment } from '../database/entities';
 import { PaymentLike } from '../item-cost/interfaces';
+import Item from '../item/entities/item.entity';
+import { PrismaService } from '../prisma/prisma.service';
 import { PaymentInDto, PaymentOutDto, PaymentsFilter } from './dto';
+import Payment from './entities/payment.entity';
 
 @Injectable()
 export class PaymentService {
   constructor(
-    @InjectRepository(Payment) private paymentRepository: Repository<Payment>,
+    private prisma: PrismaService, 
     private consistencyService: ConsistencyService,
   ) { }
 
   async getPaymentsByItemIds(itemIds: number[], filter: PaymentsFilter): Promise<Map<number, Payment[]>> {
     const { dateFrom, dateTo } = filter || {};
 
-    const where: FindOptionsWhere<Payment> = {
-      itemId: In(itemIds),
-    };
-
-    if (dateFrom && dateTo) {
-      where.date = Between(dateFrom, dateTo);
-    } else if (dateFrom) {
-      where.date = MoreThan(dateFrom);
-    } else if (dateTo) {
-      where.date = LessThan(dateTo);
-    }
-
-    const payments = await this.paymentRepository.find({ where });
+    const payments = await this.prisma.payment.findMany({
+      where: {
+        itemId: { in: itemIds },
+        date: {
+          gte: dateFrom,
+          lte: dateTo,
+        },
+      },
+    });
 
     return payments.reduce(
       (map: Map<number, Payment[]>, payment: Payment) => {
@@ -57,41 +53,43 @@ export class PaymentService {
     return payment;
   }
 
-  async addPayment(item: Item, dto: PaymentInDto): Promise<PaymentOutDto> {
-    return this.paymentRepository.save({ ...dto, itemId: item.id });
+  async addPayment(item: Item, dto: PaymentInDto): Promise<Payment> {
+    return this.prisma.payment.create({ data: { ...dto, itemId: item.id } });
   }
 
-  async updatePayment(item: Item, payment: Payment, dto: PaymentInDto): Promise<PaymentOutDto> {
+  async updatePayment(item: Item, payment: Payment, dto: PaymentInDto): Promise<Payment> {
     this.consistencyService.paymentToItem.ensureIsBelonging(payment, item);
 
-    payment.title = dto.title;
-    payment.cost = dto.cost;
-    payment.currency = dto.currency;
-    payment.date = new Date(dto.date);
-
-    return this.paymentRepository.save(payment);
+    return this.prisma.payment.update({
+      where: { id: payment.id },
+      data: {
+        title: dto.title,
+        cost: dto.cost,
+        currency: dto.currency,
+        date: dto.date,
+      },
+    });
   }
 
   async removePayment(item: Item, payment: Payment) {
     this.consistencyService.paymentToItem.ensureIsBelonging(payment, item);
 
-    await this.paymentRepository.remove(payment);
+    await this.prisma.payment.delete({
+      where: { id: payment.id },
+    });
   }
 
   async list(filter: PaymentsFilter): Promise<Payment[]> {
     const { dateFrom, dateTo } = filter || {};
 
-    const where: FindOptionsWhere<Payment> = {};
-
-    if (dateFrom && dateTo) {
-      where.date = Between(dateFrom, dateTo);
-    } else if (dateFrom) {
-      where.date = MoreThan(dateFrom);
-    } else if (dateTo) {
-      where.date = LessThan(dateTo);
-    }
-
-    const payments = await this.paymentRepository.find({ where });
+    const payments = await this.prisma.payment.findMany({
+      where: {
+        date: {
+          gte: dateFrom,
+          lte: dateTo,
+        },
+      },
+    })
 
     return payments;
   } 

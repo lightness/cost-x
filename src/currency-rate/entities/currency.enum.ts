@@ -1,9 +1,6 @@
 import { registerEnumType } from '@nestjs/graphql';
-
-export enum Currency {
-  USD = 'USD',
-  EUR = 'EUR',
-  BYN = 'BYN',
-}
+import { Currency } from '../../../generated/prisma/enums';
 
 registerEnumType(Currency, { name: 'Currency' });
+
+export { Currency };

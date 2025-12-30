@@ -1,24 +1,20 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query } from '@nestjs/common';
 import { ItemByIdPipe } from '../common/pipes/item-by-id.pipe';
-import { Item } from '../database/entities';
 import { ItemInDto, ListItemQueryDto } from './dto';
 import { ItemService } from './item.service';
-import { TestItemService } from './test-item.service';
+import Item from './entities/item.entity';
 
 @Controller()
 export class ItemController {
-  constructor(private itemService: ItemService, private testItemService: TestItemService) { }
-
-  @Get('test-items')
-  async testItems() {
-    return this.testItemService.test();
-  }
+  constructor(private itemService: ItemService) { }
 
   @Get('items')
   async list(
     @Query() query: ListItemQueryDto,
   ) {
-    return this.itemService.list(query);
+    const { paymentDateFrom: dateFrom, paymentDateTo: dateTo, tagIds, title } = query;
+
+    return this.itemService.list({ tagIds, title }, { dateFrom, dateTo });
   }
 
   @Get('items/:id')

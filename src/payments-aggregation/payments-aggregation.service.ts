@@ -1,55 +1,56 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Decimal } from '@prisma/client/runtime/client';
+import { PaymentWhereInput } from '../../generated/prisma/models';
 import { CurrencyRateService } from '../currency-rate/currency-rate.service';
-import { DateTransformer } from '../database/date.transformer';
-import { Payment } from '../database/entities';
 import { CostByCurrencyService } from '../item-cost/cost-by-currency.service';
 import { DefaultCurrencyCostService } from '../item-cost/default-currency-cost.service';
 import { CostByCurrency } from '../item-cost/dto';
 import { PaymentsFilter } from '../payment/dto';
 import { PaymentService } from '../payment/payment.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class PaymentsAggregationService {
   constructor(
-    @InjectRepository(Payment) private paymentRepository: Repository<Payment>,
+    private prisma: PrismaService,
     private defaultCurrencyCostService: DefaultCurrencyCostService,
     private costByCurrencyService: CostByCurrencyService,
     private paymentService: PaymentService,
     private currencyRateService: CurrencyRateService,
   ) { }
 
-  private dateTransformer = new DateTransformer();
-
   // count
 
   async getPaymentsCount(paymentsFilter: PaymentsFilter): Promise<number> {
-    const row = await this.paymentRepository
-      .createQueryBuilder('p')
-      .where(this.getWhereClause(paymentsFilter), paymentsFilter)
-      .select('COUNT(*)', 'count')
-      .getRawOne<{ count: string }>()
+    const count = await this.prisma.payment.count({
+      where: this.getWhereClause(paymentsFilter)
+    });
 
-    return Number(row.count);
+    return count
   }
 
   async getPaymentsCountByItemIds(itemIds: number[], paymentsFilter: PaymentsFilter): Promise<Map<number, number>> {
-    const rows = await this.paymentRepository
-      .createQueryBuilder('p')
-      .where(this.getWhereClause(paymentsFilter), paymentsFilter)
-      .andWhere('p.itemId IN (:...itemIds)', { itemIds })
-      .groupBy('p.itemId')
-      .select('p.itemId', 'itemId')
-      .addSelect('COUNT(*)', 'count')
-      .getRawMany<{ itemId: number; count: string }>()
+    console.log('🔮 itemIds, paymentsFilter', itemIds, paymentsFilter);
 
-    return new Map(rows.map(({ itemId, count }) => [itemId, Number(count)]));
+    const rows = await this.prisma.payment.groupBy({
+      where: {
+        ...this.getWhereClause(paymentsFilter),
+        itemId: { in: itemIds },
+      },
+      by: ['itemId'],
+      _count: {
+        _all: true,
+      }
+    });
+
+    console.log('🔮 rows', rows);
+
+    return new Map(rows.map(({ itemId, _count: { _all: count } }) => [itemId, count]));
   }
 
   // costInDefaultCurrency
 
-  async getCostInDefaultCurrency(paymentsFilter: PaymentsFilter): Promise<number> {
+  async getCostInDefaultCurrency(paymentsFilter: PaymentsFilter): Promise<Decimal> {
     const payments = await this.paymentService.list(paymentsFilter);
     const requiredCurrencyRateRequests = this.defaultCurrencyCostService.getRequiredCurrencyRates(payments);
     const currencyRates = await this.currencyRateService.getMany(requiredCurrencyRateRequests);
@@ -57,7 +58,7 @@ export class PaymentsAggregationService {
     return this.defaultCurrencyCostService.getCostInDefaultCurrency(payments, currencyRates);
   }
 
-  async getCostInDefaultCurrencyByItemIds(itemIds: number[], paymentsFilter: PaymentsFilter): Promise<Map<number, number>> {
+  async getCostInDefaultCurrencyByItemIds(itemIds: number[], paymentsFilter: PaymentsFilter): Promise<Map<number, Decimal>> {
     const paymentsByItemId = await this.paymentService.getPaymentsByItemIds(itemIds, paymentsFilter);
     const allPayments = Array.from(paymentsByItemId.values()).flat();
     const requiredCurrencyRateRequests = this.defaultCurrencyCostService.getRequiredCurrencyRates(allPayments);
@@ -93,71 +94,65 @@ export class PaymentsAggregationService {
   // firstPaymentDate
 
   async getFirstPaymentDate(paymentsFilter: PaymentsFilter): Promise<Date> {
-    const row = await this.paymentRepository
-      .createQueryBuilder('p')
-      .where(this.getWhereClause(paymentsFilter), paymentsFilter)
-      .select('CAST(MIN(p.date) AS VARCHAR)', 'firstPaymentDate')
-      .getRawOne<{ firstPaymentDate: string }>()
+    const stats = await this.prisma.payment.aggregate({
+      where: this.getWhereClause(paymentsFilter),
+      _min: { date: true },
+    });
 
-    return this.dateTransformer.from(row.firstPaymentDate);
+    return stats._min.date;
   }
 
   async getFirstPaymentDateByItemId(itemIds: number[], paymentsFilter: PaymentsFilter): Promise<Map<number, Date>> {
-    const rows = await this.paymentRepository
-      .createQueryBuilder('p')
-      .where(this.getWhereClause(paymentsFilter), paymentsFilter)
-      .andWhere('p.itemId IN (:...itemIds)', { itemIds })
-      .groupBy('p.itemId')
-      .select('p.itemId', 'itemId')
-      .addSelect('CAST(MIN(p.date) AS VARCHAR)', 'firstPaymentDate')
-      .getRawMany<{ itemId: number; firstPaymentDate: string }>()
+    const rows = await this.prisma.payment.groupBy({
+      where: {
+        ...this.getWhereClause(paymentsFilter),
+        itemId: { in: itemIds },
+      },
+      by: ['itemId'],
+      _min: { date: true },
+    });
 
-    return new Map(rows.map(({ itemId, firstPaymentDate }) => [itemId, this.dateTransformer.from(firstPaymentDate)]));
+    return new Map(rows.map(({ itemId, _min: { date } }) => [itemId, date]));
   }
 
   // lastPaymentDate
 
   async getLastPaymentDate(paymentsFilter: PaymentsFilter): Promise<Date> {
-    const row = await this.paymentRepository
-      .createQueryBuilder('p')
-      .where(this.getWhereClause(paymentsFilter), paymentsFilter)
-      .select('CAST(MAX(p.date) AS VARCHAR)', 'lastPaymentDate')
-      .getRawOne<{ lastPaymentDate: string }>()
+    const stats = await this.prisma.payment.aggregate({
+      where: this.getWhereClause(paymentsFilter),
+      _max: { date: true }
+    });
 
-    return this.dateTransformer.from(row.lastPaymentDate);
+    return stats._max.date;
   }
 
   async getLastPaymentDateByItemId(itemIds: number[], paymentsFilter: PaymentsFilter): Promise<Map<number, Date>> {
-    const rows = await this.paymentRepository
-      .createQueryBuilder('p')
-      .where(this.getWhereClause(paymentsFilter), paymentsFilter)
-      .andWhere('p.itemId IN (:...itemIds)', { itemIds })
-      .groupBy('p.itemId')
-      .select('p.itemId', 'itemId')
-      .addSelect('CAST(MAX(p.date) AS VARCHAR)', 'lastPaymentDate')
-      .getRawMany<{ itemId: number; lastPaymentDate: string }>()
+    const rows = await this.prisma.payment.groupBy({
+      where: { 
+        ...this.getWhereClause(paymentsFilter),
+        itemId: { in: itemIds },
+      },
+      by: ['itemId'],
+      _max: { date: true },
+    });
 
-    return new Map(rows.map(({ itemId, lastPaymentDate }) => [itemId, this.dateTransformer.from(lastPaymentDate)]));
+    return new Map(rows.map(({ itemId, _max: { date } }) => [itemId, date]));
   }
 
   // other
 
-  private getWhereClause(paymentsFilter: PaymentsFilter): string {
+  private getWhereClause(paymentsFilter: PaymentsFilter): PaymentWhereInput {
     const { dateFrom, dateTo } = paymentsFilter;
 
-    if (dateFrom && dateTo) {
-      return 'p.date BETWEEN :dateFrom AND :dateTo';
+    // Not sure
+    const result: PaymentWhereInput = {
+      date: {
+        gte: dateFrom,
+        lte: dateTo,
+      },
     }
 
-    if (dateFrom) {
-      return 'p.date >= :dateFrom';
-    }
-
-    if (dateTo) {
-      return 'p.date < :dateTo';
-    }
-
-    return '';
+    return result;
   }
 
 }

@@ -1,12 +1,13 @@
 import { Injectable, Scope } from '@nestjs/common';
-import { FilteredPaymentsLoader } from '../../payment/dataloaders/filtered-payments.loader.service';
+import { Decimal } from '@prisma/client/runtime/client';
+import { Currency } from '../../currency-rate/entities/currency.enum';
+import { NestedLoader } from '../../graphql/dataloaders/nested.loader';
+import { CostByCurrency } from '../../item-cost/dto';
 import { PaymentsFilter } from '../../payment/dto';
 import { PaymentsAggregationService } from '../payments-aggregation.service';
-import { CostByCurrency } from '../../item-cost/dto';
-import { Currency } from '../../currency-rate/entities/currency.enum';
 
 @Injectable({ scope: Scope.REQUEST })
-export class CostByCurrencyByItemIdLoader extends FilteredPaymentsLoader<number, CostByCurrency> {
+export class CostByCurrencyByItemIdLoader extends NestedLoader<number, CostByCurrency, PaymentsFilter> {
   constructor(private paymentsAggregationService: PaymentsAggregationService) {
     super();
   }
@@ -19,9 +20,9 @@ export class CostByCurrencyByItemIdLoader extends FilteredPaymentsLoader<number,
 
   private get defaultValue(): CostByCurrency {
     return {
-      [Currency.BYN]: 0,
-      [Currency.EUR]: 0,
-      [Currency.USD]: 0,
+      [Currency.BYN]: new Decimal(0),
+      [Currency.EUR]: new Decimal(0),
+      [Currency.USD]: new Decimal(0),
     };
   }
 }

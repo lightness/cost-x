@@ -1,15 +1,13 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { Tag } from '../database/entities';
-import { TagsByItemIdLoader } from '../item-tag/dataloaders/tags-by-item-id.loader.service';
 import { ItemTagModule } from '../item-tag/item-tag.module';
 import { TagController } from './tag.controller';
 import { TagResolver } from './tag.resolver';
 import { TagService } from './tag.service';
+import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Tag]),
+    PrismaModule,
     ItemTagModule,
   ],
   providers: [

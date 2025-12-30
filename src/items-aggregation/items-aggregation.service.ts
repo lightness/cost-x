@@ -1,23 +1,22 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Brackets, Repository } from 'typeorm';
-import { Item, Payment } from '../database/entities';
 import { ItemsFilter } from '../item/dto';
 import { PaymentsFilter } from '../payment/dto';
+import { PrismaService } from '../prisma/prisma.service';
+import { ItemWhereInput } from '../../generated/prisma/models';
 
 @Injectable()
 export class ItemsAggregationService {
   constructor(
-    @InjectRepository(Item) private itemRepository: Repository<Item>,
-    @InjectRepository(Payment) private paymentRepository: Repository<Payment>,
+    private prisma: PrismaService,
   ) { }
 
   async getIds(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): Promise<number[]> {
-    const rows = await this.itemRepository
-      .createQueryBuilder('i')
-      .where(this.getWhereClause(itemsFilter, paymentsFilter))
-      .select('i.id', 'id')
-      .getRawMany<{ id: number }>();
+    const rows = await this.prisma.item.findMany({
+      where: this.getWhereClause(itemsFilter, paymentsFilter),
+      select: {
+        id: true,
+      },
+    });
 
     return rows.map(row => row.id);
   }
@@ -25,34 +24,30 @@ export class ItemsAggregationService {
   // count
 
   async getCount(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): Promise<number> {
-    const row = await this.itemRepository
-      .createQueryBuilder('i')
-      .where(this.getWhereClause(itemsFilter, paymentsFilter))
-      .select('COUNT(*)', 'count')
-      .getRawOne<{ count: number }>()
+    const count = await this.prisma.item.count({
+      where: this.getWhereClause(itemsFilter, paymentsFilter),
+    });
 
-    return row.count;
+    return count;
   }
 
   // other
 
-  private getWhereClause(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): Brackets {
+  private getWhereClause(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): ItemWhereInput {
     const { title, tagIds } = itemsFilter;
     const { dateFrom: paymentDateFrom, dateTo: paymentDateTo } = paymentsFilter;
-    const hasPaymentsFilter = Boolean(paymentDateFrom) || Boolean(paymentDateTo);
 
-    return new Brackets(qb => {
-      const subQuery = this.paymentRepository
-        .createQueryBuilder('p')
-        .select('1')
-        .where('p.itemId = i.id')
-        .andWhere(paymentDateFrom ? 'p.date >= :paymentDateFrom' : '1=1')
-        .andWhere(paymentDateTo ? 'p.date < :paymentDateTo' : '1=1')
-        .getQuery();
+    const withTagIds = (tagIds || []).length > 0;
+    const withPayments = Boolean(paymentDateFrom || paymentDateTo);
 
-      qb.where(title ? 'i.title LIKE :title' : '1=1', { title: `%${title}%` })
-        .andWhere(tagIds ? 'i.tagId IN (:...tagIds)' : '1=1', { tagIds })
-        .andWhere(`EXISTS (${subQuery})`, { paymentDateFrom, paymentDateTo });
-    });
+    return {
+      title: title ? { contains: title, mode: 'insensitive' } : undefined,
+      itemTag: withTagIds 
+        ? { some: { tagId: { in: tagIds } } } 
+        : undefined,
+      payment: withPayments 
+        ? { some: { date: { gte: paymentDateFrom, lte: paymentDateTo } } } 
+        : undefined,
+    }
   }
 }

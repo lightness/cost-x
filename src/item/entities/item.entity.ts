@@ -1,43 +1,33 @@
-import { Field, Int, ObjectType } from '@nestjs/graphql';
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
-import { TableName } from '../../database/database.constants';
-import { Tag } from '../../database/entities';
+import { Field, HideField, Int, ObjectType } from '@nestjs/graphql';
+import { Item as PrismaItem } from '../../../generated/prisma/client';
 import { DateIsoScalar } from '../../graphql/scalars';
 import ItemTag from '../../item-tag/entities/item-tag.entity';
 import Payment from '../../payment/entities/payment.entity';
 import { PaymentsAggregation } from '../../payments-aggregation/entities/payments-aggregation.entity';
+import Tag from '../../tag/entities/tag.entity';
 
 @ObjectType()
-@Entity({ name: TableName.ITEM })
-class Item {
+class Item implements PrismaItem {
   @Field(() => Int)
-  @PrimaryGeneratedColumn({ name: 'id' })
   id: number;
 
   @Field(() => DateIsoScalar)
-  @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
 
   @Field(() => DateIsoScalar)
-  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
 
   @Field()
-  @Column({ name: 'title', length: 255 })
   title: string;
 
-  @OneToMany(() => ItemTag, (itemTag) => itemTag.item)
-  itemTags: ItemTag[];
+  @Field(() => [Payment], { nullable: true })
+  payments?: Payment[];
 
-  @Field(() => [Payment])
-  @OneToMany(() => Payment, (payment) => payment.item)
-  payments: Payment[];
+  @Field(() => PaymentsAggregation, { nullable: true })
+  paymentsAggregation?: PaymentsAggregation;
 
-  @Field(() => PaymentsAggregation)
-  paymentsAggregation: PaymentsAggregation;
-
-  @Field(() => [Tag])
-  tags: Tag[];
+  @Field(() => [Tag], { nullable: true })
+  tags?: Tag[];
 }
 
 export default Item;

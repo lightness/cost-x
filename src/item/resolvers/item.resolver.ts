@@ -1,10 +1,11 @@
-import { Args, Context, Int, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
-import { Payment, Tag } from '../../database/entities';
+import { Args, Int, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import { TagsByItemIdLoader } from '../../item-tag/dataloaders/tags-by-item-id.loader.service';
 import { PaymentsByItemIdLoader } from '../../payment/dataloaders/payments-by-item-id.loader.service';
 import { PaymentsFilter } from '../../payment/dto';
+import Payment from '../../payment/entities/payment.entity';
 import { PaymentService } from '../../payment/payment.service';
 import { PaymentsAggregation } from '../../payments-aggregation/entities/payments-aggregation.entity';
+import Tag from '../../tag/entities/tag.entity';
 import { ItemsFilter } from '../dto';
 import Item from '../entities/item.entity';
 import { ItemService } from '../item.service';
@@ -28,11 +29,7 @@ export class ItemResolver {
     @Args('itemsFilter', { nullable: true }) itemsFilter: ItemsFilter,
     @Args('paymentsFilter', { nullable: true }) paymentsFilter: PaymentsFilter,
   ): Promise<Item[]> {
-    const items = await this.itemService.list({
-      ...itemsFilter,
-      paymentDateFrom: paymentsFilter.dateFrom,
-      paymentDateTo: paymentsFilter.dateTo,
-    });
+    const items = await this.itemService.list(itemsFilter, paymentsFilter);
 
     return items;
   }
@@ -42,7 +39,9 @@ export class ItemResolver {
     @Parent() item: Item,
     @Args('paymentsFilter', { nullable: true }) paymentsFilter: PaymentsFilter,
   ): Promise<Payment[]> {
-    const allPayments = await this.paymentsByItemIdLoader.load(item.id);
+    // console.log('>>> paymentsFilter', paymentsFilter);
+
+    const allPayments = await this.paymentsByItemIdLoader.withOptions(paymentsFilter).load(item.id);
     const payments = this.paymentService.filterPayments(allPayments, paymentsFilter);
 
     return payments;

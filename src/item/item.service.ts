@@ -1,76 +1,68 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Item } from '../database/entities';
-import { ItemInDto, ListItemQueryDto } from './dto';
+import { ItemWhereInput } from '../../generated/prisma/models';
+import { PaymentsFilter } from '../payment/dto';
+import { PrismaService } from '../prisma/prisma.service';
+import { ItemInDto, ItemsFilter } from './dto';
+import Item from './entities/item.entity';
 
 @Injectable()
 export class ItemService {
-  constructor(@InjectRepository(Item) private itemRepository: Repository<Item>) { }
+  constructor(
+    private prisma: PrismaService,
+  ) { }
 
   async getById(id: number): Promise<Item> {
-    const item = await this.itemRepository.findOneBy({ id });
+    const item = await this.prisma.item.findUnique({ where: { id } });
 
     return item;
   }
 
-  async list(query: ListItemQueryDto): Promise<Item[]> {
-    const { title, tagIds, paymentDateFrom, paymentDateTo } = query || {};
-
-    const queryBuilder = this.itemRepository
-      .createQueryBuilder('item');
-
-    if (title) {
-      queryBuilder.andWhere('item.title LIKE :title', { title: `%${title}%` });
-    }
-
-    if (tagIds && tagIds.length > 0) {
-      queryBuilder
-        .innerJoin('item.itemTags', 'itemTags')
-        .andWhere('itemTags.tagId IN (:...tagIds)', { tagIds });
-    }
-
-    if (paymentDateFrom || paymentDateTo) {
-      queryBuilder.innerJoin('item.payments', 'payments');
-
-      if (paymentDateFrom && paymentDateTo) {
-        queryBuilder.andWhere('payments.date BETWEEN :paymentDateFrom AND :paymentDateTo', {
-          paymentDateFrom,
-          paymentDateTo
-        });
-      } else if (paymentDateFrom) {
-        queryBuilder.andWhere('payments.date >= :paymentDateFrom', { paymentDateFrom });
-      } else if (paymentDateTo) {
-        queryBuilder.andWhere('payments.date <= :paymentDateTo', { paymentDateTo });
-      }
-    }
-
-    queryBuilder.distinct(true);
-
-    return await queryBuilder.getMany();
+  async list(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): Promise<Item[]> {
+    return this.prisma.item.findMany({
+      where: this.getWhereClause(itemsFilter, paymentsFilter),
+    });
   }
 
   async create(dto: ItemInDto): Promise<Item> {
-    const item = await this.itemRepository.save(dto);
+    const item = await this.prisma.item.create({ data: dto });
 
     return item;
   }
 
   async update(item: Item, dto: ItemInDto): Promise<Item> {
-    item.title = dto.title;
-
-    return this.itemRepository.save(item);
+    return this.prisma.item.update({
+      where: {
+        id: item.id,
+      },
+      data: {
+        title: dto.title,
+      },
+    });
   }
 
   async delete(item: Item): Promise<void> {
-    await this.itemRepository.remove(item);
+    await this.prisma.item.delete({
+      where: { id: item.id },
+    });
   }
 
-  // async list(): Promise<FindItemsResponse> {
-  //   const items = await this.itemRepository.find({});
-
-  //   return items;
-  // }
-
   // private
+
+  private getWhereClause(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): ItemWhereInput {
+    const { title, tagIds } = itemsFilter;
+    const { dateFrom: paymentDateFrom, dateTo: paymentDateTo } = paymentsFilter;
+
+    const withTagIds = (tagIds || []).length > 0;
+    const withPayments = Boolean(paymentDateFrom || paymentDateTo);
+
+    return {
+      title: title ? { contains: title, mode: 'insensitive' } : undefined,
+      itemTag: withTagIds
+        ? { some: { tagId: { in: tagIds } } }
+        : undefined,
+      payment: withPayments
+        ? { some: { date: { gte: paymentDateFrom, lte: paymentDateTo } } }
+        : undefined,
+    }
+  }
 }

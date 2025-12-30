@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { Item, Payment } from '../database/entities';
 import { Relation } from './relation';
+import Payment from '../payment/entities/payment.entity';
+import Item from '../item/entities/item.entity';
 
 @Injectable()
 export class ConsistencyService {

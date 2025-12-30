@@ -1,16 +1,16 @@
-import { BadRequestException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsWhere, Like, Repository } from 'typeorm';
-import { Tag } from '../database/entities';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 import { ListTagQueryDto, TagInDto, TagOutDto } from './dto';
+import Tag from './entities/tag.entity';
 
+@Injectable()
 export class TagService {
   constructor(
-    @InjectRepository(Tag) private tagRepository: Repository<Tag>,
+    private prisma: PrismaService,
   ) {}
 
   async getById(id: number): Promise<Tag | null> {
-    const tag = await this.tagRepository.findOneBy({ id });
+    const tag = await this.prisma.tag.findFirst({ where: { id } });
 
     return tag;
   }
@@ -18,43 +18,51 @@ export class TagService {
   async list(query: ListTagQueryDto): Promise<Tag[]> {
     let { title } =  query || {};
 
-    const options: FindOptionsWhere<Tag> = {};
-
-    if (title) {
-      options.title = Like(`%${title}%`);
-    }
-
-    const tags = await this.tagRepository.findBy(query);
+    const tags = await this.prisma.tag.findMany({
+      where: {
+        title: title 
+          ? { contains: title, mode: 'insensitive' } 
+          : undefined
+      }
+    })
 
     return tags;
   }
 
   async create(dto: TagInDto): Promise<TagOutDto> {
-    const tag = await this.tagRepository.save(dto);
+    const tag = await this.prisma.tag.create({ data: dto });
 
     return tag;
   }
 
   async update(id: number, dto: TagInDto): Promise<TagOutDto> {
-    const tag = await this.tagRepository.findOneBy({ id });
+    return this.prisma.$transaction(async (tx) => {
+      // TODO: Select for update
+      const tag = await tx.tag.findUnique({ 
+        where: { id },
+      });
 
-    if (!tag) {
-      throw new BadRequestException(`Tag #${id} does not exist`);
-    }
+      if (!tag) {
+        throw new BadRequestException(`Tag #${id} does not exist`);
+      }
 
-    tag.title = dto.title;
-    tag.color = dto.color;
-
-    return this.tagRepository.save(tag);
+      return this.prisma.tag.update({
+        where: { id },
+        data: {
+          title: dto.title,
+          color: dto.color,
+        },
+      });
+    });
   }
 
   async delete(id: number): Promise<void> {
-    const tag = await this.tagRepository.findOneBy({ id });
+    const tag = await this.prisma.tag.findUnique({ where: { id } });
 
     if (!tag) {
       throw new BadRequestException(`Tag #${id} does not exist`);
     }
 
-    await this.tagRepository.remove(tag);
+    await this.prisma.tag.delete({ where: { id } });
   }
 }

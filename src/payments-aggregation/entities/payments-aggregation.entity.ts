@@ -1,7 +1,8 @@
 import { Field, Float, HideField, Int, ObjectType } from '@nestjs/graphql';
 import { PaymentsFilter } from '../../payment/dto';
-import { DateScalar } from '../../graphql/scalars';
+import { DateScalar, DecimalScalar } from '../../graphql/scalars';
 import { CostByCurrency } from '../../item-cost/dto';
+import { Decimal } from '@prisma/client/runtime/client';
 
 @ObjectType()
 export class PaymentsAggregation {
@@ -14,8 +15,8 @@ export class PaymentsAggregation {
   @Field(() => Int, { nullable: true })
   count?: number;
 
-  @Field(() => Float, { nullable: true })
-  costInDefaultCurrency?: number;
+  @Field(() => DecimalScalar, { nullable: true })
+  costInDefaultCurrency?: Decimal;
 
   @Field(() => CostByCurrency, { nullable: true })
   costByCurrency?: CostByCurrency;

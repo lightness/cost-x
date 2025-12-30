@@ -3,45 +3,51 @@
 # ------------------------------------------------------
 
 type CurrencyRate {
+  id: Int!
+  createdAt: DateIso!
   fromCurrency: Currency!
   toCurrency: Currency!
   date: Date!
-  rate: Float!
+  rate: Decimal!
 }
 
+"""Date custom scalar type in ISO format"""
+scalar DateIso
+
 enum Currency {
+  BYN
   USD
   EUR
-  BYN
 }
 
 """Date custom scalar type in YYYY-MM-DD format"""
 scalar Date
+
+"""Decimal number"""
+scalar Decimal
 
 type Payment {
   id: Int!
   createdAt: DateIso
   updatedAt: DateIso
   title: String
-  cost: Float!
+  cost: Decimal!
   currency: Currency!
   date: Date!
-  item: Item!
+  item: Item
+  itemId: Int!
 }
 
-"""Date custom scalar type in ISO format"""
-scalar DateIso
-
 type CostByCurrency {
-  BYN: Float!
-  USD: Float!
-  EUR: Float!
+  BYN: Decimal!
+  USD: Decimal!
+  EUR: Decimal!
 }
 
 type FindPaymentsAggregates {
   count: Int
   costByCurrency: CostByCurrency
-  costInDefaultCurrency: Float
+  costInDefaultCurrency: Decimal
   firstPaymentDate: Date
   lastPaymentDate: Date
 }
@@ -53,10 +59,19 @@ type FindPaymentsResponse {
 
 type PaymentsAggregation {
   count: Int
-  costInDefaultCurrency: Float
+  costInDefaultCurrency: Decimal
   costByCurrency: CostByCurrency
   firstPaymentDate: Date
   lastPaymentDate: Date
+}
+
+type Tag {
+  id: Int!
+  createdAt: DateIso!
+  updatedAt: DateIso!
+  title: String!
+  color: String!
+  items: [Item!]
 }
 
 type Item {
@@ -64,21 +79,14 @@ type Item {
   createdAt: DateIso!
   updatedAt: DateIso!
   title: String!
-  payments(paymentsFilter: PaymentsFilter): [Payment!]!
-  paymentsAggregation(paymentsFilter: PaymentsFilter): PaymentsAggregation!
-  tags: [Tag!]!
+  payments(paymentsFilter: PaymentsFilter): [Payment!]
+  paymentsAggregation(paymentsFilter: PaymentsFilter): PaymentsAggregation
+  tags: [Tag!]
 }
 
 input PaymentsFilter {
   dateFrom: Date
   dateTo: Date
-}
-
-type Tag {
-  id: Int!
-  title: String!
-  color: String!
-  items: [Item!]!
 }
 
 type ItemsAggregation {

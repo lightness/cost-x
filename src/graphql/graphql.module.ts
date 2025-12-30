@@ -4,7 +4,7 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { join } from 'node:path';
 import { ItemCostModule } from '../item-cost/default-currency-cost.module';
 import { ConstantsResolver } from './resolvers/constants.resolver';
-import { DateIsoScalar, DateScalar } from './scalars';
+import { DateIsoScalar, DateScalar, DecimalScalar } from './scalars';
 
 @Module({
   imports: [
@@ -16,6 +16,7 @@ import { DateIsoScalar, DateScalar } from './scalars';
       resolvers: {
         Date: DateScalar,
         DateIso: DateIsoScalar,
+        Decimal: DecimalScalar,
       },
     }),
     ItemCostModule,
