@@ -9,10 +9,11 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "docker:up": "docker compose -f ./docker/compose.yml up -d",
     "prisma:studio": "prisma studio --config ./prisma.config.ts",
-    "prisma:migration:create": "prisma migrate dev --name ${migration_name:-Migration}",
+    "prisma:migration:create": "prisma migrate dev --name ${migration_name:-Migration} --create-only",
     "prisma:migration:up": "prisma migrate deploy",
     "prisma:migration:reset": "prisma migrate reset",
-    "prisma:client:generate": "prisma generate"
+    "prisma:client:generate": "prisma generate",
+    "prisma:client:generate:force": "rimraf ./generated/ && prisma generate"
   },
   "keywords": [],
   "author": "",
@@ -29,6 +30,7 @@
     "@nestjs/platform-express": "11.1.11",
     "@prisma/adapter-pg": "7.2.0",
     "@prisma/client": "7.2.0",
+    "bcrypt": "6.0.0",
     "class-transformer": "0.5.1",
     "class-validator": "0.14.3",
     "dataloader": "2.2.3",
@@ -37,16 +39,19 @@
     "google-spreadsheet": "5.0.2",
     "graphql": "16.12.0",
     "jsonwebtoken": "9.0.3",
+    "mailersend": "2.6.0",
     "pg": "8.16.3",
     "type-comparator": "0.2.10"
   },
   "devDependencies": {
+    "@types/bcrypt": "6.0.0",
     "@types/node": "22.19.3",
     "@types/pg": "8.16.0",
     "change-case": "5.4.4",
     "db-migrate": "0.11.14",
     "db-migrate-pg": "1.5.2",
     "prisma": "7.2.0",
+    "rimraf": "6.1.2",
     "source-map-support": "0.5.21",
     "ts-node": "10.9.2"
   }

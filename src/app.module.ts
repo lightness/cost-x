@@ -11,6 +11,7 @@ import { ItemsAggregationModule } from './items-aggregation/items-aggregation.mo
 import { PaymentModule } from './payment/payment.module';
 import { PaymentsAggregationModule } from './payments-aggregation/payments-aggregation.module';
 import { TagModule } from './tag/tag.module';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { TagModule } from './tag/tag.module';
     DataMigrationModule,
     PaymentsAggregationModule,
     ItemsAggregationModule,
+    UserModule,
   ],
 })
 export class AppModule { }

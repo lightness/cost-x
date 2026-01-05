@@ -23,5 +23,8 @@ export default () => ({
       'usdCost',
       'eurCost',
     ]
+  },
+  mailersend: {
+    apiKey: process.env.MAILERSEND_API_KEY,
   }
 });

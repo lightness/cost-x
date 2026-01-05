@@ -94,6 +94,14 @@ type ItemsAggregation {
   paymentsAggregation(paymentsFilter: PaymentsFilter): PaymentsAggregation
 }
 
+type User {
+  id: Int!
+  createdAt: DateIso!
+  updatedAt: DateIso!
+  name: String!
+  email: String!
+}
+
 type Query {
   defaultCurrency: Currency!
   currencyRate(fromCurrency: Currency!, toCurrency: Currency!, date: Date!): CurrencyRate!
@@ -105,6 +113,7 @@ type Query {
   payments(paymentsFilter: PaymentsFilter): FindPaymentsResponse!
   paymentsAggregation(paymentsFilter: PaymentsFilter): PaymentsAggregation!
   itemsAggregation(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): ItemsAggregation!
+  users: [User!]!
 }
 
 input TagsFilter {
@@ -114,4 +123,14 @@ input TagsFilter {
 input ItemsFilter {
   tagIds: [Int!]
   title: String
+}
+
+type Mutation {
+  createUser(createUserData: CreateUserInDto!): User!
+}
+
+input CreateUserInDto {
+  name: String!
+  email: String!
+  password: String!
 }
