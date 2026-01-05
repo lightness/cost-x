@@ -100,6 +100,13 @@ type User {
   updatedAt: DateIso!
   name: String!
   email: String!
+  status: UserStatus!
+}
+
+enum UserStatus {
+  ACTIVE
+  EMAIL_NOT_VERIFIED
+  BANNED
 }
 
 type Query {
@@ -127,6 +134,7 @@ input ItemsFilter {
 
 type Mutation {
   createUser(createUserData: CreateUserInDto!): User!
+  updateUser: User!
 }
 
 input CreateUserInDto {

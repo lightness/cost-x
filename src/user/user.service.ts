@@ -1,9 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { CreateUserInDto } from './dto';
-import { User } from './entities/user.entity';
+import { v4 as uuid } from 'uuid';
+import { MailService } from '../mail/mail.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { BcryptService } from './bcrypt.service';
-import { MailService } from '../mail/mail.service';
+import { CreateUserInDto } from './dto';
+import { UserStatus } from './entities/user-status.enum';
+import { User } from './entities/user.entity';
+import { ConfirmEmailService } from './confirm-email.service';
 
 @Injectable()
 export class UserService {
@@ -11,7 +14,8 @@ export class UserService {
     private prisma: PrismaService,
     private bcryptService: BcryptService,
     private mailService: MailService,
-  ) {}
+    private confirmEmailService: ConfirmEmailService,
+  ) { }
 
   async create(dto: CreateUserInDto): Promise<User> {
     const user = await this.prisma.user.create({
@@ -19,14 +23,15 @@ export class UserService {
         email: dto.email,
         password: await this.bcryptService.hashPassword(dto.password),
         name: dto.name,
+        status: UserStatus.EMAIL_NOT_VERIFIED,
+        tempCode: uuid(),
       }
     });
 
-    // await this.mailService.send({
-    //   toUser: user,
-    //   subject: 'Welcome to Cost-X',
-    //   text: [`Hey, ${user.name}`, 'You are welcome to Cost-X'].join('\n'),
-    // });
+    await this.mailService.sendConfirmEmail(
+      user, 
+      this.confirmEmailService.createConfirmEmailToken(user),
+    );
 
     return user;
   }

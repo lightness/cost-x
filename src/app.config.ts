@@ -26,5 +26,16 @@ export default () => ({
   },
   mailersend: {
     apiKey: process.env.MAILERSEND_API_KEY,
+    sender: {
+      email: process.env.SENDER_EMAIL,
+      name: 'Cost-X'
+    },
+    confirmEmail: {
+      linkUrl: process.env.CONFIRM_EMAIL_LINK_URL,
+      jwt: {
+        secret: 'TopSECRET',
+        ttl: '7d'
+      }
+    }
   }
 });

@@ -1,5 +1,5 @@
 import { Field, HideField, Int, ObjectType } from '@nestjs/graphql';
-import { User as PrismaUser } from '../../../generated/prisma/client';
+import { User as PrismaUser, UserStatus } from '../../../generated/prisma/client';
 import { DateIsoScalar } from '../../graphql/scalars';
 
 @ObjectType()
@@ -19,6 +19,12 @@ export class User implements PrismaUser {
   @Field(() => String)
   email: string;
 
+  @Field(() => UserStatus)
+  status: UserStatus;
+
   @HideField()
   password: string;
+
+  @HideField()
+  tempCode: string | null;
 }

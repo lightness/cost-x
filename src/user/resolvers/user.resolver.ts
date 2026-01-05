@@ -17,4 +17,8 @@ export class UserResolver {
     return this.userService.create(dto);
   }
 
+  @Mutation(() => User)
+  async updateUser() {
+
+  }
 }
