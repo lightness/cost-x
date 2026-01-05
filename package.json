@@ -9,9 +9,10 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "docker:up": "docker compose -f ./docker/compose.yml up -d",
     "prisma:studio": "prisma studio --config ./prisma.config.ts",
-    "prisma:migrate": "prisma migrate dev --name ${migration_name:-Migration}",
-    "prisma:generate": "prisma generate",
-    "prisma:reset": "prisma migrate reset"
+    "prisma:migration:create": "prisma migrate dev --name ${migration_name:-Migration}",
+    "prisma:migration:up": "prisma migrate deploy",
+    "prisma:migration:reset": "prisma migrate reset",
+    "prisma:client:generate": "prisma generate"
   },
   "keywords": [],
   "author": "",
