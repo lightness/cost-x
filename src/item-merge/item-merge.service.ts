@@ -1,33 +1,37 @@
 import { Injectable } from '@nestjs/common';
-import { InjectDataSource } from '@nestjs/typeorm';
-import { DataSource, EntityManager } from 'typeorm';
-import { Item, ItemTag, Payment } from '../database/entities';
+import { PrismaService } from '../prisma/prisma.service';
+import Item from '../item/entities/item.entity';
 
 @Injectable()
 export class ItemMergeService {
-  constructor(@InjectDataSource() private dataSource: DataSource) {}
+  constructor(private prisma: PrismaService) { }
 
-  // TODO: Use @Transactional decorator
   async merge(hostItem: Item, mergingItem: Item) {
-    return await this.dataSource.transaction(async (entityManager: EntityManager) => {
-      const paymentRepository = await entityManager.getRepository(Payment);
-      const itemRepository = await entityManager.getRepository(Item);
-      const itemTagRepository = await entityManager.getRepository(ItemTag);
+    return await this.prisma.$transaction(async (tx) => {
+      const mergingPayments = await tx.payment.findMany({ where: { itemId: mergingItem.id } });
 
-      const mergingPayments = await paymentRepository.findBy({ itemId: mergingItem.id });
+      await tx.payment.createMany({
+        data: mergingPayments.map(
+          (payment) => ({
+            ...payment,
+            title: payment.title || mergingItem.title,
+            itemId: hostItem.id,
+          }),
+        ),
+      });
 
-      await paymentRepository.save(mergingPayments.map((payment) => ({ 
-        ...payment, 
-        title: payment.title || mergingItem.title, 
-        itemId: hostItem.id,
-      })));
+      await tx.itemTag.deleteMany({
+        where: { itemId: mergingItem.id },
+      });
 
-      await itemTagRepository.delete({ itemId: mergingItem.id });
-      await itemRepository.remove(mergingItem);
+      await tx.item.delete({
+        where: { id: mergingItem.id },
+      });
 
+      // TODO: Refactor simplify query
       return {
-        item: await itemRepository.findOneBy({ id: hostItem.id }),
-        payments: await paymentRepository.findBy({ itemId: hostItem.id }),
+        item: await tx.item.findUnique({ where: { id: hostItem.id } }),
+        payments: await tx.payment.findMany({ where: { itemId: hostItem.id } }),
       };
     });
   }

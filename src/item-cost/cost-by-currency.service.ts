@@ -1,21 +1,22 @@
 import { Injectable } from '@nestjs/common';
+import { Decimal } from '@prisma/client/runtime/client';
+import { Currency } from '../../generated/prisma/enums';
+import { CostByCurrency } from './dto';
 import { PaymentLike } from './interfaces';
-import { CostByCurrencyOutDto } from './dto/cost-by-currency.out.dto';
-import { Currency } from '../database/entities/currency.enum';
 
 @Injectable()
 export class CostByCurrencyService {
-  async getCostByCurrency(payments: PaymentLike[]): Promise<CostByCurrencyOutDto> {
-    return payments.reduce(
+  getCostByCurrency(payments: PaymentLike[]): CostByCurrency {
+    return payments.reduce<CostByCurrency>(
       (acc, cur) => {
-        acc[cur.currency] += cur.cost;
+        acc[cur.currency] = Decimal.add(acc[cur.currency], cur.cost);
 
         return acc;
       }, 
       {
-        [Currency.BYN]: 0,
-        [Currency.USD]: 0,
-        [Currency.EUR]: 0,
+        [Currency.BYN]: new Decimal(0),
+        [Currency.USD]: new Decimal(0),
+        [Currency.EUR]: new Decimal(0),
       }
     )
   }

@@ -1,16 +1,47 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { PaymentInDto, PaymentOutDto } from './dto';
-import { Item, Payment } from '../database/entities';
+import { cmp } from 'type-comparator';
 import { ConsistencyService } from '../consistency/consistency.service';
+import { PaymentLike } from '../item-cost/interfaces';
+import Item from '../item/entities/item.entity';
+import { PrismaService } from '../prisma/prisma.service';
+import { PaymentInDto, PaymentOutDto, PaymentsFilter } from './dto';
+import Payment from './entities/payment.entity';
 
 @Injectable()
 export class PaymentService {
   constructor(
-    @InjectRepository(Payment) private paymentRepository: Repository<Payment>,
+    private prisma: PrismaService, 
     private consistencyService: ConsistencyService,
-  ) {}
+  ) { }
+
+  async getPaymentsByItemIds(itemIds: number[], filter: PaymentsFilter): Promise<Map<number, Payment[]>> {
+    const { dateFrom, dateTo } = filter || {};
+
+    const payments = await this.prisma.payment.findMany({
+      where: {
+        itemId: { in: itemIds },
+        date: {
+          gte: dateFrom,
+          lte: dateTo,
+        },
+      },
+    });
+
+    return payments.reduce(
+      (map: Map<number, Payment[]>, payment: Payment) => {
+        const { itemId } = payment;
+
+        if (map.has(itemId)) {
+          map.set(itemId, [...map.get(itemId), payment]);
+        } else {
+          map.set(itemId, [payment]);
+        }
+
+        return map;
+      },
+      new Map(),
+    );
+  }
 
   async getPayment(item: Item, payment: Payment): Promise<Payment> {
     this.consistencyService.paymentToItem.ensureIsBelonging(payment, item);
@@ -20,26 +51,63 @@ export class PaymentService {
     }
 
     return payment;
-  } 
-
-  async addPayment(item: Item, dto: PaymentInDto): Promise<PaymentOutDto> {
-    return this.paymentRepository.save({ ...dto, itemId: item.id });
   }
 
-  async updatePayment(item: Item, payment: Payment, dto: PaymentInDto): Promise<PaymentOutDto> {
+  async addPayment(item: Item, dto: PaymentInDto): Promise<Payment> {
+    return this.prisma.payment.create({ data: { ...dto, itemId: item.id } });
+  }
+
+  async updatePayment(item: Item, payment: Payment, dto: PaymentInDto): Promise<Payment> {
     this.consistencyService.paymentToItem.ensureIsBelonging(payment, item);
 
-    payment.title = dto.title;
-    payment.cost = dto.cost;
-    payment.currency = dto.currency;
-    payment.date = new Date(dto.date);
-
-    return this.paymentRepository.save(payment);
+    return this.prisma.payment.update({
+      where: { id: payment.id },
+      data: {
+        title: dto.title,
+        cost: dto.cost,
+        currency: dto.currency,
+        date: dto.date,
+      },
+    });
   }
 
   async removePayment(item: Item, payment: Payment) {
     this.consistencyService.paymentToItem.ensureIsBelonging(payment, item);
 
-    await this.paymentRepository.remove(payment);
+    await this.prisma.payment.delete({
+      where: { id: payment.id },
+    });
+  }
+
+  async list(filter: PaymentsFilter): Promise<Payment[]> {
+    const { dateFrom, dateTo } = filter || {};
+
+    const payments = await this.prisma.payment.findMany({
+      where: {
+        date: {
+          gte: dateFrom,
+          lte: dateTo,
+        },
+      },
+    })
+
+    return payments;
+  } 
+
+  filterPayments<T extends PaymentLike>(payments: T[], filters: PaymentsFilter): T[] {
+    const { dateFrom, dateTo } = filters || {};
+
+    return payments.filter(({ date }) => {
+      return (dateFrom ? dateFrom <= date : true) 
+        && (dateTo ? dateTo > date : true);
+    })
+  }
+
+  getFirstPaymentDate<T extends PaymentLike>(payments: T[]): Date {
+    return payments.map(payment => payment.date).sort(cmp().asc()).at(0);
+  }
+
+  getLastPaymentDate<T extends PaymentLike>(payments: T[]): Date {
+    return payments.map(payment => payment.date).sort(cmp().desc()).at(0);
   }
 }

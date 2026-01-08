@@ -1,8 +1,8 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query } from '@nestjs/common';
 import { ItemByIdPipe } from '../common/pipes/item-by-id.pipe';
-import { Item } from '../database/entities';
 import { ItemInDto, ListItemQueryDto } from './dto';
 import { ItemService } from './item.service';
+import Item from './entities/item.entity';
 
 @Controller()
 export class ItemController {
@@ -12,7 +12,9 @@ export class ItemController {
   async list(
     @Query() query: ListItemQueryDto,
   ) {
-    return this.itemService.list(query);
+    const { paymentDateFrom: dateFrom, paymentDateTo: dateTo, tagIds, title } = query;
+
+    return this.itemService.list({ tagIds, title }, { dateFrom, dateTo });
   }
 
   @Get('items/:id')

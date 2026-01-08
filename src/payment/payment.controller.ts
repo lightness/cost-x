@@ -2,8 +2,9 @@ import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put } from '@
 import { PaymentInDto } from './dto';
 import { PaymentService } from './payment.service';
 import { ItemByIdPipe } from '../common/pipes/item-by-id.pipe';
-import { Item, Payment } from '../database/entities';
 import { PaymentByIdPipe } from '../common/pipes/payment-by-id.pipe';
+import Item from '../item/entities/item.entity';
+import Payment from './entities/payment.entity';
 
 @Controller()
 export class PaymentController {

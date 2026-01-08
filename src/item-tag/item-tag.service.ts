@@ -1,41 +1,56 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Item, ItemTag, Tag } from '../database/entities';
+import Item from '../item/entities/item.entity';
+import { PrismaService } from '../prisma/prisma.service';
+import Tag from '../tag/entities/tag.entity';
+import ItemTag from './entities/item-tag.entity';
 
 @Injectable()
 export class ItemTagService {
   constructor(
-    @InjectRepository(ItemTag) private itemTagRepository: Repository<ItemTag>,
-  ) {}
+    private prisma: PrismaService,
+  ) { }
 
   async setTag(item: Item, tag: Tag): Promise<ItemTag> {
-    const itemTag = await this.itemTagRepository.findOne({ 
-      where: { 
-        itemId: item.id, 
+    const itemTag = await this.prisma.itemTag.findFirst({
+      where: {
+        itemId: item.id,
         tagId: tag.id,
-      }, 
+      },
     });
 
     if (itemTag) {
       throw new BadRequestException(`Item #${item.id} already has tag #${tag.id}`);
     }
 
-    return this.itemTagRepository.save({
-      itemId: item.id,
-      tagId: tag.id,
+    return this.prisma.itemTag.create({
+      data: {
+        item: { connect: { id: item.id } },
+        tag: { connect: { id: tag.id } },
+      }
     });
   }
 
   async removeTag(item: Item, tag: Tag): Promise<void> {
-    const itemTag = await this.itemTagRepository.findOne({ 
-      where: { itemId: item.id, tagId: tag.id },
+    const itemTag = await this.prisma.itemTag.findUnique({
+      where: { 
+        itemId_tagId: { 
+          itemId: item.id, 
+          tagId: tag.id,
+        },
+      },
     });
 
     if (!itemTag) {
       throw new BadRequestException(`Item #${item.id} does not have tag #${tag.id}`);
     }
 
-    await this.itemTagRepository.remove(itemTag);
+    await this.prisma.itemTag.delete({
+      where: {
+        itemId_tagId: { 
+          itemId: item.id, 
+          tagId: tag.id,
+        },
+      }
+    });
   }
 }

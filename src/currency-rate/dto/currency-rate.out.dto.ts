@@ -1,4 +1,4 @@
-import { Currency } from '../../database/entities/currency.enum';
+import { Currency } from '../entities/currency.enum';
 
 export class CurrencyRateOutDto {
 

@@ -4,7 +4,7 @@ import { TagService } from '../tag/tag.service';
 import { ItemService } from '../item/item.service';
 import { ItemTagService } from '../item-tag/item-tag.service';
 import { PaymentService } from '../payment/payment.service';
-import { Currency } from '../database/entities/currency.enum';
+import { Currency } from '../../generated/prisma/enums';
 
 @Injectable()
 export class DataMigrationService {
@@ -22,9 +22,8 @@ export class DataMigrationService {
     let globalTag;
 
     for (const row of rows) {
-      const { title, usdCost, eurCost, bynCost } = row;
-      const date = new Date(row.date);
-
+      const { title, usdCost, eurCost, bynCost, date } = row;
+      
       if (title && !date && !usdCost && !eurCost && !bynCost) {
         const cleanTitle = title.trim();
 
@@ -43,7 +42,7 @@ export class DataMigrationService {
         await this.paymentService.addPayment(item, {
           cost: usdCost,
           currency: Currency.USD,
-          date,
+          date: new Date(date),
         });
       } 
 
@@ -51,7 +50,7 @@ export class DataMigrationService {
         await this.paymentService.addPayment(item, {
           cost: eurCost,
           currency: Currency.EUR,
-          date,
+          date: new Date(date),
         });
       }
 
@@ -59,7 +58,7 @@ export class DataMigrationService {
         await this.paymentService.addPayment(item, {
           cost: bynCost,
           currency: Currency.BYN,
-          date,
+          date: new Date(date),
         });
       }
     }

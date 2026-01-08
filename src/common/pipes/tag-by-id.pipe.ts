@@ -1,14 +1,13 @@
 import { Injectable, NotFoundException, PipeTransform } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Tag } from '../../database/entities';
+import { PrismaService } from '../../prisma/prisma.service';
+import Tag from '../../tag/entities/tag.entity';
 
 @Injectable()
 export class TagByIdPipe implements PipeTransform<number, Promise<Tag>> {
-  constructor(@InjectRepository(Tag) private tagRepository: Repository<Tag>) {}
+  constructor(private prisma: PrismaService) {}
 
   async transform(value: number): Promise<Tag> {
-    const tag = await this.tagRepository.findOneBy({ id: value });
+    const tag = await this.prisma.tag.findFirst({ where: { id: value } });
 
     if (!tag) {
       throw new NotFoundException(`Tag #${value} not found`);
