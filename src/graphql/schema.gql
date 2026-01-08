@@ -134,10 +134,16 @@ input ItemsFilter {
 
 type Mutation {
   createUser(createUserData: CreateUserInDto!): User!
-  updateUser: User!
+  updateUser(id: Int!, updateUserData: UpdateUserInDto!): User!
 }
 
 input CreateUserInDto {
+  name: String!
+  email: String!
+  password: String!
+}
+
+input UpdateUserInDto {
   name: String!
   email: String!
   password: String!

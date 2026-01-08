@@ -3,8 +3,11 @@ import { Field, InputType } from '@nestjs/graphql';
 @InputType()
 export class UpdateUserInDto {
   @Field(() => String)
-  name: string;
+  name?: string;
 
   @Field(() => String)
-  password: string;
+  email?: string;
+
+  @Field(() => String)
+  password?: string;
 }
