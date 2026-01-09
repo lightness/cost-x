@@ -17,6 +17,7 @@ import { TagModule } from './tag/tag.module';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { AccessModule } from './access/access.module';
+import { WorkspaceModule } from './workspace/workspace.module';
 
 @Module({
   imports: [
@@ -34,16 +35,7 @@ import { AccessModule } from './access/access.module';
     PaymentsAggregationModule,
     ItemsAggregationModule,
     UserModule,
+    WorkspaceModule,
   ],
-  // providers: [
-  //   {
-  //     provide: APP_GUARD,
-  //     useClass: AuthGuard,
-  //   },
-  //   {
-  //     provide: APP_GUARD,
-  //     useClass: AccessGuard,
-  //   },
-  // ]
 })
 export class AppModule { }

@@ -1,5 +1,5 @@
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { get } from 'radash';
 
-export const fromReq = (path: string) => 
-  (ctx: GqlExecutionContext) => get<number>(ctx.getContext()?.req, path);
+export const fromReq = <T = number>(path: string) => 
+  (ctx: GqlExecutionContext) => get<T>(ctx.getContext()?.req, path);

@@ -8,7 +8,7 @@ export enum AccessAction {
 
 export enum AccessScope {
   USER = 'user',
-  SPACE = 'space',
+  WORKSPACE = 'workspace',
   ITEM = 'item',
   PAYMENT = 'payment',
   GLOBAL = 'global',

@@ -1,12 +1,13 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { UserRole } from '../user/entities/user-role.enum';
-import { AccessAction, AccessScope, Rule, RuleDef, RuleOperationAnd, RuleOperationOr } from './interfaces';
 import { fromReq } from './function/from-req.function';
+import { AccessAction, AccessScope, Rule, RuleDef, RuleOperationAnd, RuleOperationOr } from './interfaces';
+import { RuleEngineService } from './rule-engine.service';
 
 @Injectable()
 export class AccessService {
-  constructor() {}
+  constructor(private ruleEngineService: RuleEngineService) {}
 
   private normalizeRule(rule: Rule): Rule {
     return {
@@ -39,7 +40,7 @@ export class AccessService {
     }
 
     if (this.isRule(ruleDef)) {
-      return this.processRule(ruleDef, ctx);
+      return this.ruleEngineService.executeRule(this.normalizeRule(ruleDef), ctx);
     }
 
     throw new InternalServerErrorException(`Access rule is wrong: ${JSON.stringify(ruleDef)}`);
@@ -60,10 +61,11 @@ export class AccessService {
   private async processRule(rule: Rule, ctx: GqlExecutionContext): Promise<boolean> {
     const normalizedRule = this.normalizeRule(rule);
     const { sourceScope, sourceId: getSourceId, targetScope, targetId: getTargetId, role } = normalizedRule;
+    const currentUserRole = fromReq<UserRole>('user.role')(ctx);
 
     // TODO: Rewrite
     if (targetScope === AccessScope.GLOBAL) {
-      return role.includes(this.getCurrentUserRole(ctx));
+      return role.includes(currentUserRole);
     }
 
     if (sourceScope === targetScope) {
@@ -74,13 +76,9 @@ export class AccessService {
         return false;
       }
 
-      return role.includes(this.getCurrentUserRole(ctx));
+      return role.includes(currentUserRole);
     } else {
       throw new InternalServerErrorException(`Not implemented yet (scopes)`)
     }
-  }
-
-  private getCurrentUserRole(ctx: GqlExecutionContext): UserRole {
-    return ctx.getContext()?.req?.user?.role
   }
 }
