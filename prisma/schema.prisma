@@ -88,6 +88,7 @@ model User {
   email     String      @db.VarChar(255)
   password  String      @db.VarChar(72)
   name      String      @db.VarChar(50)
+  role      UserRole    @default(USER)
   status    UserStatus
   tempCode  String?
 
@@ -98,4 +99,9 @@ enum UserStatus {
   ACTIVE
   EMAIL_NOT_VERIFIED
   BANNED
+}
+
+enum UserRole {
+  USER
+  ADMIN
 }

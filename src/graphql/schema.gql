@@ -94,6 +94,11 @@ type ItemsAggregation {
   paymentsAggregation(paymentsFilter: PaymentsFilter): PaymentsAggregation
 }
 
+type AuthOutDto {
+  accessToken: String!
+  refreshToken: String!
+}
+
 type User {
   id: Int!
   createdAt: DateIso!
@@ -101,12 +106,18 @@ type User {
   name: String!
   email: String!
   status: UserStatus!
+  role: UserRole!
 }
 
 enum UserStatus {
   ACTIVE
   EMAIL_NOT_VERIFIED
   BANNED
+}
+
+enum UserRole {
+  USER
+  ADMIN
 }
 
 type Query {
@@ -133,8 +144,14 @@ input ItemsFilter {
 }
 
 type Mutation {
+  authenticate(dto: AuthInDto!): AuthOutDto!
   createUser(createUserData: CreateUserInDto!): User!
   updateUser(id: Int!, updateUserData: UpdateUserInDto!): User!
+}
+
+input AuthInDto {
+  email: String!
+  password: String!
 }
 
 input CreateUserInDto {

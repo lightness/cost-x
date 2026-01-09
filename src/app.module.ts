@@ -1,6 +1,9 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
+import { AccessGuard } from './access/guard/access.guard';
 import config from './app.config';
+import { AuthGuard } from './auth/guard/auth.guard';
 import { CurrencyRateModule } from './currency-rate/currency-rate.module';
 import { DataMigrationModule } from './data-migration/data-migration.module';
 import { GraphqlModule } from './graphql/graphql.module';
@@ -12,11 +15,15 @@ import { PaymentModule } from './payment/payment.module';
 import { PaymentsAggregationModule } from './payments-aggregation/payments-aggregation.module';
 import { TagModule } from './tag/tag.module';
 import { UserModule } from './user/user.module';
+import { AuthModule } from './auth/auth.module';
+import { AccessModule } from './access/access.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, load: [config] }),
     GraphqlModule,
+    AuthModule,
+    AccessModule,
     TagModule,
     ItemModule,
     ItemTagModule,
@@ -28,5 +35,15 @@ import { UserModule } from './user/user.module';
     ItemsAggregationModule,
     UserModule,
   ],
+  // providers: [
+  //   {
+  //     provide: APP_GUARD,
+  //     useClass: AuthGuard,
+  //   },
+  //   {
+  //     provide: APP_GUARD,
+  //     useClass: AccessGuard,
+  //   },
+  // ]
 })
 export class AppModule { }

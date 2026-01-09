@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { v4 as uuid } from 'uuid';
 import { MailService } from '../mail/mail.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { BcryptService } from './bcrypt.service';
+import { BcryptService } from '../password/bcrypt.service';
 import { CreateUserInDto, UpdateUserInDto } from './dto';
 import { UserStatus } from './entities/user-status.enum';
 import { User } from './entities/user.entity';

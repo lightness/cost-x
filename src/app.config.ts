@@ -37,5 +37,19 @@ export default () => ({
         ttl: '7d'
       }
     }
+  },
+  authenticate: {
+    access: {
+      jwt: {
+        secret: 'AccessTopSecret',
+        ttl: '180min'
+      }
+    },
+    refresh: {
+      jwt: {
+        secret: 'RefreshTopSecret',
+        ttl: '181min'
+      }
+    }
   }
 });

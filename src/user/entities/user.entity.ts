@@ -1,6 +1,7 @@
 import { Field, HideField, Int, ObjectType } from '@nestjs/graphql';
 import { User as PrismaUser, UserStatus } from '../../../generated/prisma/client';
 import { DateIsoScalar } from '../../graphql/scalars';
+import { UserRole } from './user-role.enum';
 
 @ObjectType()
 export class User implements PrismaUser {
@@ -21,6 +22,9 @@ export class User implements PrismaUser {
 
   @Field(() => UserStatus)
   status: UserStatus;
+
+  @Field(() => UserRole)
+  role: UserRole;
 
   @HideField()
   password: string;

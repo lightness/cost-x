@@ -1,18 +1,19 @@
 import { Module } from '@nestjs/common';
+import { AccessModule } from '../access/access.module';
+import { AuthModule } from '../auth/auth.module';
 import { MailModule } from '../mail/mail.module';
+import { PasswordModule } from '../password/password.module';
 import { PrismaModule } from '../prisma/prisma.module';
-import { BcryptService } from './bcrypt.service';
+import { ConfirmEmailService } from './confirm-email.service';
 import { UserResolver } from './resolvers/user.resolver';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
-import { ConfirmEmailService } from './confirm-email.service';
 
 @Module({
-  imports: [PrismaModule, MailModule],
+  imports: [PrismaModule, MailModule, PasswordModule, AuthModule, AccessModule],
   providers: [
     // services
     UserService,
-    BcryptService,
     ConfirmEmailService,
     // resolvers
     UserResolver,
