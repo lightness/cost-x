@@ -16,6 +16,12 @@ export class UserResolver {
   constructor(private userService: UserService) {}
 
   @Query(() => [User])
+  @Access.allow([
+    {
+      targetScope: AccessScope.GLOBAL,
+      role: UserRole.ADMIN
+    }
+  ])
   async users() {
     return this.userService.list();
   }

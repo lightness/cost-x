@@ -18,6 +18,7 @@ import { DateIsoScalar, DateScalar, DecimalScalar } from './scalars';
         DateIso: DateIsoScalar,
         Decimal: DecimalScalar,
       },
+      formatError: (err) => ({ message: err.message, status: err.extensions.code })
     }),
     ItemCostModule,
   ],
