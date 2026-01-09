@@ -132,6 +132,8 @@ type Query {
   paymentsAggregation(paymentsFilter: PaymentsFilter): PaymentsAggregation!
   itemsAggregation(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): ItemsAggregation!
   users: [User!]!
+  user(id: Int!): User!
+  me: User!
 }
 
 input TagsFilter {

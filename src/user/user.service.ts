@@ -70,4 +70,8 @@ export class UserService {
     return this.prisma.user.findMany();
   }
 
+  async getById(id: number): Promise<User> {
+    return this.prisma.user.findUnique({ where: { id } });
+  }
+
 }

@@ -9,6 +9,7 @@ import { CreateUserInDto, UpdateUserInDto } from '../dto';
 import { UserRole } from '../entities/user-role.enum';
 import { User } from '../entities/user.entity';
 import { UserService } from '../user.service';
+import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 
 @Resolver(() => User)
 @UseGuards(AuthGuard, AccessGuard)
@@ -17,13 +18,24 @@ export class UserResolver {
 
   @Query(() => [User])
   @Access.allow([
-    {
-      targetScope: AccessScope.GLOBAL,
-      role: UserRole.ADMIN
-    }
+    { targetScope: AccessScope.GLOBAL, role: UserRole.ADMIN }
   ])
   async users() {
     return this.userService.list();
+  }
+
+  @Query(() => User)
+  @Access.allow([
+    { targetScope: AccessScope.USER, targetId: fromArg('id'), role: UserRole.USER },
+    { targetScope: AccessScope.GLOBAL, role: UserRole.ADMIN },
+  ])
+  async user(@Args('id', { type: () => Int }) id: number) {
+    return this.userService.getById(id);
+  }
+
+  @Query(() => User)
+  async me(@CurrentUser() currentUser: User) {
+    return currentUser;
   }
 
   @Mutation(() => User)
@@ -33,15 +45,8 @@ export class UserResolver {
 
   @Mutation(() => User)
   @Access.allow([
-    {
-      targetScope: AccessScope.USER,
-      targetId: fromArg('id'),
-      role: UserRole.USER
-    },
-    {
-      targetScope: AccessScope.GLOBAL,
-      role: UserRole.ADMIN
-    }
+    { targetScope: AccessScope.USER, targetId: fromArg('id'), role: UserRole.USER },
+    { targetScope: AccessScope.GLOBAL, role: UserRole.ADMIN },
   ])
   async updateUser(
     @Args('id', { type: () => Int }) id: number,
