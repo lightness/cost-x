@@ -10,11 +10,12 @@ async function bootstrap() {
   expressApp.set('etag', false);
   expressApp.set('x-powered-by', false);
 
-  app.enableCors({
-    maxAge: 86400,
-    origin: 'http://127.0.0.1:5173',
-    credentials: true,
-  });
+  app.enableCors();
+  // app.enableCors({
+  //   maxAge: 86400,
+  //   origin: 'http://127.0.0.1:5173',
+  //   credentials: true,
+  // });
 
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
