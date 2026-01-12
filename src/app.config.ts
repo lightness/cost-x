@@ -7,6 +7,9 @@ export default () => ({
   db: {
     url: process.env.DATABASE_URL,
   },
+  redis: {
+    url: process.env.REDIS_URL,
+  },
   costCurrency: process.env.COST_CURRENCY || 'USD',
   spreadsheet: {
     id: '1oFQIOD0OfztKcVdTntcU9IQ-uM8oAVL3yD9b7cahma4',
@@ -42,13 +45,15 @@ export default () => ({
     access: {
       jwt: {
         secret: 'AccessTopSecret',
-        ttl: '180min'
+        expiresIn: '180min',
+        redisPrefix: 'expired:access:'
       }
     },
     refresh: {
       jwt: {
         secret: 'RefreshTopSecret',
-        ttl: '181min'
+        expiresIn: '181min',
+        redisPrefix: 'expired:refresh:'
       }
     }
   }

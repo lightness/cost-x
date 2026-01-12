@@ -1,11 +1,15 @@
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { Request } from 'express';
-import { AuthService } from '../auth.service';
+import { AccessTokenService } from '../access-token.service';
+import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(private authService: AuthService) { }
+  constructor(
+    private accessTokenService: AccessTokenService,
+    private prisma: PrismaService,
+  ) { }
 
   getRequest(context: ExecutionContext) {
     const ctx = GqlExecutionContext.create(context);
@@ -22,10 +26,18 @@ export class AuthGuard implements CanActivate {
       return true;
     }
 
-    const user = await this.authService.verifyAccessToken(token);
-    req.user = user;
+    try {
+      const payload = await this.accessTokenService.verifyToken(token);
+      const user = await this.prisma.user.findUniqueOrThrow({ where: { id: payload.id } });
 
-    return true;
+      req.token = token;
+      req.user = user;
+      
+      return true;
+    } catch (e) {
+      throw new UnauthorizedException(`Not authorized`);
+    }
+
   }
 
   private getToken(req: Request): string {

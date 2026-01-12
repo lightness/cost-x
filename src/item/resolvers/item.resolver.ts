@@ -39,8 +39,6 @@ export class ItemResolver {
     @Parent() item: Item,
     @Args('paymentsFilter', { nullable: true }) paymentsFilter: PaymentsFilter,
   ): Promise<Payment[]> {
-    // console.log('>>> paymentsFilter', paymentsFilter);
-
     const allPayments = await this.paymentsByItemIdLoader.withOptions(paymentsFilter).load(item.id);
     const payments = this.paymentService.filterPayments(allPayments, paymentsFilter);
 

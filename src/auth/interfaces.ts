@@ -1,10 +1,12 @@
 import { StringValue } from 'ms';
 
+export type ExpiresIn = StringValue | number;
+
 export interface JwtConfig {
   secret: string;
-  ttl: StringValue | number;
+  ttl: ExpiresIn;
 }
 
-export interface TokenPayload {
+export interface JwtPayload {
   id: number;
 }
