@@ -2,12 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AccessScope, Rule } from '../interfaces';
+import { AccessStrategy } from './interface';
 import { GlobalAccessStrategy } from './global.access-strategy';
 
 @Injectable()
-export class UserToWorkspaceAccessStrategy extends GlobalAccessStrategy {
+export class UserToWorkspaceAccessStrategy extends GlobalAccessStrategy implements AccessStrategy {
   constructor(private prisma: PrismaService) {
-    super()
+    super();
   }
 
   isApplicable(rule: Rule): boolean {

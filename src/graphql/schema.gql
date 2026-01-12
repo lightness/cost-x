@@ -120,6 +120,14 @@ enum UserRole {
   ADMIN
 }
 
+type Workspace {
+  id: Int!
+  createdAt: DateIso!
+  updatedAt: DateIso!
+  title: String!
+  ownerId: Int!
+}
+
 type Query {
   defaultCurrency: Currency!
   currencyRate(fromCurrency: Currency!, toCurrency: Currency!, date: Date!): CurrencyRate!
@@ -134,6 +142,7 @@ type Query {
   users: [User!]!
   user(id: Int!): User!
   me: User!
+  my: [Workspace!]!
 }
 
 input TagsFilter {
@@ -149,6 +158,9 @@ type Mutation {
   authenticate(dto: AuthInDto!): AuthOutDto!
   createUser(createUserData: CreateUserInDto!): User!
   updateUser(id: Int!, updateUserData: UpdateUserInDto!): User!
+  createWorkspace(dto: WorkspaceInDto!): Workspace!
+  updateWorkspace(id: Int!, dto: WorkspaceInDto!): Workspace!
+  deleteWorkspace(id: Int!): Workspace!
 }
 
 input AuthInDto {
@@ -166,4 +178,8 @@ input UpdateUserInDto {
   name: String!
   email: String!
   password: String!
+}
+
+input WorkspaceInDto {
+  title: String!
 }
