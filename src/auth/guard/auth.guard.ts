@@ -1,13 +1,15 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { Request } from 'express';
-import { AccessTokenService } from '../access-token.service';
 import { PrismaService } from '../../prisma/prisma.service';
+import { TokenService } from '../../token/token.service';
+import { JwtPayload } from '../interfaces';
+import { ACCESS_TOKEN_SERVICE } from '../symbols';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(
-    private accessTokenService: AccessTokenService,
+    @Inject(ACCESS_TOKEN_SERVICE) private accessTokenService: TokenService<JwtPayload>,
     private prisma: PrismaService,
   ) { }
 

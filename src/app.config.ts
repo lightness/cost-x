@@ -37,7 +37,8 @@ export default () => ({
       linkUrl: process.env.CONFIRM_EMAIL_LINK_URL,
       jwt: {
         secret: 'TopSECRET',
-        ttl: '7d'
+        expiresIn: '7d',
+        redisPrefix: 'expired:confirm-email:'
       }
     }
   },

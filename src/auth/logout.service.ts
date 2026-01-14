@@ -1,13 +1,14 @@
-import { Injectable } from '@nestjs/common';
-import { AccessTokenService } from './access-token.service';
+import { Inject, Injectable } from '@nestjs/common';
+import { JwtPayload } from 'jsonwebtoken';
+import { TokenService } from '../token/token.service';
 import { LogoutInDto } from './dto';
-import { RefreshTokenService } from './refresh-token.service';
+import { ACCESS_TOKEN_SERVICE, REFRESH_TOKEN_SERVICE } from './symbols';
 
 @Injectable()
 export class LogoutService {
   constructor(
-    private accessTokenService: AccessTokenService,
-    private refreshTokenService: RefreshTokenService,
+    @Inject(ACCESS_TOKEN_SERVICE) private accessTokenService: TokenService<JwtPayload>,
+    @Inject(REFRESH_TOKEN_SERVICE) private refreshTokenService: TokenService<JwtPayload>,
   ) { }
 
   async logout(token: string, dto: LogoutInDto) {

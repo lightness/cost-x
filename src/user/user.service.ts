@@ -1,19 +1,17 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { v4 as uuid } from 'uuid';
-import { MailService } from '../mail/mail.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { BcryptService } from '../password/bcrypt.service';
 import { CreateUserInDto, UpdateUserInDto } from './dto';
 import { UserStatus } from './entities/user-status.enum';
 import { User } from './entities/user.entity';
-import { ConfirmEmailService } from './confirm-email.service';
+import { ConfirmEmailService } from '../confirm-email/confirm-email.service';
 
 @Injectable()
 export class UserService {
   constructor(
     private prisma: PrismaService,
     private bcryptService: BcryptService,
-    private mailService: MailService,
     private confirmEmailService: ConfirmEmailService,
   ) { }
 
@@ -28,10 +26,7 @@ export class UserService {
       }
     });
 
-    await this.mailService.sendConfirmEmail(
-      user, 
-      this.confirmEmailService.createConfirmEmailToken(user),
-    );
+    await this.confirmEmailService.sendConfirmEmail(user);
 
     return user;
   }
@@ -57,10 +52,7 @@ export class UserService {
     });
 
     if (isNewEmail) {
-      await this.mailService.sendConfirmEmail(
-        updatedUser, 
-        this.confirmEmailService.createConfirmEmailToken(updatedUser),
-      );
+      await this.confirmEmailService.sendConfirmEmail(updatedUser);
     }
 
     return updatedUser;

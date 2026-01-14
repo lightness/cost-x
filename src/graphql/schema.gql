@@ -161,8 +161,8 @@ input ItemsFilter {
 type Mutation {
   authenticate(dto: AuthInDto!): AuthOutDto!
   logout(dto: LogoutInDto!): LogoutOutDto!
-  createUser(createUserData: CreateUserInDto!): User!
-  updateUser(id: Int!, updateUserData: UpdateUserInDto!): User!
+  createUser(dto: CreateUserInDto!): User!
+  updateUser(id: Int!, dto: UpdateUserInDto!): User!
   createWorkspace(dto: WorkspaceInDto!): Workspace!
   updateWorkspace(id: Int!, dto: WorkspaceInDto!): Workspace!
   deleteWorkspace(id: Int!): Workspace!

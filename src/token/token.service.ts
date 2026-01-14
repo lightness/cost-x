@@ -1,18 +1,31 @@
-import { UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import * as crypto from 'crypto';
 import Redis from 'ioredis';
 import { decode, sign, verify } from 'jsonwebtoken';
 import { ExpiresIn } from './interfaces';
+import { CONFIG } from './symbols';
 
-export abstract class TokenService<T extends object> {
-  abstract get secret(): string;
-  abstract get ttl(): ExpiresIn;
-  abstract get redisPrefix(): string;
+@Injectable()
+export class TokenService<T extends object> {
+  constructor(
+    private redis: Redis,
+    @Inject(CONFIG) private config,
+  ) {}
 
-  constructor(private redis: Redis) {}
+  get secret(): string {
+    return this.config.secret;
+  }
+
+  get expiresIn(): ExpiresIn {
+    return this.config.expiresIn;
+  }
+  
+  get redisPrefix(): string {
+    return this.config.redisPrefix;
+  }
 
   async createToken(payload: T): Promise<string> {
-    return sign(payload, this.secret, { expiresIn: this.ttl });
+    return sign(payload, this.secret, { expiresIn: this.expiresIn });
   }
 
   async verifyToken(token: string): Promise<T> {

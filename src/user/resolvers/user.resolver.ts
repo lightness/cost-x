@@ -39,7 +39,7 @@ export class UserResolver {
   }
 
   @Mutation(() => User)
-  async createUser(@Args('createUserData') dto: CreateUserInDto) {
+  async createUser(@Args('dto', { type: () => CreateUserInDto }) dto: CreateUserInDto) {
     return this.userService.create(dto);
   }
 
@@ -50,7 +50,7 @@ export class UserResolver {
   ])
   async updateUser(
     @Args('id', { type: () => Int }) id: number,
-    @Args('updateUserData') dto: UpdateUserInDto,
+    @Args('dto', { type: () => UpdateUserInDto }) dto: UpdateUserInDto,
   ) {
     return this.userService.update(id, dto);
   }
