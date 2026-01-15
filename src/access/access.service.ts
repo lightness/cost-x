@@ -1,9 +1,16 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { GqlExecutionContext } from '@nestjs/graphql';
-import { UserRole } from '../user/entities/user-role.enum';
+import type { GqlExecutionContext } from '@nestjs/graphql';
+import type { UserRole } from '../user/entities/user-role.enum';
 import { fromReq } from './function/from-req.function';
-import { AccessAction, AccessScope, Rule, RuleDef, RuleOperationAnd, RuleOperationOr } from './interfaces';
-import { RuleEngineService } from './rule-engine.service';
+import {
+  AccessAction,
+  AccessScope,
+  type Rule,
+  type RuleDef,
+  type RuleOperationAnd,
+  type RuleOperationOr,
+} from './interfaces';
+import type { RuleEngineService } from './rule-engine.service';
 
 @Injectable()
 export class AccessService {
@@ -15,10 +22,14 @@ export class AccessService {
       sourceId: fromReq('user.id'),
       ...rule,
       role: Array.isArray(rule.role) ? rule.role : [rule.role],
-    }
+    };
   }
 
-  async hasAccess(action: AccessAction, ruleDef: RuleDef, ctx: GqlExecutionContext): Promise<boolean> {
+  async hasAccess(
+    action: AccessAction,
+    ruleDef: RuleDef,
+    ctx: GqlExecutionContext,
+  ): Promise<boolean> {
     if (action === AccessAction.ALLOW) {
       return this.isRuleMatch(ruleDef, ctx);
     } else {
@@ -26,7 +37,10 @@ export class AccessService {
     }
   }
 
-  private async isRuleMatch(ruleDef: RuleDef, ctx: GqlExecutionContext): Promise<boolean> {
+  private async isRuleMatch(
+    ruleDef: RuleDef,
+    ctx: GqlExecutionContext,
+  ): Promise<boolean> {
     if (Array.isArray(ruleDef)) {
       return ruleDef.some((subRuleDef) => this.isRuleMatch(subRuleDef, ctx));
     }
@@ -36,14 +50,21 @@ export class AccessService {
     }
 
     if (this.isRuleOperatorAnd(ruleDef)) {
-      return ruleDef.and.every((subRuleDef) => this.isRuleMatch(subRuleDef, ctx));
+      return ruleDef.and.every((subRuleDef) =>
+        this.isRuleMatch(subRuleDef, ctx),
+      );
     }
 
     if (this.isRule(ruleDef)) {
-      return this.ruleEngineService.executeRule(this.normalizeRule(ruleDef), ctx);
+      return this.ruleEngineService.executeRule(
+        this.normalizeRule(ruleDef),
+        ctx,
+      );
     }
 
-    throw new InternalServerErrorException(`Access rule is wrong: ${JSON.stringify(ruleDef)}`);
+    throw new InternalServerErrorException(
+      `Access rule is wrong: ${JSON.stringify(ruleDef)}`,
+    );
   }
 
   private isRule(ruleDef: RuleDef): ruleDef is Rule {
@@ -58,9 +79,19 @@ export class AccessService {
     return 'and' in ruleDef;
   }
 
-  private async processRule(rule: Rule, ctx: GqlExecutionContext): Promise<boolean> {
+  // biome-ignore lint/correctness/noUnusedPrivateClassMembers: TBD
+  private async processRule(
+    rule: Rule,
+    ctx: GqlExecutionContext,
+  ): Promise<boolean> {
     const normalizedRule = this.normalizeRule(rule);
-    const { sourceScope, sourceId: getSourceId, targetScope, targetId: getTargetId, role } = normalizedRule;
+    const {
+      sourceScope,
+      sourceId: getSourceId,
+      targetScope,
+      targetId: getTargetId,
+      role,
+    } = normalizedRule;
     const currentUserRole = fromReq<UserRole>('user.role')(ctx);
 
     // TODO: Rewrite
@@ -78,7 +109,7 @@ export class AccessService {
 
       return role.includes(currentUserRole);
     } else {
-      throw new InternalServerErrorException(`Not implemented yet (scopes)`)
+      throw new InternalServerErrorException(`Not implemented yet (scopes)`);
     }
   }
 }

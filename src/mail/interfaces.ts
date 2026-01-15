@@ -1,4 +1,4 @@
-import { User } from '../user/entities/user.entity';
+import type { User } from '../user/entities/user.entity';
 
 export interface MailParams {
   toUser: User;

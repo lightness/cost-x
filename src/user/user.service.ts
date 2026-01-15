@@ -1,11 +1,11 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { v4 as uuid } from 'uuid';
-import { PrismaService } from '../prisma/prisma.service';
-import { BcryptService } from '../password/bcrypt.service';
-import { CreateUserInDto, UpdateUserInDto } from './dto';
+import type { PrismaService } from '../prisma/prisma.service';
+import type { BcryptService } from '../password/bcrypt.service';
+import type { CreateUserInDto, UpdateUserInDto } from './dto';
 import { UserStatus } from './entities/user-status.enum';
-import { User } from './entities/user.entity';
-import { ConfirmEmailService } from '../confirm-email/confirm-email.service';
+import type { User } from './entities/user.entity';
+import type { ConfirmEmailService } from '../confirm-email/confirm-email.service';
 
 @Injectable()
 export class UserService {
@@ -13,7 +13,7 @@ export class UserService {
     private prisma: PrismaService,
     private bcryptService: BcryptService,
     private confirmEmailService: ConfirmEmailService,
-  ) { }
+  ) {}
 
   async create(dto: CreateUserInDto): Promise<User> {
     const user = await this.prisma.user.create({
@@ -23,7 +23,7 @@ export class UserService {
         name: dto.name,
         status: UserStatus.EMAIL_NOT_VERIFIED,
         tempCode: uuid(),
-      }
+      },
     });
 
     await this.confirmEmailService.sendConfirmEmail(user);
@@ -65,5 +65,4 @@ export class UserService {
   async getById(id: number): Promise<User> {
     return this.prisma.user.findUnique({ where: { id } });
   }
-
 }

@@ -19,43 +19,37 @@ export default () => ({
       'https://www.googleapis.com/auth/drive',
       'https://www.googleapis.com/auth/calendar',
     ],
-    columnNames: [
-      'title',
-      'date',
-      'bynCost',
-      'usdCost',
-      'eurCost',
-    ]
+    columnNames: ['title', 'date', 'bynCost', 'usdCost', 'eurCost'],
   },
   mailersend: {
     apiKey: process.env.MAILERSEND_API_KEY,
     sender: {
       email: process.env.SENDER_EMAIL,
-      name: 'Cost-X'
+      name: 'Cost-X',
     },
     confirmEmail: {
       linkUrl: process.env.CONFIRM_EMAIL_LINK_URL,
       jwt: {
         secret: 'TopSECRET',
         expiresIn: '7d',
-        redisPrefix: 'expired:confirm-email:'
-      }
-    }
+        redisPrefix: 'expired:confirm-email:',
+      },
+    },
   },
   authenticate: {
     access: {
       jwt: {
         secret: 'AccessTopSecret',
         expiresIn: '180min',
-        redisPrefix: 'expired:access:'
-      }
+        redisPrefix: 'expired:access:',
+      },
     },
     refresh: {
       jwt: {
         secret: 'RefreshTopSecret',
         expiresIn: '181min',
-        redisPrefix: 'expired:refresh:'
-      }
-    }
-  }
+        redisPrefix: 'expired:refresh:',
+      },
+    },
+  },
 });

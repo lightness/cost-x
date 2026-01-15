@@ -1,4 +1,4 @@
-import { DynamicModule, Module } from '@nestjs/common';
+import { type DynamicModule, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TokenService } from './token.service';
 import { CONFIG } from './symbols';
@@ -17,13 +17,13 @@ export class TokenModule {
           useFactory: (configService: ConfigService) => {
             return configService.get(configPath);
           },
-        }, 
+        },
         {
           provide: token,
           useClass: TokenService,
-        }
+        },
       ],
       exports: [token],
-    }
+    };
   }
 }

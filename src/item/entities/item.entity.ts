@@ -1,7 +1,6 @@
-import { Field, HideField, Int, ObjectType } from '@nestjs/graphql';
-import { Item as PrismaItem } from '../../../generated/prisma/client';
+import { Field, Int, ObjectType } from '@nestjs/graphql';
+import type { Item as PrismaItem } from '../../../generated/prisma/client';
 import { DateIsoScalar } from '../../graphql/scalars';
-import ItemTag from '../../item-tag/entities/item-tag.entity';
 import Payment from '../../payment/entities/payment.entity';
 import { PaymentsAggregation } from '../../payments-aggregation/entities/payments-aggregation.entity';
 import Tag from '../../tag/entities/tag.entity';

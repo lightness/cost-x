@@ -17,12 +17,7 @@ import { PaymentsAggregationService } from './payments-aggregation.service';
 import { PaymentsAggregationResolver } from './resolvers/payments-aggregation.resolver';
 
 @Module({
-  imports: [
-    PrismaModule,
-    PaymentModule,
-    CurrencyRateModule,
-    ItemCostModule,
-  ],
+  imports: [PrismaModule, PaymentModule, CurrencyRateModule, ItemCostModule],
   providers: [
     // dataloader
     PaymentsCountByItemIdLoader,
@@ -40,6 +35,6 @@ import { PaymentsAggregationResolver } from './resolvers/payments-aggregation.re
     EarliestAggregationService,
     LatestAggregationService,
     CostByCurrencyAggregationService,
-  ]
+  ],
 })
 export class PaymentsAggregationModule {}

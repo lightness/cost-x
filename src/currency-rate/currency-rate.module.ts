@@ -15,10 +15,10 @@ import { PrismaModule } from '../prisma/prisma.module';
       timeout: 5000,
       maxRedirects: 5,
     }),
-    DateModule
+    DateModule,
   ],
   providers: [
-    CurrencyRateService, 
+    CurrencyRateService,
     CurrencyRateApiService,
     CurrencyRateResolver,
     CurrencyRateLoader,
@@ -26,4 +26,4 @@ import { PrismaModule } from '../prisma/prisma.module';
   controllers: [CurrencyRateController],
   exports: [CurrencyRateService, CurrencyRateLoader],
 })
-export class CurrencyRateModule { }
+export class CurrencyRateModule {}

@@ -1,17 +1,24 @@
-import { CanActivate, ExecutionContext, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  type CanActivate,
+  type ExecutionContext,
+  Inject,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
-import { Request } from 'express';
-import { PrismaService } from '../../prisma/prisma.service';
-import { TokenService } from '../../token/token.service';
-import { JwtPayload } from '../interfaces';
+import type { Request } from 'express';
+import type { PrismaService } from '../../prisma/prisma.service';
+import type { TokenService } from '../../token/token.service';
+import type { JwtPayload } from '../interfaces';
 import { ACCESS_TOKEN_SERVICE } from '../symbols';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(
-    @Inject(ACCESS_TOKEN_SERVICE) private accessTokenService: TokenService<JwtPayload>,
+    @Inject(ACCESS_TOKEN_SERVICE)
+    private accessTokenService: TokenService<JwtPayload>,
     private prisma: PrismaService,
-  ) { }
+  ) {}
 
   getRequest(context: ExecutionContext) {
     const ctx = GqlExecutionContext.create(context);
@@ -30,16 +37,17 @@ export class AuthGuard implements CanActivate {
 
     try {
       const payload = await this.accessTokenService.verifyToken(token);
-      const user = await this.prisma.user.findUniqueOrThrow({ where: { id: payload.id } });
+      const user = await this.prisma.user.findUniqueOrThrow({
+        where: { id: payload.id },
+      });
 
       req.token = token;
       req.user = user;
-      
+
       return true;
-    } catch (e) {
+    } catch (_e) {
       throw new UnauthorizedException(`Not authorized`);
     }
-
   }
 
   private getToken(req: Request): string {

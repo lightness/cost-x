@@ -1,6 +1,6 @@
-import { CostOutDto } from '../../item-cost/dto';
-import { PaymentOutDto } from '../../payment/dto';
-import { TagOutDto } from '../../tag/dto';
+import type { CostOutDto } from '../../item-cost/dto';
+import type { PaymentOutDto } from '../../payment/dto';
+import type { TagOutDto } from '../../tag/dto';
 
 export class ItemOutDto {
   id: number;
@@ -12,7 +12,7 @@ export class ItemOutDto {
   updatedAt: Date;
 
   tags?: TagOutDto[];
-  
+
   payments?: PaymentOutDto[];
 
   cost?: CostOutDto;

@@ -8,7 +8,9 @@ export class ListItemQueryDto {
 
   @IsNumber({}, { each: true })
   @IsOptional()
-  @Transform(({ value }) => (value || '').split(',').map(strId => parseInt(strId)))
+  @Transform(({ value }) =>
+    (value || '').split(',').map((strId) => parseInt(strId, 10)),
+  )
   tagIds?: number[];
 
   @IsDate()

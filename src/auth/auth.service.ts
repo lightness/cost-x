@@ -1,20 +1,22 @@
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
-import { BcryptService } from '../password/bcrypt.service';
-import { PrismaService } from '../prisma/prisma.service';
+import type { BcryptService } from '../password/bcrypt.service';
+import type { PrismaService } from '../prisma/prisma.service';
 import { UserStatus } from '../user/entities/user-status.enum';
-import { AuthInDto, AuthOutDto } from './dto';
-import { TokenService } from '../token/token.service';
+import type { AuthInDto, AuthOutDto } from './dto';
+import type { TokenService } from '../token/token.service';
 import { ACCESS_TOKEN_SERVICE, REFRESH_TOKEN_SERVICE } from './symbols';
-import { JwtPayload } from './interfaces';
+import type { JwtPayload } from './interfaces';
 
 @Injectable()
 export class AuthService {
   constructor(
-    @Inject(ACCESS_TOKEN_SERVICE) private accessTokenService: TokenService<JwtPayload>,
-    @Inject(REFRESH_TOKEN_SERVICE) private refreshTokenService: TokenService<JwtPayload>,
+    @Inject(ACCESS_TOKEN_SERVICE)
+    private accessTokenService: TokenService<JwtPayload>,
+    @Inject(REFRESH_TOKEN_SERVICE)
+    private refreshTokenService: TokenService<JwtPayload>,
     private prisma: PrismaService,
     private bcryptService: BcryptService,
-  ) { }
+  ) {}
 
   async authenticate(dto: AuthInDto): Promise<AuthOutDto> {
     const { email, password } = dto;
@@ -27,7 +29,10 @@ export class AuthService {
       throw this.unauthorizedException;
     }
 
-    const isPasswordCorrect = await this.bcryptService.comparePasswords(password, user.password);
+    const isPasswordCorrect = await this.bcryptService.comparePasswords(
+      password,
+      user.password,
+    );
 
     if (!isPasswordCorrect) {
       throw this.unauthorizedException;
@@ -49,7 +54,7 @@ export class AuthService {
     return {
       accessToken,
       refreshToken,
-    }
+    };
   }
 
   private get unauthorizedException() {

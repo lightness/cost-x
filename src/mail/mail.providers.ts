@@ -1,4 +1,4 @@
-import { Provider } from '@nestjs/common';
+import type { Provider } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { MailerSend } from 'mailersend';
 
@@ -11,5 +11,5 @@ export const providers: Provider[] = [
       });
     },
     inject: [ConfigService],
-  }
+  },
 ];

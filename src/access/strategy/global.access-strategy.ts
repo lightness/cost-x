@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { GqlExecutionContext } from '@nestjs/graphql';
-import { UserRole } from '../../user/entities/user-role.enum';
+import type { GqlExecutionContext } from '@nestjs/graphql';
+import type { UserRole } from '../../user/entities/user-role.enum';
 import { fromReq } from '../function/from-req.function';
-import { AccessScope, Rule } from '../interfaces';
-import { AccessStrategy } from './interface';
+import { AccessScope, type Rule } from '../interfaces';
+import type { AccessStrategy } from './interface';
 
 @Injectable()
 export class GlobalAccessStrategy implements AccessStrategy {

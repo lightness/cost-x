@@ -22,14 +22,20 @@ export class RowDto {
   date: string;
 
   @IsNumber()
-  @Transform(({ value }) => !value || value === '-' ? null : parseFloat(value.replace(',', '.')))
+  @Transform(({ value }) =>
+    !value || value === '-' ? null : parseFloat(value.replace(',', '.')),
+  )
   bynCost: number;
 
   @IsNumber()
-  @Transform(({ value }) => !value || value === '-' ? null : parseFloat(value.replace(',', '.')))
+  @Transform(({ value }) =>
+    !value || value === '-' ? null : parseFloat(value.replace(',', '.')),
+  )
   usdCost: number;
 
   @IsNumber()
-  @Transform(({ value }) => !value || value === '-' ? null : parseFloat(value.replace(',', '.')))
+  @Transform(({ value }) =>
+    !value || value === '-' ? null : parseFloat(value.replace(',', '.')),
+  )
   eurCost: number;
 }

@@ -4,15 +4,15 @@ interface MemoCacheEntry<T> {
   value: T;
 }
 
-const memoCache = new Map<string, MemoCacheEntry<any>>();
+const memoCache = new Map<string, MemoCacheEntry<unknown>>();
 
 export function Memo() {
   return applyDecorators(
-    (target: any, propertyName: string, descriptor: PropertyDescriptor) => {
+    (target: unknown, propertyName: string, descriptor: PropertyDescriptor) => {
       const originalMethod = descriptor.value;
       const cacheKeyPrefix = `${target.constructor.name}.${propertyName}`;
 
-      descriptor.value = function (...args: any[]) {
+      descriptor.value = function (...args: unknown[]) {
         const cacheKey = `${cacheKeyPrefix}:${JSON.stringify(args)}`;
         const cached = memoCache.get(cacheKey);
 
@@ -25,12 +25,11 @@ export function Memo() {
 
         // Handle promise results
         if (result instanceof Promise) {
-          return result
-            .then((asyncResult) => {
-              memoCache.set(cacheKey, { value: asyncResult });
+          return result.then((asyncResult) => {
+            memoCache.set(cacheKey, { value: asyncResult });
 
-              return asyncResult;
-            })
+            return asyncResult;
+          });
         } else {
           memoCache.set(cacheKey, { value: result });
 
@@ -39,6 +38,6 @@ export function Memo() {
       };
 
       return descriptor;
-    }
+    },
   );
 }

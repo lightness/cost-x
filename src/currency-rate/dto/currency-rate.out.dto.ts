@@ -1,7 +1,6 @@
-import { Currency } from '../entities/currency.enum';
+import type { Currency } from '../entities/currency.enum';
 
 export class CurrencyRateOutDto {
-
   fromCurrency: Currency;
 
   toCurrency: Currency;

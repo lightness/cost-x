@@ -1,15 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { ItemWhereInput } from '../../generated/prisma/models';
-import { PaymentsFilter } from '../payment/dto';
-import { PrismaService } from '../prisma/prisma.service';
-import { ItemInDto, ItemsFilter } from './dto';
-import Item from './entities/item.entity';
+import type { ItemWhereInput } from '../../generated/prisma/models';
+import type { PaymentsFilter } from '../payment/dto';
+import type { PrismaService } from '../prisma/prisma.service';
+import type { ItemInDto, ItemsFilter } from './dto';
+import type Item from './entities/item.entity';
 
 @Injectable()
 export class ItemService {
-  constructor(
-    private prisma: PrismaService,
-  ) { }
+  constructor(private prisma: PrismaService) {}
 
   async getById(id: number): Promise<Item> {
     const item = await this.prisma.item.findUnique({ where: { id } });
@@ -17,7 +15,10 @@ export class ItemService {
     return item;
   }
 
-  async list(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): Promise<Item[]> {
+  async list(
+    itemsFilter: ItemsFilter,
+    paymentsFilter: PaymentsFilter,
+  ): Promise<Item[]> {
     return this.prisma.item.findMany({
       where: this.getWhereClause(itemsFilter, paymentsFilter),
     });
@@ -48,7 +49,10 @@ export class ItemService {
 
   // private
 
-  private getWhereClause(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): ItemWhereInput {
+  private getWhereClause(
+    itemsFilter: ItemsFilter,
+    paymentsFilter: PaymentsFilter,
+  ): ItemWhereInput {
     const { title, tagIds } = itemsFilter;
     const { dateFrom: paymentDateFrom, dateTo: paymentDateTo } = paymentsFilter;
 
@@ -57,12 +61,10 @@ export class ItemService {
 
     return {
       title: title ? { contains: title, mode: 'insensitive' } : undefined,
-      itemTag: withTagIds
-        ? { some: { tagId: { in: tagIds } } }
-        : undefined,
+      itemTag: withTagIds ? { some: { tagId: { in: tagIds } } } : undefined,
       payment: withPayments
         ? { some: { date: { gte: paymentDateFrom, lte: paymentDateTo } } }
         : undefined,
-    }
+    };
   }
 }

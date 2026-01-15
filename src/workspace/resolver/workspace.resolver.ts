@@ -3,10 +3,10 @@ import { Workspace } from '../entity/workspace.entity';
 import { Access } from '../../access/decorator/access.decorator';
 import { AccessScope } from '../../access/interfaces';
 import { UserRole } from '../../user/entities/user-role.enum';
-import { WorkspaceInDto } from '../dto';
+import type { WorkspaceInDto } from '../dto';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
-import { User } from '../../user/entities/user.entity';
-import { WorkspaceService } from '../workspace.service';
+import type { User } from '../../user/entities/user.entity';
+import type { WorkspaceService } from '../workspace.service';
 import { fromArg } from '../../access/function/from-arg.function';
 
 @Resolver(() => Workspace)
@@ -34,7 +34,11 @@ export class WorkspaceResolver {
 
   @Mutation(() => Workspace)
   @Access.allow([
-    { targetScope: AccessScope.WORKSPACE, targetId: fromArg('id'), role: [UserRole.USER] },
+    {
+      targetScope: AccessScope.WORKSPACE,
+      targetId: fromArg('id'),
+      role: [UserRole.USER],
+    },
     { targetScope: AccessScope.GLOBAL, role: [UserRole.ADMIN] },
   ])
   async updateWorkspace(
@@ -46,12 +50,14 @@ export class WorkspaceResolver {
 
   @Mutation(() => Workspace)
   @Access.allow([
-    { targetScope: AccessScope.WORKSPACE, targetId: fromArg('id'), role: [UserRole.USER] },
+    {
+      targetScope: AccessScope.WORKSPACE,
+      targetId: fromArg('id'),
+      role: [UserRole.USER],
+    },
     { targetScope: AccessScope.GLOBAL, role: [UserRole.ADMIN] },
   ])
-  async deleteWorkspace(
-    @Args('id', { type: () => Int }) id: number,
-  ) {
+  async deleteWorkspace(@Args('id', { type: () => Int }) id: number) {
     return this.workspaceService.delete(id);
   }
 }

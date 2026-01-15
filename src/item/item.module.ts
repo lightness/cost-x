@@ -13,7 +13,7 @@ import { PrismaModule } from '../prisma/prisma.module';
     PrismaModule,
     ItemTagModule,
     ItemCostModule,
-    PaymentModule, 
+    PaymentModule,
     CurrencyRateModule,
   ],
   providers: [

@@ -10,7 +10,7 @@ export class EarliestAggregationService extends MetricAggregationService<Date> {
       }
 
       return cur < acc ? cur : acc;
-    }
+    };
   }
 
   protected get defaultValue() {

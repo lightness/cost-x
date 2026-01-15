@@ -1,4 +1,4 @@
-import { IsHexColor, IsOptional, IsString, Length } from 'class-validator';
+import { IsHexColor, IsOptional, IsString, } from 'class-validator';
 
 export class TagInDto {
   @IsString()

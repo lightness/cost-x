@@ -1,5 +1,5 @@
 import { Args, Query, Resolver } from '@nestjs/graphql';
-import { CurrencyRateLoader } from './dataloaders/currency-rate.loader.service';
+import type { CurrencyRateLoader } from './dataloaders/currency-rate.loader.service';
 import { GetCurrencyRateArgs } from './dto/get-currency-rate.args';
 import CurrencyRate from './entities/currency-rate.entity';
 

@@ -1,20 +1,28 @@
-import { Args, Float, Int, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
+import {
+  Args,
+  Float,
+  Int,
+  Parent,
+  Query,
+  ResolveField,
+  Resolver,
+} from '@nestjs/graphql';
 import { isNotError } from '../../common/functions/is-not-error';
 import { DateScalar } from '../../graphql/scalars';
 import { CostByCurrency } from '../../item-cost/dto';
-import { PaymentsFilter } from '../../payment/dto';
-import { CostByCurrencyByItemIdLoader } from '../dataloaders/cost-by-currency-by-item-id.loader.service';
-import { CostInDefaultCurrencyByItemIdLoader } from '../dataloaders/cost-in-default-currency-by-item-id.loader.service';
-import { FirstPaymentDateByItemIdLoader } from '../dataloaders/first-payment-date-by-item-id.loader.service';
-import { LastPaymentDateByItemIdLoader } from '../dataloaders/last-payment-date-by-item-id.loader.service';
-import { PaymentsCountByItemIdLoader } from '../dataloaders/payments-count-by-item-id.loader.service';
+import type { PaymentsFilter } from '../../payment/dto';
+import type { CostByCurrencyByItemIdLoader } from '../dataloaders/cost-by-currency-by-item-id.loader.service';
+import type { CostInDefaultCurrencyByItemIdLoader } from '../dataloaders/cost-in-default-currency-by-item-id.loader.service';
+import type { FirstPaymentDateByItemIdLoader } from '../dataloaders/first-payment-date-by-item-id.loader.service';
+import type { LastPaymentDateByItemIdLoader } from '../dataloaders/last-payment-date-by-item-id.loader.service';
+import type { PaymentsCountByItemIdLoader } from '../dataloaders/payments-count-by-item-id.loader.service';
 import { PaymentsAggregation } from '../entities/payments-aggregation.entity';
-import { CostByCurrencyAggregationService } from '../metrics/cost-by-currency-aggregation.service';
-import { DecimalSumAggregationService } from '../metrics/decimal-sum-aggregation.service';
-import { EarliestAggregationService } from '../metrics/earliest-aggregation.service';
-import { LatestAggregationService } from '../metrics/latest-aggregation.service';
-import { SumAggregationService } from '../metrics/sum-aggregation.service';
-import { PaymentsAggregationService } from '../payments-aggregation.service';
+import type { CostByCurrencyAggregationService } from '../metrics/cost-by-currency-aggregation.service';
+import type { DecimalSumAggregationService } from '../metrics/decimal-sum-aggregation.service';
+import type { EarliestAggregationService } from '../metrics/earliest-aggregation.service';
+import type { LatestAggregationService } from '../metrics/latest-aggregation.service';
+import type { SumAggregationService } from '../metrics/sum-aggregation.service';
+import type { PaymentsAggregationService } from '../payments-aggregation.service';
 
 @Resolver(PaymentsAggregation)
 export class PaymentsAggregationResolver {
@@ -30,17 +38,17 @@ export class PaymentsAggregationResolver {
     private earliestAggregationService: EarliestAggregationService,
     private latestAggregationService: LatestAggregationService,
     private costByCurrencyAggregationService: CostByCurrencyAggregationService,
-  ) { }
+  ) {}
 
   @Query(() => PaymentsAggregation)
-  paymentsAggregation(@Args('paymentsFilter', { nullable: true }) paymentsFilter: PaymentsFilter) {
+  paymentsAggregation(
+    @Args('paymentsFilter', { nullable: true }) paymentsFilter: PaymentsFilter,
+  ) {
     return { paymentsFilter };
   }
 
   @ResolveField(() => Int)
-  async count(
-    @Parent() paymentsAggregation: PaymentsAggregation,
-  ) {
+  async count(@Parent() paymentsAggregation: PaymentsAggregation) {
     const { itemIds, paymentsFilter } = paymentsAggregation;
 
     if (itemIds) {
@@ -50,27 +58,32 @@ export class PaymentsAggregationResolver {
 
       return countByItemId
         .filter(isNotError)
-        .reduce(...this.sumAggregationService.reducer)
+        .reduce(...this.sumAggregationService.reducer);
     }
 
     return this.paymentAggregateService.getPaymentsCount(paymentsFilter);
   }
 
   @ResolveField(() => Float)
-  async costInDefaultCurrency(@Parent() paymentsAggregation: PaymentsAggregation) {
+  async costInDefaultCurrency(
+    @Parent() paymentsAggregation: PaymentsAggregation,
+  ) {
     const { itemIds, paymentsFilter } = paymentsAggregation;
 
     if (itemIds) {
-      const costInDefaultCurrencyByItemId = await this.costInDefaultCurrencyByItemIdLoader
-        .withOptions(paymentsFilter)
-        .loadMany(itemIds);
+      const costInDefaultCurrencyByItemId =
+        await this.costInDefaultCurrencyByItemIdLoader
+          .withOptions(paymentsFilter)
+          .loadMany(itemIds);
 
       return costInDefaultCurrencyByItemId
         .filter(isNotError)
         .reduce(...this.decimalSumAggregationService.reducer);
     }
 
-    return this.paymentAggregateService.getCostInDefaultCurrency(paymentsFilter);
+    return this.paymentAggregateService.getCostInDefaultCurrency(
+      paymentsFilter,
+    );
   }
 
   @ResolveField(() => CostByCurrency)

@@ -7,7 +7,13 @@ import { TagModule } from '../tag/tag.module';
 import { PaymentModule } from '../payment/payment.module';
 
 @Module({
-  imports: [SpreadsheetModule, ItemModule, ItemTagModule, TagModule, PaymentModule],
+  imports: [
+    SpreadsheetModule,
+    ItemModule,
+    ItemTagModule,
+    TagModule,
+    PaymentModule,
+  ],
   providers: [DataMigrationService],
 })
 export class DataMigrationModule {}

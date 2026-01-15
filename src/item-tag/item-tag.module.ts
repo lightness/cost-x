@@ -14,10 +14,6 @@ import { PrismaModule } from '../prisma/prisma.module';
     TagsByItemIdLoader,
   ],
   controllers: [ItemTagController],
-  exports: [
-    ItemTagService,
-    ItemsByTagIdLoader,
-    TagsByItemIdLoader,
-  ],
+  exports: [ItemTagService, ItemsByTagIdLoader, TagsByItemIdLoader],
 })
-export class ItemTagModule { }
+export class ItemTagModule {}

@@ -11,7 +11,7 @@ export class AsyncRelation<T1, T2> {
     const [t1Id, t2Id] = await Promise.all([
       this.t1Getter(t1),
       this.t2Getter(t2),
-    ])
+    ]);
 
     return t1Id === t2Id;
   }
@@ -20,7 +20,7 @@ export class AsyncRelation<T1, T2> {
     const belongs = this.isBelonging(t1, t2);
 
     if (!belongs) {
-      throw new BadRequestException(this.messageFactory(t1, t2))
+      throw new BadRequestException(this.messageFactory(t1, t2));
     }
   }
 }

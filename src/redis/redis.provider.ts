@@ -1,4 +1,4 @@
-import { Provider } from '@nestjs/common';
+import type { Provider } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
 
@@ -9,5 +9,5 @@ export const redisProvider: Provider = {
 
     return new Redis(redisUrl);
   },
-  inject: [ConfigService]
-}
+  inject: [ConfigService],
+};

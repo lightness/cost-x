@@ -1,5 +1,5 @@
-import { GqlExecutionContext } from '@nestjs/graphql';
-import { Rule } from '../interfaces';
+import type { GqlExecutionContext } from '@nestjs/graphql';
+import type { Rule } from '../interfaces';
 
 export const ACCESS_STRATEGIES = Symbol('ACCESS_STRATEGIES');
 

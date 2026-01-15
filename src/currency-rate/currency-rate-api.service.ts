@@ -1,19 +1,24 @@
-import { HttpService } from '@nestjs/axios';
+import type { HttpService } from '@nestjs/axios';
 import { Injectable, Logger } from '@nestjs/common';
 import { Decimal } from '@prisma/client/runtime/client';
 import { firstValueFrom } from 'rxjs';
-import { Currency } from '../../generated/prisma/enums';
+import type { Currency } from '../../generated/prisma/enums';
 
 @Injectable()
 export class CurrencyRateApiService {
   private readonly logger = new Logger(CurrencyRateApiService.name);
 
-  constructor(private readonly httpService: HttpService) { }
+  constructor(private readonly httpService: HttpService) {}
 
-  async pullCurrencyRate(currency: Currency, datePart: string): Promise<Decimal> {
+  async pullCurrencyRate(
+    currency: Currency,
+    datePart: string,
+  ): Promise<Decimal> {
     try {
       const response = await firstValueFrom(
-        this.httpService.get(`https://api.nbrb.by/exrates/rates/${currency}?ondate=${datePart}&parammode=2&periodicity=0`)
+        this.httpService.get(
+          `https://api.nbrb.by/exrates/rates/${currency}?ondate=${datePart}&parammode=2&periodicity=0`,
+        ),
       );
 
       const { Cur_OfficialRate: rate } = response.data;

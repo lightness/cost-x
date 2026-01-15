@@ -1,5 +1,5 @@
-import { GqlExecutionContext } from '@nestjs/graphql';
-import { UserRole } from '../user/entities/user-role.enum';
+import type { GqlExecutionContext } from '@nestjs/graphql';
+import type { UserRole } from '../user/entities/user-role.enum';
 
 export enum AccessAction {
   ALLOW = 'allow',
@@ -15,8 +15,8 @@ export enum AccessScope {
 }
 
 export interface Rule {
-  sourceScope?: AccessScope;     // Default 'user'
-  sourceId?: GetId;              // Default ctx.getContext().req.user.id
+  sourceScope?: AccessScope; // Default 'user'
+  sourceId?: GetId; // Default ctx.getContext().req.user.id
   targetScope: AccessScope;
   targetId?: GetId;
   role: UserRole | UserRole[];

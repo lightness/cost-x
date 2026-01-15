@@ -11,7 +11,9 @@ type CurrencyRate {
   rate: Decimal!
 }
 
-"""Date custom scalar type in ISO format"""
+"""
+Date custom scalar type in ISO format
+"""
 scalar DateIso
 
 enum Currency {
@@ -20,10 +22,14 @@ enum Currency {
   EUR
 }
 
-"""Date custom scalar type in YYYY-MM-DD format"""
+"""
+Date custom scalar type in YYYY-MM-DD format
+"""
 scalar Date
 
-"""Decimal number"""
+"""
+Decimal number
+"""
 scalar Decimal
 
 type Payment {
@@ -134,7 +140,11 @@ type Workspace {
 
 type Query {
   defaultCurrency: Currency!
-  currencyRate(fromCurrency: Currency!, toCurrency: Currency!, date: Date!): CurrencyRate!
+  currencyRate(
+    fromCurrency: Currency!
+    toCurrency: Currency!
+    date: Date!
+  ): CurrencyRate!
   tag(id: Int!): Tag!
   tags(filter: TagsFilter): [Tag!]!
   item(id: Int!): Item!
@@ -142,7 +152,10 @@ type Query {
   payment(id: Int!): Payment!
   payments(paymentsFilter: PaymentsFilter): FindPaymentsResponse!
   paymentsAggregation(paymentsFilter: PaymentsFilter): PaymentsAggregation!
-  itemsAggregation(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): ItemsAggregation!
+  itemsAggregation(
+    itemsFilter: ItemsFilter
+    paymentsFilter: PaymentsFilter
+  ): ItemsAggregation!
   users: [User!]!
   user(id: Int!): User!
   me: User!

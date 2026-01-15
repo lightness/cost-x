@@ -1,10 +1,19 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put } from '@nestjs/common';
-import { PaymentInDto } from './dto';
-import { PaymentService } from './payment.service';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+  Put,
+} from '@nestjs/common';
+import type { PaymentInDto } from './dto';
+import type { PaymentService } from './payment.service';
 import { ItemByIdPipe } from '../common/pipes/item-by-id.pipe';
 import { PaymentByIdPipe } from '../common/pipes/payment-by-id.pipe';
-import Item from '../item/entities/item.entity';
-import Payment from './entities/payment.entity';
+import type Item from '../item/entities/item.entity';
+import type Payment from './entities/payment.entity';
 
 @Controller()
 export class PaymentController {

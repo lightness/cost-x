@@ -1,5 +1,5 @@
 import { Decimal } from '@prisma/client/runtime/client';
-import { GraphQLScalarType, Kind, ValueNode } from 'graphql';
+import { GraphQLScalarType, Kind, type ValueNode } from 'graphql';
 
 export const DecimalScalar = new GraphQLScalarType({
   name: 'Decimal',
@@ -10,16 +10,16 @@ export const DecimalScalar = new GraphQLScalarType({
     if (!value) {
       return null;
     }
-    
+
     if (value instanceof Decimal) {
       return value.toString();
     }
-    
+
     // Handle if it's already a string or number
     if (typeof value === 'string' || typeof value === 'number') {
       return String(value);
     }
-    
+
     throw new Error(`DecimalScalar cannot serialize value: ${value}`);
   },
 
@@ -33,7 +33,11 @@ export const DecimalScalar = new GraphQLScalarType({
   },
 
   parseLiteral: (ast: ValueNode): Decimal => {
-    if (ast.kind === Kind.STRING || ast.kind === Kind.INT || ast.kind === Kind.FLOAT) {
+    if (
+      ast.kind === Kind.STRING ||
+      ast.kind === Kind.INT ||
+      ast.kind === Kind.FLOAT
+    ) {
       return new Decimal(ast.value);
     }
 

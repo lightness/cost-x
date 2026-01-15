@@ -1,4 +1,4 @@
-import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { ApolloDriver, type ApolloDriverConfig } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 import { join } from 'node:path';
@@ -18,12 +18,13 @@ import { DateIsoScalar, DateScalar, DecimalScalar } from './scalars';
         DateIso: DateIsoScalar,
         Decimal: DecimalScalar,
       },
-      formatError: (err) => ({ message: err.message, status: err.extensions.code })
+      formatError: (err) => ({
+        message: err.message,
+        status: err.extensions.code,
+      }),
     }),
     ItemCostModule,
   ],
-  providers: [
-    ConstantsResolver,
-  ],
+  providers: [ConstantsResolver],
 })
-export class GraphqlModule { }
+export class GraphqlModule {}

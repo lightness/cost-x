@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { SpreadsheetService } from '../spreadsheet/spreadsheet.service';
-import { TagService } from '../tag/tag.service';
-import { ItemService } from '../item/item.service';
-import { ItemTagService } from '../item-tag/item-tag.service';
-import { PaymentService } from '../payment/payment.service';
+import type { SpreadsheetService } from '../spreadsheet/spreadsheet.service';
+import type { TagService } from '../tag/tag.service';
+import type { ItemService } from '../item/item.service';
+import type { ItemTagService } from '../item-tag/item-tag.service';
+import type { PaymentService } from '../payment/payment.service';
 import { Currency } from '../../generated/prisma/enums';
+import type Tag from '../tag/entities/tag.entity';
 
 @Injectable()
 export class DataMigrationService {
@@ -19,11 +20,11 @@ export class DataMigrationService {
   async migrate() {
     const rows = await this.spreadsheetService.loadEverything();
 
-    let globalTag;
+    let globalTag: Tag;
 
     for (const row of rows) {
       const { title, usdCost, eurCost, bynCost, date } = row;
-      
+
       if (title && !date && !usdCost && !eurCost && !bynCost) {
         const cleanTitle = title.trim();
 
@@ -33,7 +34,7 @@ export class DataMigrationService {
       }
 
       const item = await this.itemService.create({ title });
-      
+
       if (globalTag) {
         await this.itemTagService.setTag(item, globalTag);
       }
@@ -44,7 +45,7 @@ export class DataMigrationService {
           currency: Currency.USD,
           date: new Date(date),
         });
-      } 
+      }
 
       if (eurCost) {
         await this.paymentService.addPayment(item, {

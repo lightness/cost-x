@@ -1,8 +1,8 @@
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
-import * as crypto from 'crypto';
-import Redis from 'ioredis';
+import * as crypto from 'node:crypto';
+import type Redis from 'ioredis';
 import { decode, sign, verify } from 'jsonwebtoken';
-import { ExpiresIn } from './interfaces';
+import type { ExpiresIn } from './interfaces';
 import { CONFIG } from './symbols';
 
 @Injectable()
@@ -19,7 +19,7 @@ export class TokenService<T extends object> {
   get expiresIn(): ExpiresIn {
     return this.config.expiresIn;
   }
-  
+
   get redisPrefix(): string {
     return this.config.redisPrefix;
   }

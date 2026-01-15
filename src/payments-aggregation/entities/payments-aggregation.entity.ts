@@ -1,8 +1,8 @@
-import { Field, Float, HideField, Int, ObjectType } from '@nestjs/graphql';
-import { PaymentsFilter } from '../../payment/dto';
+import { Field, HideField, Int, ObjectType } from '@nestjs/graphql';
+import type { PaymentsFilter } from '../../payment/dto';
 import { DateScalar, DecimalScalar } from '../../graphql/scalars';
 import { CostByCurrency } from '../../item-cost/dto';
-import { Decimal } from '@prisma/client/runtime/client';
+import type { Decimal } from '@prisma/client/runtime/client';
 
 @ObjectType()
 export class PaymentsAggregation {

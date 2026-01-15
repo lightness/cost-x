@@ -9,9 +9,9 @@ import { ConfirmEmailModule } from '../confirm-email/confirm-email.module';
 
 @Module({
   imports: [
-    PrismaModule, 
-    PasswordModule, 
-    AuthModule, 
+    PrismaModule,
+    PasswordModule,
+    AuthModule,
     AccessModule,
     ConfirmEmailModule,
   ],
@@ -22,4 +22,4 @@ import { ConfirmEmailModule } from '../confirm-email/confirm-email.module';
     UserResolver,
   ],
 })
-export class UserModule { }
+export class UserModule {}

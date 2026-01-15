@@ -1,11 +1,11 @@
-import { createParamDecorator, ExecutionContext } from '@nestjs/common';
+import { createParamDecorator, type ExecutionContext } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
 
 export const Token = createParamDecorator(
-  (data: unknown, context: ExecutionContext) => {
+  (_data: unknown, context: ExecutionContext) => {
     const ctx = GqlExecutionContext.create(context);
-    const req = ctx.getContext().req; 
-    
+    const req = ctx.getContext().req;
+
     return req.token;
   },
 );

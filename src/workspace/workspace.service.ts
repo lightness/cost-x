@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { User } from '../user/entities/user.entity';
-import { WorkspaceInDto } from './dto';
-import { Workspace } from './entity/workspace.entity';
+import type { PrismaService } from '../prisma/prisma.service';
+import type { User } from '../user/entities/user.entity';
+import type { WorkspaceInDto } from './dto';
+import type { Workspace } from './entity/workspace.entity';
 
 @Injectable()
 export class WorkspaceService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   async listByOwnerId(ownerId: number): Promise<Workspace[]> {
     return this.prisma.workspace.findMany({
@@ -24,7 +24,7 @@ export class WorkspaceService {
       },
       include: {
         owner: true,
-      }
+      },
     });
   }
 
@@ -33,8 +33,8 @@ export class WorkspaceService {
       where: { id },
       data: {
         title: dto.title,
-      }
-    })
+      },
+    });
   }
 
   async delete(id: number): Promise<Workspace> {

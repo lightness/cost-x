@@ -8,7 +8,7 @@ import { AuthGuard } from '../../auth/guard/auth.guard';
 import { CreateUserInDto, UpdateUserInDto } from '../dto';
 import { UserRole } from '../entities/user-role.enum';
 import { User } from '../entities/user.entity';
-import { UserService } from '../user.service';
+import type { UserService } from '../user.service';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 
 @Resolver(() => User)
@@ -17,16 +17,18 @@ export class UserResolver {
   constructor(private userService: UserService) {}
 
   @Query(() => [User])
-  @Access.allow([
-    { targetScope: AccessScope.GLOBAL, role: UserRole.ADMIN }
-  ])
+  @Access.allow([{ targetScope: AccessScope.GLOBAL, role: UserRole.ADMIN }])
   async users() {
     return this.userService.list();
   }
 
   @Query(() => User)
   @Access.allow([
-    { targetScope: AccessScope.USER, targetId: fromArg('id'), role: UserRole.USER },
+    {
+      targetScope: AccessScope.USER,
+      targetId: fromArg('id'),
+      role: UserRole.USER,
+    },
     { targetScope: AccessScope.GLOBAL, role: UserRole.ADMIN },
   ])
   async user(@Args('id', { type: () => Int }) id: number) {
@@ -39,13 +41,19 @@ export class UserResolver {
   }
 
   @Mutation(() => User)
-  async createUser(@Args('dto', { type: () => CreateUserInDto }) dto: CreateUserInDto) {
+  async createUser(
+    @Args('dto', { type: () => CreateUserInDto }) dto: CreateUserInDto,
+  ) {
     return this.userService.create(dto);
   }
 
   @Mutation(() => User)
   @Access.allow([
-    { targetScope: AccessScope.USER, targetId: fromArg('id'), role: UserRole.USER },
+    {
+      targetScope: AccessScope.USER,
+      targetId: fromArg('id'),
+      role: UserRole.USER,
+    },
     { targetScope: AccessScope.GLOBAL, role: UserRole.ADMIN },
   ])
   async updateUser(

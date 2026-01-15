@@ -1,8 +1,18 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query } from '@nestjs/common';
-import { ListTagQueryDto, TagInDto } from './dto';
-import { TagService } from './tag.service';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common';
+import type { ListTagQueryDto, TagInDto } from './dto';
+import type { TagService } from './tag.service';
 import { TagByIdPipe } from '../common/pipes/tag-by-id.pipe';
-import Tag from './entities/tag.entity';
+import type Tag from './entities/tag.entity';
 
 @Controller()
 export class TagController {

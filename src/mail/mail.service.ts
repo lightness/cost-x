@@ -1,15 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { EmailParams, MailerSend, Recipient, Sender } from 'mailersend';
-import { User } from '../user/entities/user.entity';
-import { MailParams } from './interfaces';
+import type { ConfigService } from '@nestjs/config';
+import { EmailParams, type MailerSend, Recipient, Sender } from 'mailersend';
+import type { User } from '../user/entities/user.entity';
+import type { MailParams } from './interfaces';
 
 @Injectable()
 export class MailService {
   constructor(
     private mailerSend: MailerSend,
     private configService: ConfigService,
-  ) { }
+  ) {}
 
   private get sender() {
     const { email, name } = this.configService.getOrThrow('mailersend.sender');
@@ -18,17 +18,22 @@ export class MailService {
   }
 
   private get confirmEmailLinkUrl() {
-    const url = this.configService.getOrThrow('mailersend.confirmEmail.linkUrl');
+    const url = this.configService.getOrThrow(
+      'mailersend.confirmEmail.linkUrl',
+    );
 
     return url;
   }
 
   async send(params: MailParams) {
-    const { toUser: { name, email }, subject, text, html } = params;
+    const {
+      toUser: { name, email },
+      subject,
+      text,
+      html,
+    } = params;
 
-    const recipients = [
-      new Recipient(email, name)
-    ];
+    const recipients = [new Recipient(email, name)];
 
     const emailParams = new EmailParams()
       .setFrom(this.sender)
@@ -49,11 +54,11 @@ export class MailService {
       toUser: user,
       subject: 'Welcome to Cost-X',
       html: [
-        `<p>Hey, ${name}!</p>`, 
+        `<p>Hey, ${name}!</p>`,
         '<br/>',
         '<p>You are welcome to Cost-X.</p>',
-        `<p>Click to confirm your email: <a href="${url}">LINK</a></p>`
+        `<p>Click to confirm your email: <a href="${url}">LINK</a></p>`,
       ].join('\n'),
-    })
+    });
   }
 }

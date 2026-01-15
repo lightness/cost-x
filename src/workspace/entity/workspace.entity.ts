@@ -1,5 +1,5 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
-import { Workspace as PrismaWorkspace }  from '../../../generated/prisma/client'
+import type { Workspace as PrismaWorkspace } from '../../../generated/prisma/client';
 import { DateIsoScalar } from '../../graphql/scalars';
 
 @ObjectType()

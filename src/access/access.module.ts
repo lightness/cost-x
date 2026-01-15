@@ -2,14 +2,18 @@ import { Module } from '@nestjs/common';
 import { PrismaModule } from '../prisma/prisma.module';
 import { AccessService } from './access.service';
 import { AccessGuard } from './guard/access.guard';
-import { FormalAccessStrategy, GlobalAccessStrategy, UserToWorkspaceAccessStrategy } from './strategy';
-import { ACCESS_STRATEGIES } from './strategy/interface';
 import { RuleEngineService } from './rule-engine.service';
+import {
+  FormalAccessStrategy,
+  GlobalAccessStrategy,
+  UserToWorkspaceAccessStrategy,
+} from './strategy';
+import { ACCESS_STRATEGIES } from './strategy/interface';
 
 @Module({
   imports: [PrismaModule],
   providers: [
-    AccessService, 
+    AccessService,
     AccessGuard,
     RuleEngineService,
     // access strategies
@@ -23,9 +27,9 @@ import { RuleEngineService } from './rule-engine.service';
         FormalAccessStrategy,
         GlobalAccessStrategy,
         UserToWorkspaceAccessStrategy,
-      ]
-    }
+      ],
+    },
   ],
   exports: [AccessService, AccessGuard],
 })
-export class AccessModule { }
+export class AccessModule {}

@@ -1,5 +1,5 @@
 import { Controller, Get, Query } from '@nestjs/common';
-import { ConfirmEmailService } from './confirm-email.service';
+import type { ConfirmEmailService } from './confirm-email.service';
 
 @Controller()
 export class ConfirmEmailController {

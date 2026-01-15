@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Decimal } from '@prisma/client/runtime/client';
-import { CostByCurrency } from '../../item-cost/dto';
+import type { CostByCurrency } from '../../item-cost/dto';
 import { MetricAggregationService } from './metric-aggregation.service';
 import { Currency } from '../../currency-rate/entities/currency.enum';
 
@@ -11,7 +11,7 @@ export class CostByCurrencyAggregationService extends MetricAggregationService<C
       [Currency.BYN]: Decimal.add(acc[Currency.BYN], cur[Currency.BYN]),
       [Currency.EUR]: Decimal.add(acc[Currency.EUR], cur[Currency.EUR]),
       [Currency.USD]: Decimal.add(acc[Currency.USD], cur[Currency.USD]),
-    })
+    });
   }
 
   protected get defaultValue(): CostByCurrency {
@@ -19,6 +19,6 @@ export class CostByCurrencyAggregationService extends MetricAggregationService<C
       [Currency.BYN]: new Decimal(0),
       [Currency.EUR]: new Decimal(0),
       [Currency.USD]: new Decimal(0),
-    }
+    };
   }
 }

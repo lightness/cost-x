@@ -1,7 +1,7 @@
 import { Injectable, Scope } from '@nestjs/common';
 import { BaseLoader } from '../../graphql/dataloaders/base.loader';
-import { PrismaService } from '../../prisma/prisma.service';
-import Item from '../../item/entities/item.entity';
+import type { PrismaService } from '../../prisma/prisma.service';
+import type Item from '../../item/entities/item.entity';
 
 @Injectable({ scope: Scope.REQUEST })
 export class ItemsByTagIdLoader extends BaseLoader<number, Item[]> {
@@ -19,10 +19,10 @@ export class ItemsByTagIdLoader extends BaseLoader<number, Item[]> {
       },
     });
 
-    const itemsByTagId = tagIds.map(tagId =>
+    const itemsByTagId = tagIds.map((tagId) =>
       itemTags
-        .filter(itemTag => itemTag.tagId === tagId)
-        .map(itemTag => itemTag.item)
+        .filter((itemTag) => itemTag.tagId === tagId)
+        .map((itemTag) => itemTag.item),
     );
 
     return itemsByTagId;
