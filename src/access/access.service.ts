@@ -1,6 +1,5 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import type { GqlExecutionContext } from '@nestjs/graphql';
-import type { UserRole } from '../user/entities/user-role.enum';
 import { fromReq } from './function/from-req.function';
 import {
   AccessAction,
@@ -77,39 +76,5 @@ export class AccessService {
 
   private isRuleOperatorAnd(ruleDef: RuleDef): ruleDef is RuleOperationAnd {
     return 'and' in ruleDef;
-  }
-
-  // biome-ignore lint/correctness/noUnusedPrivateClassMembers: TBD
-  private async processRule(
-    rule: Rule,
-    ctx: GqlExecutionContext,
-  ): Promise<boolean> {
-    const normalizedRule = this.normalizeRule(rule);
-    const {
-      sourceScope,
-      sourceId: getSourceId,
-      targetScope,
-      targetId: getTargetId,
-      role,
-    } = normalizedRule;
-    const currentUserRole = fromReq<UserRole>('user.role')(ctx);
-
-    // TODO: Rewrite
-    if (targetScope === AccessScope.GLOBAL) {
-      return role.includes(currentUserRole);
-    }
-
-    if (sourceScope === targetScope) {
-      const sourceId = getSourceId(ctx);
-      const targetId = getTargetId(ctx);
-
-      if (sourceId !== targetId) {
-        return false;
-      }
-
-      return role.includes(currentUserRole);
-    } else {
-      throw new InternalServerErrorException(`Not implemented yet (scopes)`);
-    }
   }
 }
