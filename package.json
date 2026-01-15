@@ -8,6 +8,7 @@
     "data:migrate": "nest start --entryFile migrate-data.entrypoint",
     "test": "echo \"Error: no test specified\" && exit 1",
     "docker:up": "docker compose -f ./docker/compose.yml up -d",
+    "lint:fix": "biome check ./src --write ",
     "prisma:studio": "prisma studio --config ./prisma.config.ts",
     "prisma:migration:create": "prisma migrate dev --name ${migration_name:-Migration} --create-only",
     "prisma:migration:up": "prisma migrate deploy",
