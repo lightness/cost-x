@@ -1,7 +1,7 @@
 import { Injectable, Scope } from '@nestjs/common';
 import { BaseLoader } from '../../graphql/dataloaders/base.loader';
-import type { PrismaService } from '../../prisma/prisma.service';
-import type Item from '../../item/entities/item.entity';
+import { PrismaService } from '../../prisma/prisma.service';
+import Item from '../../item/entities/item.entity';
 
 @Injectable({ scope: Scope.REQUEST })
 export class ItemsByTagIdLoader extends BaseLoader<number, Item[]> {

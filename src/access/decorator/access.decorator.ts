@@ -1,5 +1,5 @@
 import { SetMetadata } from '@nestjs/common';
-import { AccessAction, type RuleDef } from '../interfaces';
+import { AccessAction, RuleDef } from '../interfaces';
 
 export const ACCESS_METADATA_KEY = 'access';
 

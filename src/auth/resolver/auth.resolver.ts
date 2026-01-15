@@ -1,11 +1,11 @@
 import { UseGuards } from '@nestjs/common';
 import { Args, Mutation, Resolver } from '@nestjs/graphql';
 import { AccessGuard } from '../../access/guard/access.guard';
-import type { AuthService } from '../auth.service';
+import { AuthService } from '../auth.service';
 import { Token } from '../decorator/token.decorator';
 import { AuthInDto, AuthOutDto, LogoutInDto, LogoutOutDto } from '../dto';
 import { AuthGuard } from '../guard/auth.guard';
-import type { LogoutService } from '../logout.service';
+import { LogoutService } from '../logout.service';
 
 @Resolver()
 @UseGuards(AuthGuard, AccessGuard)

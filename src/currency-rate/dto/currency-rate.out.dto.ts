@@ -1,4 +1,4 @@
-import type { Currency } from '../entities/currency.enum';
+import { Currency } from '../entities/currency.enum';
 
 export class CurrencyRateOutDto {
   fromCurrency: Currency;

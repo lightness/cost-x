@@ -1,6 +1,6 @@
 import { Field, HideField, Int, ObjectType } from '@nestjs/graphql';
-import type { ItemsFilter } from '../../item/dto';
-import type { PaymentsFilter } from '../../payment/dto';
+import { ItemsFilter } from '../../item/dto';
+import { PaymentsFilter } from '../../payment/dto';
 import { PaymentsAggregation } from '../../payments-aggregation/entities/payments-aggregation.entity';
 
 @ObjectType()

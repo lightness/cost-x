@@ -1,7 +1,7 @@
 import { Controller, Param, ParseIntPipe, Post, Query } from '@nestjs/common';
-import type { ItemMergeService } from './item-merge.service';
+import { ItemMergeService } from './item-merge.service';
 import { ItemByIdPipe } from '../common/pipes/item-by-id.pipe';
-import type Item from '../item/entities/item.entity';
+import Item from '../item/entities/item.entity';
 
 @Controller()
 export class ItemMergeController {

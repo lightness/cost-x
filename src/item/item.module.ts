@@ -7,9 +7,13 @@ import { ItemController } from './item.controller';
 import { ItemResolver } from './resolvers/item.resolver';
 import { ItemService } from './item.service';
 import { PrismaModule } from '../prisma/prisma.module';
+import { AuthModule } from '../auth/auth.module';
+import { AccessModule } from '../access/access.module';
 
 @Module({
   imports: [
+    AuthModule,
+    AccessModule,
     PrismaModule,
     ItemTagModule,
     ItemCostModule,

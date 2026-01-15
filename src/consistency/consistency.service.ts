@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import type Item from '../item/entities/item.entity';
-import type Payment from '../payment/entities/payment.entity';
-import type { User } from '../user/entities/user.entity';
-import type { Workspace } from '../workspace/entity/workspace.entity';
+import Item from '../item/entities/item.entity';
+import Payment from '../payment/entities/payment.entity';
+import { User } from '../user/entities/user.entity';
+import { Workspace } from '../workspace/entity/workspace.entity';
 import { Relation } from './relation';
 
 @Injectable()

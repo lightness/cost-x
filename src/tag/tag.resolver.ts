@@ -6,10 +6,10 @@ import {
   ResolveField,
   Resolver,
 } from '@nestjs/graphql';
-import type { ItemsByTagIdLoader } from '../item-tag/dataloaders/items-by-tag-id.loader.service';
-import type { FindTagsArgs } from './dto/find-tags.args';
+import { ItemsByTagIdLoader } from '../item-tag/dataloaders/items-by-tag-id.loader.service';
+import { FindTagsArgs } from './dto/find-tags.args';
 import Tag from './entities/tag.entity';
-import type { TagService } from './tag.service';
+import { TagService } from './tag.service';
 
 @Resolver(() => Tag)
 export class TagResolver {

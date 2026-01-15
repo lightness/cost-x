@@ -8,12 +8,12 @@ import {
   Post,
   Put,
 } from '@nestjs/common';
-import type { PaymentInDto } from './dto';
-import type { PaymentService } from './payment.service';
+import { PaymentInDto } from './dto';
+import { PaymentService } from './payment.service';
 import { ItemByIdPipe } from '../common/pipes/item-by-id.pipe';
 import { PaymentByIdPipe } from '../common/pipes/payment-by-id.pipe';
-import type Item from '../item/entities/item.entity';
-import type Payment from './entities/payment.entity';
+import Item from '../item/entities/item.entity';
+import Payment from './entities/payment.entity';
 
 @Controller()
 export class PaymentController {

@@ -1,11 +1,11 @@
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
-import type { BcryptService } from '../password/bcrypt.service';
-import type { PrismaService } from '../prisma/prisma.service';
+import { BcryptService } from '../password/bcrypt.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { UserStatus } from '../user/entities/user-status.enum';
-import type { AuthInDto, AuthOutDto } from './dto';
-import type { TokenService } from '../token/token.service';
+import { AuthInDto, AuthOutDto } from './dto';
+import { TokenService } from '../token/token.service';
 import { ACCESS_TOKEN_SERVICE, REFRESH_TOKEN_SERVICE } from './symbols';
-import type { JwtPayload } from './interfaces';
+import { JwtPayload } from './interfaces';
 
 @Injectable()
 export class AuthService {

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import type { GqlExecutionContext } from '@nestjs/graphql';
-import type { Rule } from '../interfaces';
-import type { AccessStrategy } from './interface';
+import { GqlExecutionContext } from '@nestjs/graphql';
+import { Rule } from '../interfaces';
+import { AccessStrategy } from './interface';
 import { GlobalAccessStrategy } from './global.access-strategy';
 
 @Injectable()

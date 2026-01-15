@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
-import type { ConfigService } from '@nestjs/config';
+import { ConfigService } from '@nestjs/config';
 import { plainToInstance } from 'class-transformer';
-import type { GoogleAuth } from 'google-auth-library';
+import { GoogleAuth } from 'google-auth-library';
 import { GoogleSpreadsheet } from 'google-spreadsheet';
 import { RowDto } from './dto/row.dto';
 

@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
-import type { GqlExecutionContext } from '@nestjs/graphql';
-import type { Rule } from './interfaces';
-import { ACCESS_STRATEGIES, type AccessStrategy } from './strategy/interface';
+import { GqlExecutionContext } from '@nestjs/graphql';
+import { Rule } from './interfaces';
+import { ACCESS_STRATEGIES, AccessStrategy } from './strategy/interface';
 
 @Injectable()
 export class RuleEngineService {

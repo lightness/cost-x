@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import type { ItemWhereInput } from '../../generated/prisma/models';
-import type { PaymentsFilter } from '../payment/dto';
-import type { PrismaService } from '../prisma/prisma.service';
-import type { ItemInDto, ItemsFilter } from './dto';
-import type Item from './entities/item.entity';
+import { ItemWhereInput } from '../../generated/prisma/models';
+import { PaymentsFilter } from '../payment/dto';
+import { PrismaService } from '../prisma/prisma.service';
+import { ItemInDto, ItemsFilter } from './dto';
+import Item from './entities/item.entity';
 
 @Injectable()
 export class ItemService {
@@ -24,8 +24,17 @@ export class ItemService {
     });
   }
 
-  async create(dto: ItemInDto): Promise<Item> {
-    const item = await this.prisma.item.create({ data: dto });
+  async create(workspaceId: number, dto: ItemInDto): Promise<Item> {
+    const item = await this.prisma.item.create({
+      data: {
+        title: dto.title,
+        workspace: {
+          connect: {
+            id: workspaceId,
+          },
+        },
+      },
+    });
 
     return item;
   }

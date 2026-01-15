@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import type { PrismaService } from '../prisma/prisma.service';
-import type Item from '../item/entities/item.entity';
+import { PrismaService } from '../prisma/prisma.service';
+import Item from '../item/entities/item.entity';
 
 @Injectable()
 export class ItemMergeService {

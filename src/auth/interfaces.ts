@@ -1,4 +1,4 @@
-import type { StringValue } from 'ms';
+import { StringValue } from 'ms';
 
 export type ExpiresIn = StringValue | number;
 

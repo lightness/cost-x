@@ -5,14 +5,13 @@ import {
   Get,
   Param,
   ParseIntPipe,
-  Post,
   Put,
   Query,
 } from '@nestjs/common';
 import { ItemByIdPipe } from '../common/pipes/item-by-id.pipe';
-import type { ItemInDto, ListItemQueryDto } from './dto';
-import type { ItemService } from './item.service';
-import type Item from './entities/item.entity';
+import { ItemInDto, ListItemQueryDto } from './dto';
+import { ItemService } from './item.service';
+import Item from './entities/item.entity';
 
 @Controller()
 export class ItemController {
@@ -35,10 +34,10 @@ export class ItemController {
     return item;
   }
 
-  @Post('items')
-  async create(@Body() dto: ItemInDto) {
-    return this.itemService.create(dto);
-  }
+  // @Post('items')
+  // async create(@Body() dto: ItemInDto) {
+  //   return this.itemService.create(dto);
+  // }
 
   @Put('items/:id')
   async update(

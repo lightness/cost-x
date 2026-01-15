@@ -1,8 +1,8 @@
-import type { HttpService } from '@nestjs/axios';
+import { HttpService } from '@nestjs/axios';
 import { Injectable, Logger } from '@nestjs/common';
 import { Decimal } from '@prisma/client/runtime/client';
 import { firstValueFrom } from 'rxjs';
-import type { Currency } from '../../generated/prisma/enums';
+import { Currency } from '../../generated/prisma/enums';
 
 @Injectable()
 export class CurrencyRateApiService {

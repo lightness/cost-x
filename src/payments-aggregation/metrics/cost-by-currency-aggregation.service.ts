@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Decimal } from '@prisma/client/runtime/client';
-import type { CostByCurrency } from '../../item-cost/dto';
+import { CostByCurrency } from '../../item-cost/dto';
 import { MetricAggregationService } from './metric-aggregation.service';
 import { Currency } from '../../currency-rate/entities/currency.enum';
 

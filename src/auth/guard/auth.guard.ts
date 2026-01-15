@@ -6,10 +6,10 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
-import type { Request } from 'express';
-import type { PrismaService } from '../../prisma/prisma.service';
-import type { TokenService } from '../../token/token.service';
-import type { JwtPayload } from '../interfaces';
+import { Request } from 'express';
+import { PrismaService } from '../../prisma/prisma.service';
+import { TokenService } from '../../token/token.service';
+import { JwtPayload } from '../interfaces';
 import { ACCESS_TOKEN_SERVICE } from '../symbols';
 
 @Injectable()

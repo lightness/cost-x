@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import type { SpreadsheetService } from '../spreadsheet/spreadsheet.service';
-import type { TagService } from '../tag/tag.service';
-import type { ItemService } from '../item/item.service';
-import type { ItemTagService } from '../item-tag/item-tag.service';
-import type { PaymentService } from '../payment/payment.service';
+import { SpreadsheetService } from '../spreadsheet/spreadsheet.service';
+import { TagService } from '../tag/tag.service';
+import { ItemService } from '../item/item.service';
+import { ItemTagService } from '../item-tag/item-tag.service';
+import { PaymentService } from '../payment/payment.service';
 import { Currency } from '../../generated/prisma/enums';
-import type Tag from '../tag/entities/tag.entity';
+import Tag from '../tag/entities/tag.entity';
+import { UserService } from '../user/user.service';
+import { WorkspaceService } from '../workspace/workspace.service';
 
 @Injectable()
 export class DataMigrationService {
@@ -15,10 +17,25 @@ export class DataMigrationService {
     private itemService: ItemService,
     private itemTagService: ItemTagService,
     private paymentService: PaymentService,
+    private userService: UserService,
+    private workspaceService: WorkspaceService,
   ) {}
 
   async migrate() {
     const rows = await this.spreadsheetService.loadEverything();
+
+    const user = await this.userService.create({
+      email: 'uladzimir.aleshka@gmail.com',
+      name: 'Vova',
+      password: 'Test12345',
+    });
+
+    const workspace = await this.workspaceService.create(
+      {
+        title: 'Strojka',
+      },
+      user,
+    );
 
     let globalTag: Tag;
 
@@ -33,7 +50,7 @@ export class DataMigrationService {
         continue;
       }
 
-      const item = await this.itemService.create({ title });
+      const item = await this.itemService.create(workspace.id, { title });
 
       if (globalTag) {
         await this.itemTagService.setTag(item, globalTag);

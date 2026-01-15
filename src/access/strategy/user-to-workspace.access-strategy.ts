@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import type { GqlExecutionContext } from '@nestjs/graphql';
-import type { PrismaService } from '../../prisma/prisma.service';
-import { AccessScope, type Rule } from '../interfaces';
-import type { AccessStrategy } from './interface';
+import { GqlExecutionContext } from '@nestjs/graphql';
+import { PrismaService } from '../../prisma/prisma.service';
+import { AccessScope, Rule } from '../interfaces';
+import { AccessStrategy } from './interface';
 import { GlobalAccessStrategy } from './global.access-strategy';
 
 @Injectable()

@@ -1,4 +1,4 @@
-import { GraphQLScalarType, Kind, type ValueNode } from 'graphql';
+import { GraphQLScalarType, Kind, ValueNode } from 'graphql';
 
 export const DateScalar = new GraphQLScalarType({
   name: 'Date',

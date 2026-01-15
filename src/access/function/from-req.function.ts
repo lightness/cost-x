@@ -1,4 +1,4 @@
-import type { GqlExecutionContext } from '@nestjs/graphql';
+import { GqlExecutionContext } from '@nestjs/graphql';
 import { get } from 'radash';
 
 export const fromReq =

@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import type { Decimal } from '@prisma/client/runtime/client';
-import type { PaymentWhereInput } from '../../generated/prisma/models';
-import type { CurrencyRateService } from '../currency-rate/currency-rate.service';
-import type { CostByCurrencyService } from '../item-cost/cost-by-currency.service';
-import type { DefaultCurrencyCostService } from '../item-cost/default-currency-cost.service';
-import type { CostByCurrency } from '../item-cost/dto';
-import type { PaymentsFilter } from '../payment/dto';
-import type { PaymentService } from '../payment/payment.service';
-import type { PrismaService } from '../prisma/prisma.service';
+import { Decimal } from '@prisma/client/runtime/client';
+import { PaymentWhereInput } from '../../generated/prisma/models';
+import { CurrencyRateService } from '../currency-rate/currency-rate.service';
+import { CostByCurrencyService } from '../item-cost/cost-by-currency.service';
+import { DefaultCurrencyCostService } from '../item-cost/default-currency-cost.service';
+import { CostByCurrency } from '../item-cost/dto';
+import { PaymentsFilter } from '../payment/dto';
+import { PaymentService } from '../payment/payment.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class PaymentsAggregationService {

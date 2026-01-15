@@ -6,10 +6,10 @@ import {
   ResolveField,
   Resolver,
 } from '@nestjs/graphql';
-import type { ItemsFilter } from '../../item/dto';
-import type { PaymentsFilter } from '../../payment/dto';
+import { ItemsFilter } from '../../item/dto';
+import { PaymentsFilter } from '../../payment/dto';
 import { ItemsAggregation } from '../entities/items-aggregation.entity';
-import type { ItemsAggregationService } from '../items-aggregation.service';
+import { ItemsAggregationService } from '../items-aggregation.service';
 import { PaymentsAggregation } from '../../payments-aggregation/entities/payments-aggregation.entity';
 
 @Resolver(() => ItemsAggregation)

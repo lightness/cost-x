@@ -9,10 +9,10 @@ import {
   Put,
   Query,
 } from '@nestjs/common';
-import type { ListTagQueryDto, TagInDto } from './dto';
-import type { TagService } from './tag.service';
+import { ListTagQueryDto, TagInDto } from './dto';
+import { TagService } from './tag.service';
 import { TagByIdPipe } from '../common/pipes/tag-by-id.pipe';
-import type Tag from './entities/tag.entity';
+import Tag from './entities/tag.entity';
 
 @Controller()
 export class TagController {

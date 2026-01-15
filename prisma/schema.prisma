@@ -19,12 +19,14 @@ model CurrencyRate {
 }
 
 model Item {
-  id        Int       @id(map: "PK_item_id") @default(autoincrement())
-  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
-  updatedAt DateTime  @default(now()) @map("updated_at") @db.Timestamp(6)
-  title     String    @db.VarChar(255)
-  itemTag   ItemTag[]
-  payment   Payment[]
+  id            Int       @id(map: "PK_item_id") @default(autoincrement())
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt     DateTime  @default(now()) @map("updated_at") @db.Timestamp(6)
+  title         String    @db.VarChar(255)
+  workspaceId   Int       @map("workspace_id")
+  itemTag       ItemTag[]
+  payment       Payment[]
+  workspace     Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_item_workspace_id_workspace_id")
 
   @@map("item")
 }
@@ -113,6 +115,9 @@ model Workspace {
   updatedAt DateTime    @default(now()) @map("updated_at") @db.Timestamp(6)
   title     String      @db.VarChar(255)
   ownerId   Int         @map("owner_id")
+  items     Item[]
 
   owner     User        @relation(fields: [ownerId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_workspace_owner_id_user_id")
+
+  @@map("workspace")
 }

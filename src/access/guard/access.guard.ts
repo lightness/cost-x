@@ -1,15 +1,15 @@
 import {
-  type CanActivate,
-  type ExecutionContext,
+  CanActivate,
+  ExecutionContext,
   ForbiddenException,
   Injectable,
 } from '@nestjs/common';
-import type { Reflector } from '@nestjs/core';
+import { Reflector } from '@nestjs/core';
 import { GqlExecutionContext } from '@nestjs/graphql';
-import type { AccessService } from '../access.service';
+import { AccessService } from '../access.service';
 import {
   ACCESS_METADATA_KEY,
-  type AccessMetadata,
+  AccessMetadata,
 } from '../decorator/access.decorator';
 
 @Injectable()

@@ -1,5 +1,5 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
-import type { Decimal } from '@prisma/client/runtime/client';
+import { Decimal } from '@prisma/client/runtime/client';
 import {
   type Payment as PrismaPayment,
   Currency,

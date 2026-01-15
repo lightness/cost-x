@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { Decimal } from '@prisma/client/runtime/client';
 import { Currency } from '../../generated/prisma/enums';
-import type { CostByCurrency } from './dto';
-import type { PaymentLike } from './interfaces';
+import { CostByCurrency } from './dto';
+import { PaymentLike } from './interfaces';
 
 @Injectable()
 export class CostByCurrencyService {

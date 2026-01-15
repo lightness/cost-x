@@ -3,10 +3,10 @@ import { Workspace } from '../entity/workspace.entity';
 import { Access } from '../../access/decorator/access.decorator';
 import { AccessScope } from '../../access/interfaces';
 import { UserRole } from '../../user/entities/user-role.enum';
-import type { WorkspaceInDto } from '../dto';
+import { WorkspaceInDto } from '../dto';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
-import type { User } from '../../user/entities/user.entity';
-import type { WorkspaceService } from '../workspace.service';
+import { User } from '../../user/entities/user.entity';
+import { WorkspaceService } from '../workspace.service';
 import { fromArg } from '../../access/function/from-arg.function';
 
 @Resolver(() => Workspace)

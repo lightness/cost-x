@@ -10,19 +10,19 @@ import {
 import { isNotError } from '../../common/functions/is-not-error';
 import { DateScalar } from '../../graphql/scalars';
 import { CostByCurrency } from '../../item-cost/dto';
-import type { PaymentsFilter } from '../../payment/dto';
-import type { CostByCurrencyByItemIdLoader } from '../dataloaders/cost-by-currency-by-item-id.loader.service';
-import type { CostInDefaultCurrencyByItemIdLoader } from '../dataloaders/cost-in-default-currency-by-item-id.loader.service';
-import type { FirstPaymentDateByItemIdLoader } from '../dataloaders/first-payment-date-by-item-id.loader.service';
-import type { LastPaymentDateByItemIdLoader } from '../dataloaders/last-payment-date-by-item-id.loader.service';
-import type { PaymentsCountByItemIdLoader } from '../dataloaders/payments-count-by-item-id.loader.service';
+import { PaymentsFilter } from '../../payment/dto';
+import { CostByCurrencyByItemIdLoader } from '../dataloaders/cost-by-currency-by-item-id.loader.service';
+import { CostInDefaultCurrencyByItemIdLoader } from '../dataloaders/cost-in-default-currency-by-item-id.loader.service';
+import { FirstPaymentDateByItemIdLoader } from '../dataloaders/first-payment-date-by-item-id.loader.service';
+import { LastPaymentDateByItemIdLoader } from '../dataloaders/last-payment-date-by-item-id.loader.service';
+import { PaymentsCountByItemIdLoader } from '../dataloaders/payments-count-by-item-id.loader.service';
 import { PaymentsAggregation } from '../entities/payments-aggregation.entity';
-import type { CostByCurrencyAggregationService } from '../metrics/cost-by-currency-aggregation.service';
-import type { DecimalSumAggregationService } from '../metrics/decimal-sum-aggregation.service';
-import type { EarliestAggregationService } from '../metrics/earliest-aggregation.service';
-import type { LatestAggregationService } from '../metrics/latest-aggregation.service';
-import type { SumAggregationService } from '../metrics/sum-aggregation.service';
-import type { PaymentsAggregationService } from '../payments-aggregation.service';
+import { CostByCurrencyAggregationService } from '../metrics/cost-by-currency-aggregation.service';
+import { DecimalSumAggregationService } from '../metrics/decimal-sum-aggregation.service';
+import { EarliestAggregationService } from '../metrics/earliest-aggregation.service';
+import { LatestAggregationService } from '../metrics/latest-aggregation.service';
+import { SumAggregationService } from '../metrics/sum-aggregation.service';
+import { PaymentsAggregationService } from '../payments-aggregation.service';
 
 @Resolver(PaymentsAggregation)
 export class PaymentsAggregationResolver {

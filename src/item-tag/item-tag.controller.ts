@@ -1,9 +1,9 @@
 import { Controller, Delete, Param, ParseIntPipe, Put } from '@nestjs/common';
-import type { ItemTagService } from './item-tag.service';
+import { ItemTagService } from './item-tag.service';
 import { ItemByIdPipe } from '../common/pipes/item-by-id.pipe';
 import { TagByIdPipe } from '../common/pipes/tag-by-id.pipe';
-import type Item from '../item/entities/item.entity';
-import type Tag from '../tag/entities/tag.entity';
+import Item from '../item/entities/item.entity';
+import Tag from '../tag/entities/tag.entity';
 
 @Controller()
 export class ItemTagController {

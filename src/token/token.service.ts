@@ -1,8 +1,8 @@
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import * as crypto from 'node:crypto';
-import type Redis from 'ioredis';
+import Redis from 'ioredis';
 import { decode, sign, verify } from 'jsonwebtoken';
-import type { ExpiresIn } from './interfaces';
+import { ExpiresIn } from './interfaces';
 import { CONFIG } from './symbols';
 
 @Injectable()

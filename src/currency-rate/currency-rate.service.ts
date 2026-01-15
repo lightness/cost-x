@@ -1,11 +1,11 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { Decimal } from '@prisma/client/runtime/client';
 import { Currency } from '../../generated/prisma/enums';
-import type { DateService } from '../date/date.service';
-import type { PrismaService } from '../prisma/prisma.service';
-import type { CurrencyRateApiService } from './currency-rate-api.service';
-import type { GetCurrencyRateInDto } from './dto';
-import type CurrencyRate from './entities/currency-rate.entity';
+import { DateService } from '../date/date.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { CurrencyRateApiService } from './currency-rate-api.service';
+import { GetCurrencyRateInDto } from './dto';
+import CurrencyRate from './entities/currency-rate.entity';
 
 type DerivativeMap = Map<Currency, Map<string, Decimal>>;
 

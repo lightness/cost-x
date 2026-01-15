@@ -1,11 +1,11 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { v4 as uuid } from 'uuid';
-import type { PrismaService } from '../prisma/prisma.service';
-import type { BcryptService } from '../password/bcrypt.service';
-import type { CreateUserInDto, UpdateUserInDto } from './dto';
+import { PrismaService } from '../prisma/prisma.service';
+import { BcryptService } from '../password/bcrypt.service';
+import { CreateUserInDto, UpdateUserInDto } from './dto';
 import { UserStatus } from './entities/user-status.enum';
-import type { User } from './entities/user.entity';
-import type { ConfirmEmailService } from '../confirm-email/confirm-email.service';
+import { User } from './entities/user.entity';
+import { ConfirmEmailService } from '../confirm-email/confirm-email.service';
 
 @Injectable()
 export class UserService {

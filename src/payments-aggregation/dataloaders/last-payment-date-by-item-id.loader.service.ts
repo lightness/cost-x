@@ -1,7 +1,7 @@
 import { Injectable, Scope } from '@nestjs/common';
 import { NestedLoader } from '../../graphql/dataloaders/nested.loader';
-import type { PaymentsFilter } from '../../payment/dto';
-import type { PaymentsAggregationService } from '../payments-aggregation.service';
+import { PaymentsFilter } from '../../payment/dto';
+import { PaymentsAggregationService } from '../payments-aggregation.service';
 
 @Injectable({ scope: Scope.REQUEST })
 export class LastPaymentDateByItemIdLoader extends NestedLoader<

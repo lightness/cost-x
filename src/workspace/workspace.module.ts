@@ -8,5 +8,6 @@ import { WorkspaceService } from './workspace.service';
 @Module({
   imports: [PrismaModule, AuthModule, AccessModule],
   providers: [WorkspaceService, WorkspaceResolver],
+  exports: [WorkspaceService]
 })
 export class WorkspaceModule {}

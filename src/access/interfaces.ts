@@ -1,5 +1,5 @@
-import type { GqlExecutionContext } from '@nestjs/graphql';
-import type { UserRole } from '../user/entities/user-role.enum';
+import { GqlExecutionContext } from '@nestjs/graphql';
+import { UserRole } from '../user/entities/user-role.enum';
 
 export enum AccessAction {
   ALLOW = 'allow',

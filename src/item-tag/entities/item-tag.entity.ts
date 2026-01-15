@@ -1,6 +1,6 @@
-import type Item from '../../item/entities/item.entity';
-import type Tag from '../../tag/entities/tag.entity';
-import type { ItemTag as PrismaItemTag } from '../../../generated/prisma/client';
+import Item from '../../item/entities/item.entity';
+import Tag from '../../tag/entities/tag.entity';
+import { ItemTag as PrismaItemTag } from '../../../generated/prisma/client';
 
 class ItemTag implements PrismaItemTag {
   id: number;

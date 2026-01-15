@@ -1,8 +1,8 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import type Item from '../item/entities/item.entity';
-import type { PrismaService } from '../prisma/prisma.service';
-import type Tag from '../tag/entities/tag.entity';
-import type ItemTag from './entities/item-tag.entity';
+import Item from '../item/entities/item.entity';
+import { PrismaService } from '../prisma/prisma.service';
+import Tag from '../tag/entities/tag.entity';
+import ItemTag from './entities/item-tag.entity';
 
 @Injectable()
 export class ItemTagService {

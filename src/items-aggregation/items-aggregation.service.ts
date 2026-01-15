@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import type { ItemsFilter } from '../item/dto';
-import type { PaymentsFilter } from '../payment/dto';
-import type { PrismaService } from '../prisma/prisma.service';
-import type { ItemWhereInput } from '../../generated/prisma/models';
+import { ItemsFilter } from '../item/dto';
+import { PaymentsFilter } from '../payment/dto';
+import { PrismaService } from '../prisma/prisma.service';
+import { ItemWhereInput } from '../../generated/prisma/models';
 
 @Injectable()
 export class ItemsAggregationService {

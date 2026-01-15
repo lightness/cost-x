@@ -3,8 +3,8 @@ import {
   NotFoundException,
   type PipeTransform,
 } from '@nestjs/common';
-import type Payment from '../../payment/entities/payment.entity';
-import type { PrismaService } from '../../prisma/prisma.service';
+import Payment from '../../payment/entities/payment.entity';
+import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
 export class PaymentByIdPipe

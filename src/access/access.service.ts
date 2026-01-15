@@ -1,15 +1,15 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import type { GqlExecutionContext } from '@nestjs/graphql';
+import { GqlExecutionContext } from '@nestjs/graphql';
 import { fromReq } from './function/from-req.function';
 import {
   AccessAction,
   AccessScope,
-  type Rule,
-  type RuleDef,
-  type RuleOperationAnd,
-  type RuleOperationOr,
+  Rule,
+  RuleDef,
+  RuleOperationAnd,
+  RuleOperationOr,
 } from './interfaces';
-import type { RuleEngineService } from './rule-engine.service';
+import { RuleEngineService } from './rule-engine.service';
 
 @Injectable()
 export class AccessService {

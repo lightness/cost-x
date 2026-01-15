@@ -1,5 +1,5 @@
 import { Field, ObjectType } from '@nestjs/graphql';
-import type { Decimal } from '@prisma/client/runtime/client';
+import { Decimal } from '@prisma/client/runtime/client';
 import { DecimalScalar } from '../../graphql/scalars';
 import { Currency } from '../../currency-rate/entities/currency.enum';
 

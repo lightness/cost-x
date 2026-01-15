@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import type { ConfigService } from '@nestjs/config';
-import { EmailParams, type MailerSend, Recipient, Sender } from 'mailersend';
-import type { User } from '../user/entities/user.entity';
-import type { MailParams } from './interfaces';
+import { ConfigService } from '@nestjs/config';
+import { EmailParams, MailerSend, Recipient, Sender } from 'mailersend';
+import { User } from '../user/entities/user.entity';
+import { MailParams } from './interfaces';
 
 @Injectable()
 export class MailService {

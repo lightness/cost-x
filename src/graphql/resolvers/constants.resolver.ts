@@ -1,5 +1,5 @@
 import { Query, Resolver } from '@nestjs/graphql';
-import type { DefaultCurrencyCostService } from '../../item-cost/default-currency-cost.service';
+import { DefaultCurrencyCostService } from '../../item-cost/default-currency-cost.service';
 import { Currency } from '../../../generated/prisma/enums';
 
 @Resolver()

@@ -1,13 +1,13 @@
 import { Int, Parent, ResolveField, Resolver } from '@nestjs/graphql';
 import { isNotError } from '../common/functions/is-not-error';
-import type { CurrencyRateLoader } from '../currency-rate/dataloaders/currency-rate.loader.service';
-import type CurrencyRate from '../currency-rate/entities/currency-rate.entity';
+import { CurrencyRateLoader } from '../currency-rate/dataloaders/currency-rate.loader.service';
+import CurrencyRate from '../currency-rate/entities/currency-rate.entity';
 import { DateScalar } from '../graphql/scalars';
-import type { CostByCurrencyService } from '../item-cost/cost-by-currency.service';
-import type { DefaultCurrencyCostService } from '../item-cost/default-currency-cost.service';
+import { CostByCurrencyService } from '../item-cost/cost-by-currency.service';
+import { DefaultCurrencyCostService } from '../item-cost/default-currency-cost.service';
 import { CostByCurrency } from '../item-cost/dto';
 import { FindPaymentsAggregates } from './dto';
-import type { PaymentService } from './payment.service';
+import { PaymentService } from './payment.service';
 import { Decimal } from '@prisma/client/runtime/client';
 
 @Resolver(() => FindPaymentsAggregates)

@@ -11,9 +11,7 @@ type CurrencyRate {
   rate: Decimal!
 }
 
-"""
-Date custom scalar type in ISO format
-"""
+"""Date custom scalar type in ISO format"""
 scalar DateIso
 
 enum Currency {
@@ -22,14 +20,10 @@ enum Currency {
   EUR
 }
 
-"""
-Date custom scalar type in YYYY-MM-DD format
-"""
+"""Date custom scalar type in YYYY-MM-DD format"""
 scalar Date
 
-"""
-Decimal number
-"""
+"""Decimal number"""
 scalar Decimal
 
 type Payment {
@@ -80,11 +74,21 @@ type Tag {
   items: [Item!]
 }
 
+type Workspace {
+  id: Int!
+  createdAt: DateIso!
+  updatedAt: DateIso!
+  title: String!
+  ownerId: Int!
+}
+
 type Item {
   id: Int!
   createdAt: DateIso!
   updatedAt: DateIso!
   title: String!
+  workspaceId: Int!
+  workspace: Workspace
   payments(paymentsFilter: PaymentsFilter): [Payment!]
   paymentsAggregation(paymentsFilter: PaymentsFilter): PaymentsAggregation
   tags: [Tag!]
@@ -93,11 +97,6 @@ type Item {
 input PaymentsFilter {
   dateFrom: Date
   dateTo: Date
-}
-
-type ItemsAggregation {
-  count: Int
-  paymentsAggregation(paymentsFilter: PaymentsFilter): PaymentsAggregation
 }
 
 type AuthOutDto {
@@ -130,36 +129,26 @@ enum UserRole {
   ADMIN
 }
 
-type Workspace {
-  id: Int!
-  createdAt: DateIso!
-  updatedAt: DateIso!
-  title: String!
-  ownerId: Int!
+type ItemsAggregation {
+  count: Int
+  paymentsAggregation(paymentsFilter: PaymentsFilter): PaymentsAggregation
 }
 
 type Query {
   defaultCurrency: Currency!
-  currencyRate(
-    fromCurrency: Currency!
-    toCurrency: Currency!
-    date: Date!
-  ): CurrencyRate!
+  currencyRate(fromCurrency: Currency!, toCurrency: Currency!, date: Date!): CurrencyRate!
   tag(id: Int!): Tag!
   tags(filter: TagsFilter): [Tag!]!
   item(id: Int!): Item!
   items(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): [Item!]!
   payment(id: Int!): Payment!
   payments(paymentsFilter: PaymentsFilter): FindPaymentsResponse!
-  paymentsAggregation(paymentsFilter: PaymentsFilter): PaymentsAggregation!
-  itemsAggregation(
-    itemsFilter: ItemsFilter
-    paymentsFilter: PaymentsFilter
-  ): ItemsAggregation!
   users: [User!]!
   user(id: Int!): User!
   me: User!
   my: [Workspace!]!
+  paymentsAggregation(paymentsFilter: PaymentsFilter): PaymentsAggregation!
+  itemsAggregation(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): ItemsAggregation!
 }
 
 input TagsFilter {
@@ -174,6 +163,7 @@ input ItemsFilter {
 type Mutation {
   authenticate(dto: AuthInDto!): AuthOutDto!
   logout(dto: LogoutInDto!): LogoutOutDto!
+  createItem(workspaceId: Int!, dto: ItemInDto!): Item!
   createUser(dto: CreateUserInDto!): User!
   updateUser(id: Int!, dto: UpdateUserInDto!): User!
   createWorkspace(dto: WorkspaceInDto!): Workspace!
@@ -188,6 +178,10 @@ input AuthInDto {
 
 input LogoutInDto {
   refreshToken: String!
+}
+
+input ItemInDto {
+  title: String!
 }
 
 input CreateUserInDto {

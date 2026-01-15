@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
-import type { JwtPayload } from 'jsonwebtoken';
-import type { TokenService } from '../token/token.service';
-import type { LogoutInDto } from './dto';
+import { JwtPayload } from 'jsonwebtoken';
+import { TokenService } from '../token/token.service';
+import { LogoutInDto } from './dto';
 import { ACCESS_TOKEN_SERVICE, REFRESH_TOKEN_SERVICE } from './symbols';
 
 @Injectable()

@@ -8,7 +8,7 @@ import { AuthGuard } from '../../auth/guard/auth.guard';
 import { CreateUserInDto, UpdateUserInDto } from '../dto';
 import { UserRole } from '../entities/user-role.enum';
 import { User } from '../entities/user.entity';
-import type { UserService } from '../user.service';
+import { UserService } from '../user.service';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 
 @Resolver(() => User)

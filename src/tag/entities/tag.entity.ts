@@ -1,5 +1,5 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
-import type { Tag as PrismaTag } from '../../../generated/prisma/client';
+import { Tag as PrismaTag } from '../../../generated/prisma/client';
 import { DateIsoScalar } from '../../graphql/scalars';
 import Item from '../../item/entities/item.entity';
 

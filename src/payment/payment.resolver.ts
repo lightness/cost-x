@@ -7,11 +7,11 @@ import {
   ResolveField,
   Resolver,
 } from '@nestjs/graphql';
-import { FindPaymentsResponse, type PaymentsFilter } from './dto';
-import type { PaymentService } from './payment.service';
+import { FindPaymentsResponse, PaymentsFilter } from './dto';
+import { PaymentService } from './payment.service';
 import Payment from './entities/payment.entity';
 import Item from '../item/entities/item.entity';
-import type { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Resolver(() => Payment)
 export class PaymentResolver {
