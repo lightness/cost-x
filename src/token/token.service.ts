@@ -1,14 +1,14 @@
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import * as crypto from 'node:crypto';
-import Redis from 'ioredis';
 import { decode, sign, verify } from 'jsonwebtoken';
 import { ExpiresIn } from './interfaces';
 import { CONFIG } from './symbols';
+import { RedisService } from '../redis/redis.service';
 
 @Injectable()
 export class TokenService<T extends object> {
   constructor(
-    private redis: Redis,
+    private redis: RedisService,
     @Inject(CONFIG) private config,
   ) {}
 

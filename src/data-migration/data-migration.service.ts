@@ -1,16 +1,19 @@
-import { Injectable } from '@nestjs/common';
-import { SpreadsheetService } from '../spreadsheet/spreadsheet.service';
-import { TagService } from '../tag/tag.service';
-import { ItemService } from '../item/item.service';
-import { ItemTagService } from '../item-tag/item-tag.service';
-import { PaymentService } from '../payment/payment.service';
+import { Injectable, Logger } from '@nestjs/common';
 import { Currency } from '../../generated/prisma/enums';
+import { ItemTagService } from '../item-tag/item-tag.service';
+import { ItemService } from '../item/item.service';
+import { PaymentService } from '../payment/payment.service';
+import { SpreadsheetService } from '../spreadsheet/spreadsheet.service';
 import Tag from '../tag/entities/tag.entity';
+import { TagService } from '../tag/tag.service';
 import { UserService } from '../user/user.service';
 import { WorkspaceService } from '../workspace/workspace.service';
+import { InquirerService } from './inquirer.service';
 
 @Injectable()
 export class DataMigrationService {
+  private readonly logger = new Logger(DataMigrationService.name);
+
   constructor(
     private spreadsheetService: SpreadsheetService,
     private tagService: TagService,
@@ -19,20 +22,23 @@ export class DataMigrationService {
     private paymentService: PaymentService,
     private userService: UserService,
     private workspaceService: WorkspaceService,
+    private inquirerService: InquirerService,
   ) {}
 
   async migrate() {
     const rows = await this.spreadsheetService.loadEverything();
 
+    const credentials = await this.inquirerService.askForCredentials();
+
     const user = await this.userService.create({
-      email: 'uladzimir.aleshka@gmail.com',
-      name: 'Vova',
-      password: 'Test12345',
+      email: credentials.email.toLowerCase(),
+      name: credentials.name,
+      password: credentials.password,
     });
 
     const workspace = await this.workspaceService.create(
       {
-        title: 'Strojka',
+        title: `Imported workspace ${new Date().toISOString()}`,
       },
       user,
     );
@@ -80,5 +86,7 @@ export class DataMigrationService {
         });
       }
     }
+
+    this.logger.log('Done');
   }
 }
