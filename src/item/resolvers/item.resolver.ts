@@ -97,4 +97,10 @@ export class ItemResolver {
   ) {
     return this.itemService.create(workspaceId, dto);
   }
+
+  updateItem(
+
+  ) {
+    return this.itemService.
+  }
 }

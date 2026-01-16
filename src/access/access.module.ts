@@ -6,6 +6,7 @@ import { RuleEngineService } from './rule-engine.service';
 import {
   FormalAccessStrategy,
   GlobalAccessStrategy,
+  UserToItemAccessStrategy,
   UserToWorkspaceAccessStrategy,
 } from './strategy';
 import { ACCESS_STRATEGIES } from './strategy/interface';
@@ -19,6 +20,7 @@ import { ACCESS_STRATEGIES } from './strategy/interface';
     // access strategies
     FormalAccessStrategy,
     GlobalAccessStrategy,
+    UserToItemAccessStrategy,
     UserToWorkspaceAccessStrategy,
     {
       provide: ACCESS_STRATEGIES,
@@ -26,10 +28,14 @@ import { ACCESS_STRATEGIES } from './strategy/interface';
       inject: [
         FormalAccessStrategy,
         GlobalAccessStrategy,
+        UserToItemAccessStrategy,
         UserToWorkspaceAccessStrategy,
       ],
     },
   ],
-  exports: [AccessService, AccessGuard],
+  exports: [
+    AccessService, 
+    AccessGuard,
+  ],
 })
 export class AccessModule {}
