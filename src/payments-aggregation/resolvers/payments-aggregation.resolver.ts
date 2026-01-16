@@ -1,4 +1,12 @@
-import { Args, Float, Int, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
+import {
+  Args,
+  Float,
+  Int,
+  Parent,
+  Query,
+  ResolveField,
+  Resolver,
+} from '@nestjs/graphql';
 import { isNotError } from '../../common/functions/is-not-error';
 import { DateScalar } from '../../graphql/scalars';
 import { CostByCurrency } from '../../item-cost/dto';
@@ -30,17 +38,17 @@ export class PaymentsAggregationResolver {
     private earliestAggregationService: EarliestAggregationService,
     private latestAggregationService: LatestAggregationService,
     private costByCurrencyAggregationService: CostByCurrencyAggregationService,
-  ) { }
+  ) {}
 
   @Query(() => PaymentsAggregation)
-  paymentsAggregation(@Args('paymentsFilter', { nullable: true }) paymentsFilter: PaymentsFilter) {
+  paymentsAggregation(
+    @Args('paymentsFilter', { nullable: true }) paymentsFilter: PaymentsFilter,
+  ) {
     return { paymentsFilter };
   }
 
   @ResolveField(() => Int)
-  async count(
-    @Parent() paymentsAggregation: PaymentsAggregation,
-  ) {
+  async count(@Parent() paymentsAggregation: PaymentsAggregation) {
     const { itemIds, paymentsFilter } = paymentsAggregation;
 
     if (itemIds) {
@@ -50,27 +58,32 @@ export class PaymentsAggregationResolver {
 
       return countByItemId
         .filter(isNotError)
-        .reduce(...this.sumAggregationService.reducer)
+        .reduce(...this.sumAggregationService.reducer);
     }
 
     return this.paymentAggregateService.getPaymentsCount(paymentsFilter);
   }
 
   @ResolveField(() => Float)
-  async costInDefaultCurrency(@Parent() paymentsAggregation: PaymentsAggregation) {
+  async costInDefaultCurrency(
+    @Parent() paymentsAggregation: PaymentsAggregation,
+  ) {
     const { itemIds, paymentsFilter } = paymentsAggregation;
 
     if (itemIds) {
-      const costInDefaultCurrencyByItemId = await this.costInDefaultCurrencyByItemIdLoader
-        .withOptions(paymentsFilter)
-        .loadMany(itemIds);
+      const costInDefaultCurrencyByItemId =
+        await this.costInDefaultCurrencyByItemIdLoader
+          .withOptions(paymentsFilter)
+          .loadMany(itemIds);
 
       return costInDefaultCurrencyByItemId
         .filter(isNotError)
         .reduce(...this.decimalSumAggregationService.reducer);
     }
 
-    return this.paymentAggregateService.getCostInDefaultCurrency(paymentsFilter);
+    return this.paymentAggregateService.getCostInDefaultCurrency(
+      paymentsFilter,
+    );
   }
 
   @ResolveField(() => CostByCurrency)

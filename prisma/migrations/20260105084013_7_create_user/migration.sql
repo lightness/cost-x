@@ -1,0 +1,11 @@
+-- CreateTable
+CREATE TABLE "user" (
+    "id" SERIAL NOT NULL,
+    "created_at" TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "email" VARCHAR(255) NOT NULL,
+    "password" VARCHAR(72) NOT NULL,
+    "name" VARCHAR(50) NOT NULL,
+
+    CONSTRAINT "PK_user_id" PRIMARY KEY ("id")
+);

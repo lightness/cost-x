@@ -2,7 +2,11 @@ import { Field, Int, ObjectType } from '@nestjs/graphql';
 import { Decimal } from '@prisma/client/runtime/client';
 import { CurrencyRate as PrismaCurrencyRate } from '../../../generated/prisma/client';
 import { Currency } from '../entities/currency.enum';
-import { DateIsoScalar, DateScalar, DecimalScalar } from '../../graphql/scalars';
+import {
+  DateIsoScalar,
+  DateScalar,
+  DecimalScalar,
+} from '../../graphql/scalars';
 
 @ObjectType()
 class CurrencyRate implements PrismaCurrencyRate {

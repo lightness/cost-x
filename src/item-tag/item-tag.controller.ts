@@ -12,7 +12,7 @@ export class ItemTagController {
   @Put('items/:itemId/tags/:tagId')
   async set(
     @Param('itemId', ParseIntPipe, ItemByIdPipe) item: Item,
-    @Param('tagId', ParseIntPipe, TagByIdPipe) tag: Tag
+    @Param('tagId', ParseIntPipe, TagByIdPipe) tag: Tag,
   ) {
     return this.itemTagService.setTag(item, tag);
   }

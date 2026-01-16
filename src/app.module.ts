@@ -11,11 +11,17 @@ import { ItemsAggregationModule } from './items-aggregation/items-aggregation.mo
 import { PaymentModule } from './payment/payment.module';
 import { PaymentsAggregationModule } from './payments-aggregation/payments-aggregation.module';
 import { TagModule } from './tag/tag.module';
+import { UserModule } from './user/user.module';
+import { AuthModule } from './auth/auth.module';
+import { AccessModule } from './access/access.module';
+import { WorkspaceModule } from './workspace/workspace.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, load: [config] }),
     GraphqlModule,
+    AuthModule,
+    AccessModule,
     TagModule,
     ItemModule,
     ItemTagModule,
@@ -25,6 +31,8 @@ import { TagModule } from './tag/tag.module';
     DataMigrationModule,
     PaymentsAggregationModule,
     ItemsAggregationModule,
+    UserModule,
+    WorkspaceModule,
   ],
 })
-export class AppModule { }
+export class AppModule {}

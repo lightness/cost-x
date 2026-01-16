@@ -1,4 +1,14 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common';
 import { ListTagQueryDto, TagInDto } from './dto';
 import { TagService } from './tag.service';
 import { TagByIdPipe } from '../common/pipes/tag-by-id.pipe';

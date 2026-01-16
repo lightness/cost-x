@@ -2,10 +2,9 @@ import DataLoader from 'dataloader';
 
 export abstract class BaseLoader<K, V, C = K> extends DataLoader<K, V, C> {
   constructor() {
-    super(
-      (requests: K[]) => this.loaderWrapper(requests), 
-      { cacheKeyFn: (request: K) => this.cacheFn(request) },
-    );
+    super((requests: K[]) => this.loaderWrapper(requests), {
+      cacheKeyFn: (request: K) => this.cacheFn(request),
+    });
   }
 
   protected loaderWrapper(requests: K[]): Promise<V[]> {

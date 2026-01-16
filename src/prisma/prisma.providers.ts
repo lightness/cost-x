@@ -12,4 +12,4 @@ export const providers: Provider[] = [
     },
     inject: [ConfigService],
   },
-]
+];

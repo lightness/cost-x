@@ -5,16 +5,24 @@ import Payment from '../entities/payment.entity';
 import { PaymentService } from '../payment.service';
 
 @Injectable({ scope: Scope.REQUEST })
-export class PaymentsByItemIdLoader extends NestedLoader<number, Payment[], PaymentsFilter> {
+export class PaymentsByItemIdLoader extends NestedLoader<
+  number,
+  Payment[],
+  PaymentsFilter
+> {
   constructor(private paymentService: PaymentService) {
     super();
   }
 
-  protected async loaderWithOptionsFn(itemIds: number[], filter: PaymentsFilter): Promise<Payment[][]> {
+  protected async loaderWithOptionsFn(
+    itemIds: number[],
+    filter: PaymentsFilter,
+  ): Promise<Payment[][]> {
+    const paymentsByItemId = await this.paymentService.getPaymentsByItemIds(
+      itemIds,
+      filter,
+    );
 
-
-    const paymentsByItemId = await this.paymentService.getPaymentsByItemIds(itemIds, filter);
-
-    return itemIds.map(itemId => paymentsByItemId.get(itemId) || []);
+    return itemIds.map((itemId) => paymentsByItemId.get(itemId) || []);
   }
 }

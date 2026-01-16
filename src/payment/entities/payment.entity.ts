@@ -1,7 +1,14 @@
-import { Field, Float, Int, ObjectType } from '@nestjs/graphql';
+import { Field, Int, ObjectType } from '@nestjs/graphql';
 import { Decimal } from '@prisma/client/runtime/client';
-import { Payment as PrismaPayment, Currency } from '../../../generated/prisma/client';
-import { DateIsoScalar, DateScalar, DecimalScalar } from '../../graphql/scalars';
+import {
+  type Payment as PrismaPayment,
+  Currency,
+} from '../../../generated/prisma/client';
+import {
+  DateIsoScalar,
+  DateScalar,
+  DecimalScalar,
+} from '../../graphql/scalars';
 import Item from '../../item/entities/item.entity';
 
 @ObjectType()

@@ -74,11 +74,21 @@ type Tag {
   items: [Item!]
 }
 
+type Workspace {
+  id: Int!
+  createdAt: DateIso!
+  updatedAt: DateIso!
+  title: String!
+  ownerId: Int!
+}
+
 type Item {
   id: Int!
   createdAt: DateIso!
   updatedAt: DateIso!
   title: String!
+  workspaceId: Int!
+  workspace: Workspace
   payments(paymentsFilter: PaymentsFilter): [Payment!]
   paymentsAggregation(paymentsFilter: PaymentsFilter): PaymentsAggregation
   tags: [Tag!]
@@ -87,6 +97,36 @@ type Item {
 input PaymentsFilter {
   dateFrom: Date
   dateTo: Date
+}
+
+type AuthOutDto {
+  accessToken: String!
+  refreshToken: String!
+}
+
+type LogoutOutDto {
+  success: Boolean!
+}
+
+type User {
+  id: Int!
+  createdAt: DateIso!
+  updatedAt: DateIso!
+  name: String!
+  email: String!
+  status: UserStatus!
+  role: UserRole!
+}
+
+enum UserStatus {
+  ACTIVE
+  EMAIL_NOT_VERIFIED
+  BANNED
+}
+
+enum UserRole {
+  USER
+  ADMIN
 }
 
 type ItemsAggregation {
@@ -103,6 +143,10 @@ type Query {
   items(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): [Item!]!
   payment(id: Int!): Payment!
   payments(paymentsFilter: PaymentsFilter): FindPaymentsResponse!
+  users: [User!]!
+  user(id: Int!): User!
+  me: User!
+  my: [Workspace!]!
   paymentsAggregation(paymentsFilter: PaymentsFilter): PaymentsAggregation!
   itemsAggregation(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): ItemsAggregation!
 }
@@ -114,4 +158,44 @@ input TagsFilter {
 input ItemsFilter {
   tagIds: [Int!]
   title: String
+}
+
+type Mutation {
+  authenticate(dto: AuthInDto!): AuthOutDto!
+  logout(dto: LogoutInDto!): LogoutOutDto!
+  createItem(workspaceId: Int!, dto: ItemInDto!): Item!
+  createUser(dto: CreateUserInDto!): User!
+  updateUser(id: Int!, dto: UpdateUserInDto!): User!
+  createWorkspace(dto: WorkspaceInDto!): Workspace!
+  updateWorkspace(id: Int!, dto: WorkspaceInDto!): Workspace!
+  deleteWorkspace(id: Int!): Workspace!
+}
+
+input AuthInDto {
+  email: String!
+  password: String!
+}
+
+input LogoutInDto {
+  refreshToken: String!
+}
+
+input ItemInDto {
+  title: String!
+}
+
+input CreateUserInDto {
+  name: String!
+  email: String!
+  password: String!
+}
+
+input UpdateUserInDto {
+  name: String!
+  email: String!
+  password: String!
+}
+
+input WorkspaceInDto {
+  title: String!
 }

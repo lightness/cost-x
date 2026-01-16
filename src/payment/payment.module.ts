@@ -10,11 +10,11 @@ import { PaymentResolver } from './payment.resolver';
 import { PaymentService } from './payment.service';
 import { PrismaModule } from '../prisma/prisma.module';
 
-@Module({ 
+@Module({
   imports: [
     PrismaModule,
-    ConsistencyModule, 
-    ItemCostModule, 
+    ConsistencyModule,
+    ItemCostModule,
     CurrencyRateModule,
   ],
   providers: [

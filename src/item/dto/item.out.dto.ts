@@ -12,7 +12,7 @@ export class ItemOutDto {
   updatedAt: Date;
 
   tags?: TagOutDto[];
-  
+
   payments?: PaymentOutDto[];
 
   cost?: CostOutDto;

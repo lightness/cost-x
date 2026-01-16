@@ -4,17 +4,20 @@ import { ConsistencyService } from '../consistency/consistency.service';
 import { PaymentLike } from '../item-cost/interfaces';
 import Item from '../item/entities/item.entity';
 import { PrismaService } from '../prisma/prisma.service';
-import { PaymentInDto, PaymentOutDto, PaymentsFilter } from './dto';
+import { PaymentInDto, PaymentsFilter } from './dto';
 import Payment from './entities/payment.entity';
 
 @Injectable()
 export class PaymentService {
   constructor(
-    private prisma: PrismaService, 
+    private prisma: PrismaService,
     private consistencyService: ConsistencyService,
-  ) { }
+  ) {}
 
-  async getPaymentsByItemIds(itemIds: number[], filter: PaymentsFilter): Promise<Map<number, Payment[]>> {
+  async getPaymentsByItemIds(
+    itemIds: number[],
+    filter: PaymentsFilter,
+  ): Promise<Map<number, Payment[]>> {
     const { dateFrom, dateTo } = filter || {};
 
     const payments = await this.prisma.payment.findMany({
@@ -27,27 +30,26 @@ export class PaymentService {
       },
     });
 
-    return payments.reduce(
-      (map: Map<number, Payment[]>, payment: Payment) => {
-        const { itemId } = payment;
+    return payments.reduce((map: Map<number, Payment[]>, payment: Payment) => {
+      const { itemId } = payment;
 
-        if (map.has(itemId)) {
-          map.set(itemId, [...map.get(itemId), payment]);
-        } else {
-          map.set(itemId, [payment]);
-        }
+      if (map.has(itemId)) {
+        map.set(itemId, [...map.get(itemId), payment]);
+      } else {
+        map.set(itemId, [payment]);
+      }
 
-        return map;
-      },
-      new Map(),
-    );
+      return map;
+    }, new Map());
   }
 
   async getPayment(item: Item, payment: Payment): Promise<Payment> {
     this.consistencyService.paymentToItem.ensureIsBelonging(payment, item);
 
     if (payment.itemId !== item.id) {
-      throw new BadRequestException(`Payment #${payment.id} does not belong to item #${item.id}`);
+      throw new BadRequestException(
+        `Payment #${payment.id} does not belong to item #${item.id}`,
+      );
     }
 
     return payment;
@@ -57,7 +59,11 @@ export class PaymentService {
     return this.prisma.payment.create({ data: { ...dto, itemId: item.id } });
   }
 
-  async updatePayment(item: Item, payment: Payment, dto: PaymentInDto): Promise<Payment> {
+  async updatePayment(
+    item: Item,
+    payment: Payment,
+    dto: PaymentInDto,
+  ): Promise<Payment> {
     this.consistencyService.paymentToItem.ensureIsBelonging(payment, item);
 
     return this.prisma.payment.update({
@@ -89,25 +95,35 @@ export class PaymentService {
           lte: dateTo,
         },
       },
-    })
+    });
 
     return payments;
-  } 
+  }
 
-  filterPayments<T extends PaymentLike>(payments: T[], filters: PaymentsFilter): T[] {
+  filterPayments<T extends PaymentLike>(
+    payments: T[],
+    filters: PaymentsFilter,
+  ): T[] {
     const { dateFrom, dateTo } = filters || {};
 
     return payments.filter(({ date }) => {
-      return (dateFrom ? dateFrom <= date : true) 
-        && (dateTo ? dateTo > date : true);
-    })
+      return (
+        (dateFrom ? dateFrom <= date : true) && (dateTo ? dateTo > date : true)
+      );
+    });
   }
 
   getFirstPaymentDate<T extends PaymentLike>(payments: T[]): Date {
-    return payments.map(payment => payment.date).sort(cmp().asc()).at(0);
+    return payments
+      .map((payment) => payment.date)
+      .sort(cmp().asc())
+      .at(0);
   }
 
   getLastPaymentDate<T extends PaymentLike>(payments: T[]): Date {
-    return payments.map(payment => payment.date).sort(cmp().desc()).at(0);
+    return payments
+      .map((payment) => payment.date)
+      .sort(cmp().desc())
+      .at(0);
   }
 }

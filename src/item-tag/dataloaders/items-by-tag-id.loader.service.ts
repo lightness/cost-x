@@ -19,10 +19,10 @@ export class ItemsByTagIdLoader extends BaseLoader<number, Item[]> {
       },
     });
 
-    const itemsByTagId = tagIds.map(tagId =>
+    const itemsByTagId = tagIds.map((tagId) =>
       itemTags
-        .filter(itemTag => itemTag.tagId === tagId)
-        .map(itemTag => itemTag.item)
+        .filter((itemTag) => itemTag.tagId === tagId)
+        .map((itemTag) => itemTag.item),
     );
 
     return itemsByTagId;

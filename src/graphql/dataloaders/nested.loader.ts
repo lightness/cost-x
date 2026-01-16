@@ -23,12 +23,15 @@ export abstract class NestedLoader<K, V, O, C = K> {
   protected createNewLoader(options: O): BaseLoader<K, V, C> {
     const loaderFn = this.loaderWithOptionsFn.bind(this);
 
-    return new class extends BaseLoader<K, V, C> {
+    return new (class extends BaseLoader<K, V, C> {
       protected loaderFn(requests: K[]): Promise<V[]> {
         return loaderFn(requests, options);
       }
-    }
+    })();
   }
 
-  protected abstract loaderWithOptionsFn(requests: K[], options: O): Promise<V[]>;
+  protected abstract loaderWithOptionsFn(
+    requests: K[],
+    options: O,
+  ): Promise<V[]>;
 }
