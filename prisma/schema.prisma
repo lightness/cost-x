@@ -71,7 +71,7 @@ model Tag {
   createdAt DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
   updatedAt DateTime  @default(now()) @map("updated_at") @db.Timestamp(6)
   title     String    @db.VarChar(100)
-  color     String    @default("FFFFFF") @db.VarChar(6)
+  color     String    @default("000000") @db.VarChar(6)
   itemTag   ItemTag[]
 
   @@map("tag")

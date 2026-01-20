@@ -1,10 +1,4 @@
-import {
-  IsDateString,
-  IsEnum,
-  IsNumber,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { IsDate, IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { Currency } from '../../currency-rate/entities/currency.enum';
 
@@ -19,7 +13,7 @@ export class PaymentInDto {
   @IsEnum(Currency)
   currency: Currency;
 
-  @IsDateString({ strict: true })
+  @IsDate()
   @Transform(({ value }) => new Date(value))
   date: Date;
 }
