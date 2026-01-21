@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { TagsFilter, TagInDto, TagOutDto } from './dto';
+import { TagsFilter, TagInDto } from './dto';
 import Tag from './entities/tag.entity';
 
 @Injectable()
@@ -39,7 +39,7 @@ export class TagService {
     return tag;
   }
 
-  async update(id: number, dto: TagInDto): Promise<TagOutDto> {
+  async update(id: number, dto: TagInDto): Promise<Tag> {
     return this.prisma.$transaction(async (tx) => {
       // TODO: Select for update
       const tag = await tx.tag.findUnique({

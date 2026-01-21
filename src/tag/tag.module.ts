@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { ItemTagModule } from '../item-tag/item-tag.module';
-import { TagController } from './tag.controller';
 import { TagResolver } from './resolver/tag.resolver';
 import { TagService } from './tag.service';
 import { PrismaModule } from '../prisma/prisma.module';
@@ -13,7 +12,6 @@ import { ItemsAggregationModule } from '../items-aggregation/items-aggregation.m
     // resolvers
     TagResolver,
   ],
-  controllers: [TagController],
   exports: [TagService],
 })
 export class TagModule {}

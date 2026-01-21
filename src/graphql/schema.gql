@@ -167,6 +167,9 @@ input TagsFilter {
 type Mutation {
   authenticate(dto: AuthInDto!): AuthOutDto!
   logout(dto: LogoutInDto!): LogoutOutDto!
+  createTag(workspaceId: Int!, dto: TagInDto!): Tag!
+  updateTag(id: Int!, dto: TagInDto!): Tag!
+  deleteTag(id: Int!): Boolean!
   createItem(workspaceId: Int!, dto: ItemInDto!): Item!
   updateItem(id: Int!, dto: ItemInDto!): Item!
   deleteItem(id: Int!): Boolean!
@@ -184,6 +187,11 @@ input AuthInDto {
 
 input LogoutInDto {
   refreshToken: String!
+}
+
+input TagInDto {
+  title: String!
+  color: String
 }
 
 input ItemInDto {

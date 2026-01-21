@@ -17,7 +17,7 @@ export class PrismaService
 
   constructor(
     adapter: PrismaPg,
-    private configService: ConfigService,
+    configService: ConfigService,
   ) {
     const needLogQuery = configService.get<boolean>('db.logQuery') || false;
 
