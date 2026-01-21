@@ -7,6 +7,7 @@ import {
   FormalAccessStrategy,
   GlobalAccessStrategy,
   UserToItemAccessStrategy,
+  UserToTagAccessStrategy,
   UserToWorkspaceAccessStrategy,
 } from './strategy';
 import { ACCESS_STRATEGIES } from './strategy/interface';
@@ -21,6 +22,7 @@ import { ACCESS_STRATEGIES } from './strategy/interface';
     FormalAccessStrategy,
     GlobalAccessStrategy,
     UserToItemAccessStrategy,
+    UserToTagAccessStrategy,
     UserToWorkspaceAccessStrategy,
     {
       provide: ACCESS_STRATEGIES,
@@ -29,13 +31,11 @@ import { ACCESS_STRATEGIES } from './strategy/interface';
         FormalAccessStrategy,
         GlobalAccessStrategy,
         UserToItemAccessStrategy,
+        UserToTagAccessStrategy,
         UserToWorkspaceAccessStrategy,
       ],
     },
   ],
-  exports: [
-    AccessService, 
-    AccessGuard,
-  ],
+  exports: [AccessService, AccessGuard],
 })
 export class AccessModule {}

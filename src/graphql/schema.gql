@@ -65,21 +65,40 @@ type PaymentsAggregation {
   lastPaymentDate: Date
 }
 
-type Tag {
-  id: Int!
-  createdAt: DateIso!
-  updatedAt: DateIso!
-  title: String!
-  color: String!
-  items: [Item!]
-}
-
 type Workspace {
   id: Int!
   createdAt: DateIso!
   updatedAt: DateIso!
   title: String!
   ownerId: Int!
+  items(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): [Item!]!
+}
+
+input ItemsFilter {
+  tagIds: [Int!]
+  title: String
+}
+
+input PaymentsFilter {
+  dateFrom: Date
+  dateTo: Date
+}
+
+type ItemsAggregation {
+  count: Int
+  paymentsAggregation(paymentsFilter: PaymentsFilter): PaymentsAggregation
+}
+
+type Tag {
+  id: Int!
+  createdAt: DateIso!
+  updatedAt: DateIso!
+  title: String!
+  color: String!
+  workspaceId: Int!
+  workspace: Workspace
+  items(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): [Item!]
+  itemsAggregation(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): ItemsAggregation
 }
 
 type Item {
@@ -92,11 +111,6 @@ type Item {
   payments(paymentsFilter: PaymentsFilter): [Payment!]
   paymentsAggregation(paymentsFilter: PaymentsFilter): PaymentsAggregation
   tags: [Tag!]
-}
-
-input PaymentsFilter {
-  dateFrom: Date
-  dateTo: Date
 }
 
 type AuthOutDto {
@@ -129,18 +143,14 @@ enum UserRole {
   ADMIN
 }
 
-type ItemsAggregation {
-  count: Int
-  paymentsAggregation(paymentsFilter: PaymentsFilter): PaymentsAggregation
-}
-
 type Query {
   defaultCurrency: Currency!
   currencyRate(fromCurrency: Currency!, toCurrency: Currency!, date: Date!): CurrencyRate!
+  tags(workspaceId: Int!, dto: TagsFilter): [Tag!]!
   tag(id: Int!): Tag!
-  tags(filter: TagsFilter): [Tag!]!
+  itemsAggregation(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): ItemsAggregation!
   item(id: Int!): Item!
-  items(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): [Item!]!
+  items(workspaceId: Int!, itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): [Item!]!
   payment(id: Int!): Payment!
   payments(paymentsFilter: PaymentsFilter): FindPaymentsResponse!
   users: [User!]!
@@ -148,15 +158,9 @@ type Query {
   me: User!
   my: [Workspace!]!
   paymentsAggregation(paymentsFilter: PaymentsFilter): PaymentsAggregation!
-  itemsAggregation(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): ItemsAggregation!
 }
 
 input TagsFilter {
-  title: String
-}
-
-input ItemsFilter {
-  tagIds: [Int!]
   title: String
 }
 
@@ -164,6 +168,8 @@ type Mutation {
   authenticate(dto: AuthInDto!): AuthOutDto!
   logout(dto: LogoutInDto!): LogoutOutDto!
   createItem(workspaceId: Int!, dto: ItemInDto!): Item!
+  updateItem(id: Int!, dto: ItemInDto!): Item!
+  deleteItem(id: Int!): Boolean!
   createUser(dto: CreateUserInDto!): User!
   updateUser(id: Int!, dto: UpdateUserInDto!): User!
   createWorkspace(dto: WorkspaceInDto!): Workspace!

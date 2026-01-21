@@ -16,11 +16,12 @@ export class ItemService {
   }
 
   async list(
+    workspaceIds: number[],
     itemsFilter: ItemsFilter,
     paymentsFilter: PaymentsFilter,
   ): Promise<Item[]> {
     return this.prisma.item.findMany({
-      where: this.getWhereClause(itemsFilter, paymentsFilter),
+      where: this.getWhereClause(workspaceIds, itemsFilter, paymentsFilter),
     });
   }
 
@@ -39,10 +40,10 @@ export class ItemService {
     return item;
   }
 
-  async update(item: Item, dto: ItemInDto): Promise<Item> {
+  async update(itemId: number, dto: ItemInDto): Promise<Item> {
     return this.prisma.item.update({
       where: {
-        id: item.id,
+        id: itemId,
       },
       data: {
         title: dto.title,
@@ -50,15 +51,16 @@ export class ItemService {
     });
   }
 
-  async delete(item: Item): Promise<void> {
+  async delete(itemId: number): Promise<void> {
     await this.prisma.item.delete({
-      where: { id: item.id },
+      where: { id: itemId },
     });
   }
 
   // private
 
   private getWhereClause(
+    workspaceIds: number[],
     itemsFilter: ItemsFilter,
     paymentsFilter: PaymentsFilter,
   ): ItemWhereInput {
@@ -74,6 +76,7 @@ export class ItemService {
       payment: withPayments
         ? { some: { date: { gte: paymentDateFrom, lte: paymentDateTo } } }
         : undefined,
+      workspaceId: { in: workspaceIds },
     };
   }
 }

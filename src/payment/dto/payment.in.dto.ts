@@ -1,4 +1,10 @@
-import { IsDate, IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+  IsDate,
+  IsEnum,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { Transform } from 'class-transformer';
 import { Currency } from '../../currency-rate/entities/currency.enum';
 

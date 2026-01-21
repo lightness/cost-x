@@ -10,6 +10,7 @@ export enum AccessScope {
   USER = 'user',
   WORKSPACE = 'workspace',
   ITEM = 'item',
+  TAG = 'tag',
   PAYMENT = 'payment',
   GLOBAL = 'global',
 }

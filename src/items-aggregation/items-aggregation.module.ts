@@ -11,5 +11,8 @@ import { PrismaModule } from '../prisma/prisma.module';
     // resolver
     ItemsAggregationResolver,
   ],
+  exports: [
+    ItemsAggregationService,
+  ]
 })
 export class ItemsAggregationModule {}

@@ -4,10 +4,11 @@ import { AuthModule } from '../auth/auth.module';
 import { PrismaModule } from '../prisma/prisma.module';
 import { WorkspaceResolver } from './resolver/workspace.resolver';
 import { WorkspaceService } from './workspace.service';
+import { ItemModule } from '../item/item.module';
 
 @Module({
-  imports: [PrismaModule, AuthModule, AccessModule],
+  imports: [PrismaModule, AuthModule, AccessModule, ItemModule],
   providers: [WorkspaceService, WorkspaceResolver],
-  exports: [WorkspaceService]
+  exports: [WorkspaceService],
 })
 export class WorkspaceModule {}

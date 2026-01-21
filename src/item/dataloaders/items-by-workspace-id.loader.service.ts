@@ -1,9 +1,9 @@
 import { Injectable, Scope } from '@nestjs/common';
-import Item from '../../item/entities/item.entity';
 import { NestedLoader } from '../../graphql/dataloaders/nested.loader';
-import { ItemsFilter } from '../../item/dto';
+import Item from '../entities/item.entity';
+import { ItemsFilter } from '../dto';
 import { PaymentsFilter } from '../../payment/dto';
-import { ItemTagService } from '../item-tag.service';
+import { ItemService } from '../item.service';
 import { GroupService } from '../../group/group.service';
 
 interface Filter {
@@ -12,28 +12,30 @@ interface Filter {
 }
 
 @Injectable({ scope: Scope.REQUEST })
-export class ItemsByTagIdLoader extends NestedLoader<number, Item[], Filter> {
+export class ItemsByWorkspaceIdLoader extends NestedLoader<
+  number,
+  Item[],
+  Filter
+> {
   constructor(
-    private itemTagService: ItemTagService,
+    private itemService: ItemService,
     private groupService: GroupService,
   ) {
     super();
   }
 
   protected async loaderWithOptionsFn(
-    tagIds: number[],
+    workspaceIds: number[],
     filter: Filter,
   ): Promise<Item[][]> {
-    const itemTags = await this.itemTagService.findByTagIds(
-      tagIds,
+    const items = await this.itemService.list(
+      workspaceIds,
       filter.itemsFilter,
       filter.paymentsFilter,
     );
 
-    const itemsByTagId = this.groupService.groupBy(itemTags, 'tagId');
+    const itemsByWorkspaceId = this.groupService.groupBy(items, 'workspaceId');
 
-    return tagIds.map(
-      (tagId) => (itemsByTagId.get(tagId) || []).map((itemTag) => itemTag.item),
-    );
+    return workspaceIds.map((workspaceId) => itemsByWorkspaceId.get(workspaceId) || []);
   }
 }

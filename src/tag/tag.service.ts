@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { ListTagQueryDto, TagInDto, TagOutDto } from './dto';
+import { TagsFilter, TagInDto, TagOutDto } from './dto';
 import Tag from './entities/tag.entity';
 
 @Injectable()
@@ -8,16 +8,19 @@ export class TagService {
   constructor(private prisma: PrismaService) {}
 
   async getById(id: number): Promise<Tag | null> {
-    const tag = await this.prisma.tag.findFirst({ where: { id } });
+    const tag = await this.prisma.tag.findFirst({
+      where: { id },
+    });
 
     return tag;
   }
 
-  async list(query: ListTagQueryDto): Promise<Tag[]> {
+  async list(workspaceId: number, query: TagsFilter): Promise<Tag[]> {
     const { title } = query || {};
 
     const tags = await this.prisma.tag.findMany({
       where: {
+        workspaceId,
         title: title ? { contains: title, mode: 'insensitive' } : undefined,
       },
     });
@@ -25,8 +28,13 @@ export class TagService {
     return tags;
   }
 
-  async create(dto: TagInDto): Promise<Tag> {
-    const tag = await this.prisma.tag.create({ data: dto });
+  async create(workspaceId: number, dto: TagInDto): Promise<Tag> {
+    const tag = await this.prisma.tag.create({
+      data: {
+        ...dto,
+        workspaceId,
+      },
+    });
 
     return tag;
   }

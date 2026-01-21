@@ -21,8 +21,6 @@ import { ConfirmEmailModule } from '../confirm-email/confirm-email.module';
     // resolvers
     UserResolver,
   ],
-  exports: [
-    UserService,
-  ]
+  exports: [UserService],
 })
 export class UserModule {}

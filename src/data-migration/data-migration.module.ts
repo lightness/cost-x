@@ -19,9 +19,6 @@ import { InquirerService } from './inquirer.service';
     UserModule,
     WorkspaceModule,
   ],
-  providers: [
-    DataMigrationService, 
-    InquirerService,
-  ],
+  providers: [DataMigrationService, InquirerService],
 })
 export class DataMigrationModule {}

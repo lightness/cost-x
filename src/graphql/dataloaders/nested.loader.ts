@@ -3,6 +3,10 @@ import { BaseLoader } from './base.loader';
 export abstract class NestedLoader<K, V, O, C = K> {
   private loadersMap = new Map<string, BaseLoader<K, V, C>>();
 
+  load(key: K) {
+    return this.withOptions({} as O).load(key);
+  }
+
   withOptions(options: O) {
     const cacheKey = this.serializeOptions(options);
     let loader = this.loadersMap.get(cacheKey);

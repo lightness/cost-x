@@ -5,11 +5,9 @@ import {
   Get,
   Param,
   ParseIntPipe,
-  Post,
   Put,
-  Query,
 } from '@nestjs/common';
-import { ListTagQueryDto, TagInDto } from './dto';
+import { TagInDto } from './dto';
 import { TagService } from './tag.service';
 import { TagByIdPipe } from '../common/pipes/tag-by-id.pipe';
 import Tag from './entities/tag.entity';
@@ -23,15 +21,15 @@ export class TagController {
     return tag;
   }
 
-  @Get('tags')
-  async list(@Query() query: ListTagQueryDto) {
-    return this.tagService.list(query);
-  }
+  // @Get('tags')
+  // async list(@Query() query: ListTagQueryDto) {
+  //   return this.tagService.list(query);
+  // }
 
-  @Post('tags')
-  async create(@Body() dto: TagInDto) {
-    return this.tagService.create(dto);
-  }
+  // @Post('tags')
+  // async create(@Body() dto: TagInDto) {
+  //   return this.tagService.create(dto);
+  // }
 
   @Put('tags/:id')
   async update(@Param('id', ParseIntPipe) id: number, @Body() dto: TagInDto) {

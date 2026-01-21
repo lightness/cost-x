@@ -1,17 +1,37 @@
-import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { Workspace } from '../entity/workspace.entity';
+import { Args, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import { Access } from '../../access/decorator/access.decorator';
-import { AccessScope } from '../../access/interfaces';
-import { UserRole } from '../../user/entities/user-role.enum';
-import { WorkspaceInDto } from '../dto';
-import { CurrentUser } from '../../auth/decorator/current-user.decorator';
-import { User } from '../../user/entities/user.entity';
-import { WorkspaceService } from '../workspace.service';
 import { fromArg } from '../../access/function/from-arg.function';
+import { AccessScope } from '../../access/interfaces';
+import { CurrentUser } from '../../auth/decorator/current-user.decorator';
+import { ItemsByWorkspaceIdLoader } from '../../item/dataloaders/items-by-workspace-id.loader.service';
+import { ItemsFilter } from '../../item/dto';
+import Item from '../../item/entities/item.entity';
+import { PaymentsFilter } from '../../payment/dto';
+import { UserRole } from '../../user/entities/user-role.enum';
+import { User } from '../../user/entities/user.entity';
+import { WorkspaceInDto } from '../dto';
+import { Workspace } from '../entity/workspace.entity';
+import { WorkspaceService } from '../workspace.service';
 
 @Resolver(() => Workspace)
 export class WorkspaceResolver {
-  constructor(private workspaceService: WorkspaceService) {}
+  constructor(
+    private workspaceService: WorkspaceService,
+    private itemsByWorkspaceLoader: ItemsByWorkspaceIdLoader,
+  ) {}
+
+  @ResolveField(() => [Item])
+  async items(
+    @Parent() workspace: Workspace,
+    @Args('itemsFilter', { nullable: true }) itemsFilter: ItemsFilter,
+    @Args('paymentsFilter', { nullable: true }) paymentsFilter: PaymentsFilter,
+  ) {
+    const items = await this.itemsByWorkspaceLoader
+      .withOptions({ itemsFilter, paymentsFilter })
+      .load(workspace.id);
+
+    return items;
+  }
 
   @Query(() => [Workspace])
   @Access.allow([

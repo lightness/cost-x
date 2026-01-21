@@ -6,7 +6,7 @@ import { AccessStrategy } from './interface';
 import { GlobalAccessStrategy } from './global.access-strategy';
 
 @Injectable()
-export class UserToItemAccessStrategy
+export class UserToTagAccessStrategy
   extends GlobalAccessStrategy
   implements AccessStrategy
 {
@@ -16,7 +16,7 @@ export class UserToItemAccessStrategy
 
   isApplicable(rule: Rule): boolean {
     return (
-      rule.targetScope === AccessScope.ITEM &&
+      rule.targetScope === AccessScope.TAG &&
       rule.sourceScope === AccessScope.USER
     );
   }
@@ -25,10 +25,10 @@ export class UserToItemAccessStrategy
     const { sourceId: getSourceId, targetId: getTargetId } = rule;
 
     const userId = getSourceId(ctx);
-    const itemId = getTargetId(ctx);
+    const tagId = getTargetId(ctx);
 
-    const item = await this.prisma.item.findUnique({
-      where: { id: itemId },
+    const tag = await this.prisma.tag.findUnique({
+      where: { id: tagId },
       select: {
         workspace: {
           select: {
@@ -38,7 +38,7 @@ export class UserToItemAccessStrategy
       },
     });
 
-    if (item.workspace.ownerId !== userId) {
+    if (tag.workspace.ownerId !== userId) {
       return false;
     }
 
