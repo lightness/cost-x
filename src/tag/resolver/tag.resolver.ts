@@ -1,4 +1,11 @@
-import { Args, Int, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
+import {
+  Args,
+  Int,
+  Parent,
+  Query,
+  ResolveField,
+  Resolver,
+} from '@nestjs/graphql';
 import { Access } from '../../access/decorator/access.decorator';
 import { AccessScope } from '../../access/interfaces';
 import { UserRole } from '../../user/entities/user-role.enum';
@@ -10,14 +17,17 @@ import { ItemsByTagIdLoader } from '../../item-tag/dataloaders/items-by-tag-id.l
 import { ItemsAggregation } from '../../items-aggregation/entities/items-aggregation.entity';
 import { ItemsFilter } from '../../item/dto';
 import { PaymentsFilter } from '../../payment/dto';
-import { ItemsAggregationService } from '../../items-aggregation/items-aggregation.service';
+import { ItemsAggregationsByTagIdLoader } from '../../items-aggregation/dataloaders/items-aggregations-by-tag-id.loader.service';
+import { UseInterceptors } from '@nestjs/common';
+import { GqlLoggingInterceptor } from '../../graphql/interceptors/gql-logging.interceptor';
 
 @Resolver(() => Tag)
+@UseInterceptors(GqlLoggingInterceptor)
 export class TagResolver {
   constructor(
     private tagService: TagService,
     private itemsByTagIdLoader: ItemsByTagIdLoader,
-    private itemsAggregationService: ItemsAggregationService,
+    private itemsAggregationsByTagIdLoader: ItemsAggregationsByTagIdLoader,
   ) {}
 
   @ResolveField(() => [Tag])
@@ -37,12 +47,11 @@ export class TagResolver {
     @Args('itemsFilter', { nullable: true }) itemsFilter: ItemsFilter,
     @Args('paymentsFilter', { nullable: true }) paymentsFilter: PaymentsFilter,
   ) {
-    const itemIds = await this.itemsAggregationService.getIds(
-      { ...itemsFilter, tagIds: [tag.id] },
-      paymentsFilter,
-    );
+    const itemsAggregation = this.itemsAggregationsByTagIdLoader
+      .withOptions({ itemsFilter, paymentsFilter })
+      .load(tag.id);
 
-    return { itemIds, paymentsFilter, itemsFilter }
+    return itemsAggregation;
   }
 
   @Query(() => [Tag])

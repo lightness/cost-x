@@ -6,7 +6,7 @@ import { ItemWhereInput } from '../../generated/prisma/models';
 
 @Injectable()
 export class ItemsAggregationService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async getIds(
     itemsFilter: ItemsFilter,
@@ -20,6 +20,33 @@ export class ItemsAggregationService {
     });
 
     return rows.map((row) => row.id);
+  }
+
+  async getIdsGroupedByTagId(
+    itemsFilter: ItemsFilter,
+    paymentsFilter: PaymentsFilter,
+  ): Promise<Map<number, number[]>> {
+    const items = await this.prisma.item.findMany({
+      where: this.getWhereClause(itemsFilter, paymentsFilter),
+      select: {
+        id: true,
+        itemTag: {
+          select: {
+            tagId: true,
+          }
+        }
+      },
+    });
+
+    return new Map(
+      itemsFilter.tagIds.map((tagId) => {
+        const itemIds = items
+          .filter(item => item.itemTag.some((itemTag) => itemTag.tagId === tagId))
+          .map(item => item.id);
+
+        return [tagId, itemIds]
+      })
+    );
   }
 
   // count

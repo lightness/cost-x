@@ -6,6 +6,7 @@ export default () => ({
   port: asInteger(process.env.PORT, 8080),
   db: {
     url: process.env.DATABASE_URL,
+    logQuery: false,
   },
   redis: {
     url: process.env.REDIS_URL,
@@ -20,6 +21,9 @@ export default () => ({
       'https://www.googleapis.com/auth/calendar',
     ],
     columnNames: ['title', 'date', 'bynCost', 'usdCost', 'eurCost'],
+  },
+  graphql: {
+    logTime: true,
   },
   mailersend: {
     apiKey: process.env.MAILERSEND_API_KEY,

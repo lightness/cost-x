@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
+import { PrismaModule } from '../prisma/prisma.module';
+import { ItemsAggregationsByTagIdLoader } from './dataloaders/items-aggregations-by-tag-id.loader.service';
 import { ItemsAggregationService } from './items-aggregation.service';
 import { ItemsAggregationResolver } from './resolvers/items-aggregation.resolver';
-import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
   imports: [PrismaModule],
@@ -10,9 +11,11 @@ import { PrismaModule } from '../prisma/prisma.module';
     ItemsAggregationService,
     // resolver
     ItemsAggregationResolver,
+    // dataloader
+    ItemsAggregationsByTagIdLoader,
   ],
   exports: [
-    ItemsAggregationService,
+    ItemsAggregationsByTagIdLoader,
   ]
 })
 export class ItemsAggregationModule {}
