@@ -41,17 +41,21 @@ export class AccessService {
     ctx: GqlExecutionContext,
   ): Promise<boolean> {
     if (Array.isArray(ruleDef)) {
-      return ruleDef.some((subRuleDef) => this.isRuleMatch(subRuleDef, ctx));
+      const subRuleResults = await Promise.all(ruleDef.map((subRuleDef) => this.isRuleMatch(subRuleDef, ctx)));
+
+      return subRuleResults.some((result) => result, subRuleResults.some((result) => result));
     }
 
     if (this.isRuleOperatorOr(ruleDef)) {
-      return ruleDef.or.some((subRuleDef) => this.isRuleMatch(subRuleDef, ctx));
+      const subRuleResults = await Promise.all(ruleDef.or.map((subRuleDef) => this.isRuleMatch(subRuleDef, ctx)));
+
+      return subRuleResults.some((result) => result);
     }
 
     if (this.isRuleOperatorAnd(ruleDef)) {
-      return ruleDef.and.every((subRuleDef) =>
-        this.isRuleMatch(subRuleDef, ctx),
-      );
+      const subRuleResults = await Promise.all(ruleDef.and.map((subRuleDef) => this.isRuleMatch(subRuleDef, ctx)));
+
+      return subRuleResults.every((result) => result);
     }
 
     if (this.isRule(ruleDef)) {

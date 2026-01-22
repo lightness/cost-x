@@ -63,7 +63,7 @@ export class DataMigrationService {
       }
 
       if (usdCost) {
-        await this.paymentService.addPayment(item, {
+        await this.paymentService.createPayment(item, {
           cost: usdCost,
           currency: Currency.USD,
           date: new Date(date),
@@ -71,7 +71,7 @@ export class DataMigrationService {
       }
 
       if (eurCost) {
-        await this.paymentService.addPayment(item, {
+        await this.paymentService.createPayment(item, {
           cost: eurCost,
           currency: Currency.EUR,
           date: new Date(date),
@@ -79,7 +79,7 @@ export class DataMigrationService {
       }
 
       if (bynCost) {
-        await this.paymentService.addPayment(item, {
+        await this.paymentService.createPayment(item, {
           cost: bynCost,
           currency: Currency.BYN,
           date: new Date(date),

@@ -15,12 +15,12 @@ export class TagService {
     return tag;
   }
 
-  async list(workspaceId: number, query: TagsFilter): Promise<Tag[]> {
+  async listByWorkspaceIds(workspaceIds: number[], query: TagsFilter): Promise<Tag[]> {
     const { title } = query || {};
 
     const tags = await this.prisma.tag.findMany({
       where: {
-        workspaceId,
+        workspaceId: { in: workspaceIds },
         title: title ? { contains: title, mode: 'insensitive' } : undefined,
       },
     });

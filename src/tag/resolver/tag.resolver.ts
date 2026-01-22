@@ -1,4 +1,4 @@
-import { UseInterceptors } from '@nestjs/common';
+import { UseGuards, UseInterceptors } from '@nestjs/common';
 import {
   Args,
   Int,
@@ -10,7 +10,9 @@ import {
 } from '@nestjs/graphql';
 import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
+import { AccessGuard } from '../../access/guard/access.guard';
 import { AccessScope } from '../../access/interfaces';
+import { AuthGuard } from '../../auth/guard/auth.guard';
 import { GqlLoggingInterceptor } from '../../graphql/interceptors/gql-logging.interceptor';
 import { ItemsByTagIdLoader } from '../../item-tag/dataloaders/items-by-tag-id.loader.service';
 import { ItemsFilter } from '../../item/dto';
@@ -23,6 +25,7 @@ import Tag from '../entities/tag.entity';
 import { TagService } from '../tag.service';
 
 @Resolver(() => Tag)
+@UseGuards(AuthGuard, AccessGuard)
 @UseInterceptors(GqlLoggingInterceptor)
 export class TagResolver {
   constructor(
@@ -68,7 +71,7 @@ export class TagResolver {
     @Args('workspaceId', { type: () => Int }) workspaceId: number,
     @Args('dto', { nullable: true }) dto: TagsFilter,
   ): Promise<Tag[]> {
-    return this.tagService.list(workspaceId, dto);
+    return this.tagService.listByWorkspaceIds([workspaceId], dto);
   }
 
   @Query(() => Tag)
@@ -125,9 +128,7 @@ export class TagResolver {
     },
     { targetScope: AccessScope.GLOBAL, role: [UserRole.ADMIN] },
   ])
-  async deleteTag(
-    @Args('id', { type: () => Int }) id: number,
-  ) {
+  async deleteTag(@Args('id', { type: () => Int }) id: number) {
     await this.tagService.delete(id);
 
     return true;

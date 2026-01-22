@@ -4,13 +4,17 @@ import { CurrencyRateModule } from '../currency-rate/currency-rate.module';
 import { ItemCostModule } from '../item-cost/default-currency-cost.module';
 import { PaymentsByItemIdLoader } from './dataloaders/payments-by-item-id.loader.service';
 import { PaymentController } from './payment.controller';
-import { PaymentResolver } from './payment.resolver';
+import { PaymentResolver } from './resolver/payment.resolver';
 import { PaymentService } from './payment.service';
 import { PrismaModule } from '../prisma/prisma.module';
+import { AuthModule } from '../auth/auth.module';
+import { AccessModule } from '../access/access.module';
 
 @Module({
   imports: [
     PrismaModule,
+    AuthModule,
+    AccessModule,
     ConsistencyModule,
     ItemCostModule,
     CurrencyRateModule,

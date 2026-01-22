@@ -55,7 +55,7 @@ export class PaymentService {
     return payment;
   }
 
-  async addPayment(item: Item, dto: PaymentInDto): Promise<Payment> {
+  async createPayment(item: Item, dto: PaymentInDto): Promise<Payment> {
     return this.prisma.payment.create({ data: { ...dto, itemId: item.id } });
   }
 
@@ -77,7 +77,7 @@ export class PaymentService {
     });
   }
 
-  async removePayment(item: Item, payment: Payment) {
+  async deletePayment(item: Item, payment: Payment) {
     this.consistencyService.paymentToItem.ensureIsBelonging(payment, item);
 
     await this.prisma.payment.delete({
@@ -85,11 +85,12 @@ export class PaymentService {
     });
   }
 
-  async list(filter: PaymentsFilter): Promise<Payment[]> {
+  async getItemPayments(itemId: number, filter: PaymentsFilter): Promise<Payment[]> {
     const { dateFrom, dateTo } = filter || {};
 
     const payments = await this.prisma.payment.findMany({
       where: {
+        itemId,
         date: {
           gte: dateFrom,
           lte: dateTo,

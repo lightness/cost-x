@@ -32,7 +32,7 @@ export class PaymentController {
     @Param('itemId', ParseIntPipe, ItemByIdPipe) item: Item,
     @Body() dto: PaymentInDto,
   ) {
-    return this.paymentService.addPayment(item, dto);
+    return this.paymentService.createPayment(item, dto);
   }
 
   @Put('items/:itemId/payments/:paymentId')
@@ -49,6 +49,6 @@ export class PaymentController {
     @Param('itemId', ParseIntPipe, ItemByIdPipe) item: Item,
     @Param('paymentId', ParseIntPipe, PaymentByIdPipe) payment: Payment,
   ) {
-    return this.paymentService.removePayment(item, payment);
+    return this.paymentService.deletePayment(item, payment);
   }
 }

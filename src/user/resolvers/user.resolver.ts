@@ -1,20 +1,40 @@
-import { UseGuards } from '@nestjs/common';
-import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { UseGuards, UseInterceptors } from '@nestjs/common';
+import { Args, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
 import { AccessScope } from '../../access/interfaces';
+import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
+import { WorkspacesByUserIdLoader } from '../../workspace/dataloader/workspaces-by-user-id.loader';
+import { WorkspacesFilter } from '../../workspace/dto';
+import { Workspace } from '../../workspace/entity/workspace.entity';
 import { CreateUserInDto, UpdateUserInDto } from '../dto';
 import { UserRole } from '../entities/user-role.enum';
 import { User } from '../entities/user.entity';
 import { UserService } from '../user.service';
-import { CurrentUser } from '../../auth/decorator/current-user.decorator';
+import { GqlLoggingInterceptor } from '../../graphql/interceptors/gql-logging.interceptor';
 
 @Resolver(() => User)
 @UseGuards(AuthGuard, AccessGuard)
+@UseInterceptors(GqlLoggingInterceptor)
 export class UserResolver {
-  constructor(private userService: UserService) {}
+  constructor(
+    private userService: UserService,
+    private workspacesByUserIdLoader: WorkspacesByUserIdLoader,
+  ) {}
+
+  @ResolveField(() => [Workspace])
+  async workspaces(
+    @Parent() user: User,
+    @Args('workspacesFilter', { nullable: true }) filters: WorkspacesFilter,
+  ) {
+    const userWorkspaces = this.workspacesByUserIdLoader
+      .withOptions(filters)
+      .load(user.id);
+
+    return userWorkspaces;
+  }
 
   @Query(() => [User])
   @Access.allow([{ targetScope: AccessScope.GLOBAL, role: UserRole.ADMIN }])

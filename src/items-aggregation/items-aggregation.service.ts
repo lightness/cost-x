@@ -22,6 +22,25 @@ export class ItemsAggregationService {
     return rows.map((row) => row.id);
   }
 
+  async listByWorkspaceIds(
+    workspaceIds: number[],
+    itemsFilter: ItemsFilter,
+    paymentsFilter: PaymentsFilter,
+  ) {
+    const items = await this.prisma.item.findMany({
+      where: {
+        workspaceId: { in: workspaceIds },
+        ...this.getWhereClause(itemsFilter, paymentsFilter),
+      },
+      select: {
+          id: true,
+          workspaceId: true,
+        },
+    });
+
+    return items;
+  }
+
   async getIdsGroupedByTagId(
     itemsFilter: ItemsFilter,
     paymentsFilter: PaymentsFilter,
@@ -47,19 +66,6 @@ export class ItemsAggregationService {
         return [tagId, itemIds]
       })
     );
-  }
-
-  // count
-
-  async getCount(
-    itemsFilter: ItemsFilter,
-    paymentsFilter: PaymentsFilter,
-  ): Promise<number> {
-    const count = await this.prisma.item.count({
-      where: this.getWhereClause(itemsFilter, paymentsFilter),
-    });
-
-    return count;
   }
 
   // other

@@ -52,11 +52,6 @@ type FindPaymentsAggregates {
   lastPaymentDate: Date
 }
 
-type FindPaymentsResponse {
-  data: [Payment!]
-  aggregates: FindPaymentsAggregates
-}
-
 type PaymentsAggregation {
   count: Int
   costInDefaultCurrency: Decimal
@@ -72,6 +67,8 @@ type Workspace {
   title: String!
   ownerId: Int!
   items(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): [Item!]!
+  tags(tagsFilter: TagsFilter): [Tag!]!
+  itemsAggregation(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): ItemsAggregation!
 }
 
 input ItemsFilter {
@@ -82,6 +79,10 @@ input ItemsFilter {
 input PaymentsFilter {
   dateFrom: Date
   dateTo: Date
+}
+
+input TagsFilter {
+  title: String
 }
 
 type ItemsAggregation {
@@ -130,6 +131,7 @@ type User {
   email: String!
   status: UserStatus!
   role: UserRole!
+  workspaces(workspacesFilter: WorkspacesFilter): [Workspace!]!
 }
 
 enum UserStatus {
@@ -143,6 +145,10 @@ enum UserRole {
   ADMIN
 }
 
+input WorkspacesFilter {
+  title: String
+}
+
 type Query {
   defaultCurrency: Currency!
   currencyRate(fromCurrency: Currency!, toCurrency: Currency!, date: Date!): CurrencyRate!
@@ -152,16 +158,10 @@ type Query {
   item(id: Int!): Item!
   items(workspaceId: Int!, itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): [Item!]!
   payment(id: Int!): Payment!
-  payments(paymentsFilter: PaymentsFilter): FindPaymentsResponse!
+  payments(itemId: Int!, paymentsFilter: PaymentsFilter): [Payment!]!
   users: [User!]!
   user(id: Int!): User!
   me: User!
-  my: [Workspace!]!
-  paymentsAggregation(paymentsFilter: PaymentsFilter): PaymentsAggregation!
-}
-
-input TagsFilter {
-  title: String
 }
 
 type Mutation {

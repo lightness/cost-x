@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common';
 import { AccessModule } from '../access/access.module';
 import { AuthModule } from '../auth/auth.module';
+import { ConfirmEmailModule } from '../confirm-email/confirm-email.module';
 import { PasswordModule } from '../password/password.module';
 import { PrismaModule } from '../prisma/prisma.module';
+import { WorkspaceModule } from '../workspace/workspace.module';
 import { UserResolver } from './resolvers/user.resolver';
 import { UserService } from './user.service';
-import { ConfirmEmailModule } from '../confirm-email/confirm-email.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { ConfirmEmailModule } from '../confirm-email/confirm-email.module';
     AuthModule,
     AccessModule,
     ConfirmEmailModule,
+    WorkspaceModule,
   ],
   providers: [
     // services
