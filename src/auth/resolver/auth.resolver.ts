@@ -1,17 +1,23 @@
 import { UseGuards } from '@nestjs/common';
 import { Args, Mutation, Resolver } from '@nestjs/graphql';
-import { AccessGuard } from '../../access/guard/access.guard';
 import { AuthService } from '../auth.service';
 import { Token } from '../decorator/token.decorator';
-import { AuthInDto, AuthOutDto, LogoutInDto, LogoutOutDto } from '../dto';
+import {
+  AuthInDto,
+  AuthOutDto,
+  LogoutInDto,
+  LogoutOutDto,
+  RefreshTokenInDto,
+} from '../dto';
 import { AuthGuard } from '../guard/auth.guard';
 import { LogoutService } from '../logout.service';
+import { RefreshTokenService } from '../refresh-token.service';
 
 @Resolver()
-@UseGuards(AuthGuard, AccessGuard)
 export class AuthResolver {
   constructor(
     private authService: AuthService,
+    private refreshTokenService: RefreshTokenService,
     private logoutService: LogoutService,
   ) {}
 
@@ -22,6 +28,15 @@ export class AuthResolver {
     return this.authService.authenticate(dto);
   }
 
+  @Mutation(() => AuthOutDto)
+  async refreshToken(
+    @Args('dto', { type: () => RefreshTokenInDto }) dto: RefreshTokenInDto,
+    @Token() accessToken: string,
+  ): Promise<AuthOutDto> {
+    return this.refreshTokenService.refreshToken(accessToken, dto);
+  }
+
+  @UseGuards(AuthGuard)
   @Mutation(() => LogoutOutDto)
   async logout(
     @Args('dto', { type: () => LogoutInDto }) dto: LogoutInDto,

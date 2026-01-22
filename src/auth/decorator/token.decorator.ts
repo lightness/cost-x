@@ -6,6 +6,7 @@ export const Token = createParamDecorator(
     const ctx = GqlExecutionContext.create(context);
     const req = ctx.getContext().req;
 
-    return req.token;
+    // Right part is needed for endpoints without AuthGuard (ex. RefreshToken)
+    return req.token || (req.get('authorization') || '').replace('Bearer ', '');
   },
 );

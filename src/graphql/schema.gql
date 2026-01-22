@@ -166,6 +166,7 @@ type Query {
 
 type Mutation {
   authenticate(dto: AuthInDto!): AuthOutDto!
+  refreshToken(dto: RefreshTokenInDto!): AuthOutDto!
   logout(dto: LogoutInDto!): LogoutOutDto!
   createTag(workspaceId: Int!, dto: TagInDto!): Tag!
   updateTag(id: Int!, dto: TagInDto!): Tag!
@@ -183,6 +184,10 @@ type Mutation {
 input AuthInDto {
   email: String!
   password: String!
+}
+
+input RefreshTokenInDto {
+  refreshToken: String!
 }
 
 input LogoutInDto {

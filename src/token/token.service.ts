@@ -28,6 +28,12 @@ export class TokenService<T extends object> {
     return sign(payload, this.secret, { expiresIn: this.expiresIn });
   }
 
+  decodeToken(token: string): T {
+    const decoded = decode(token, { json: true });
+
+    return decoded as T;
+  }
+
   async verifyToken(token: string): Promise<T> {
     const content = await new Promise<T>((resolve, reject) => {
       return verify(token, this.secret, (error, value: T) => {
@@ -46,8 +52,11 @@ export class TokenService<T extends object> {
 
   async invalidateToken(token: string): Promise<void> {
     const exp = this.getExp(token);
+    const expiresInSeconds = exp - Math.floor(Date.now() / 1000) + 1;
 
-    await this.redis.set(this.getRedisKey(token), '', 'EX', exp + 1);
+    if (expiresInSeconds > 0) {
+      await this.redis.set(this.getRedisKey(token), '', 'EX', expiresInSeconds);
+    }
   }
 
   async validateToken(token: string): Promise<void> {

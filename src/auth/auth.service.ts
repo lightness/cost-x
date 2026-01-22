@@ -6,6 +6,7 @@ import { AuthInDto, AuthOutDto } from './dto';
 import { TokenService } from '../token/token.service';
 import { ACCESS_TOKEN_SERVICE, REFRESH_TOKEN_SERVICE } from './symbols';
 import { JwtPayload } from './interfaces';
+import { User } from '../user/entities/user.entity';
 
 @Injectable()
 export class AuthService {
@@ -35,6 +36,14 @@ export class AuthService {
     );
 
     if (!isPasswordCorrect) {
+      throw this.unauthorizedException;
+    }
+
+    return this.authenticateUser(user);
+  }
+
+  async authenticateUser(user: User): Promise<AuthOutDto> {
+    if (!user) {
       throw this.unauthorizedException;
     }
 
