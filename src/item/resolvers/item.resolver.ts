@@ -24,11 +24,14 @@ import { UserRole } from '../../user/entities/user-role.enum';
 import { ItemInDto, ItemsFilter } from '../dto';
 import Item from '../entities/item.entity';
 import { ItemService } from '../item.service';
+import { Workspace } from '../../workspace/entity/workspace.entity';
+import { PrismaService } from '../../prisma/prisma.service';
 
 @Resolver(() => Item)
 @UseGuards(AuthGuard, AccessGuard)
 export class ItemResolver {
   constructor(
+    private prisma: PrismaService,
     private itemService: ItemService,
     private paymentService: PaymentService,
     private paymentsByItemIdLoader: PaymentsByItemIdLoader,
@@ -65,6 +68,13 @@ export class ItemResolver {
       itemIds: [item.id],
       paymentsFilter,
     };
+  }
+
+  @ResolveField(() => Workspace)
+  async workspace(
+    @Parent() item: Item,
+  ) {
+    return this.prisma.workspace.findUnique({ where: { id: item.workspaceId } });
   }
 
   @Access.allow([

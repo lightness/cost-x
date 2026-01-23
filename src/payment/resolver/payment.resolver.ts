@@ -27,6 +27,19 @@ export class PaymentResolver {
     private paymentService: PaymentService,
   ) {}
 
+  @ResolveField(() => Item)
+  async item(@Parent() payment: Payment) {
+    const { itemId } = payment;
+
+    const item = await this.prisma.item.findFirst({ where: { id: itemId } });
+
+    if (!item) {
+      throw new NotFoundException(`Item with ID ${itemId} not found`);
+    }
+
+    return item;
+  }
+
   @Query(() => Payment)
   @Access.allow([
     { targetScope: AccessScope.GLOBAL, role: [UserRole.ADMIN] },
@@ -62,18 +75,5 @@ export class PaymentResolver {
     const payments = await this.paymentService.getItemPayments(itemId, filter);
 
     return { data: payments };
-  }
-
-  @ResolveField(() => Item)
-  async item(@Parent() payment: Payment) {
-    const { itemId } = payment;
-
-    const item = await this.prisma.item.findFirst({ where: { id: itemId } });
-
-    if (!item) {
-      throw new NotFoundException(`Item with ID ${itemId} not found`);
-    }
-
-    return item;
   }
 }

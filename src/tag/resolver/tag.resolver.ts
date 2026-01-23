@@ -23,16 +23,26 @@ import { UserRole } from '../../user/entities/user-role.enum';
 import { TagInDto, TagsFilter } from '../dto';
 import Tag from '../entities/tag.entity';
 import { TagService } from '../tag.service';
+import { Workspace } from '../../workspace/entity/workspace.entity';
+import { PrismaService } from '../../prisma/prisma.service';
 
 @Resolver(() => Tag)
 @UseGuards(AuthGuard, AccessGuard)
 @UseInterceptors(GqlLoggingInterceptor)
 export class TagResolver {
   constructor(
+    private prisma: PrismaService,
     private tagService: TagService,
     private itemsByTagIdLoader: ItemsByTagIdLoader,
     private itemsAggregationsByTagIdLoader: ItemsAggregationsByTagIdLoader,
   ) {}
+
+  @ResolveField(() => Workspace)
+  async workspace(
+    @Parent() tag: Tag
+  ) {
+    return this.prisma.workspace.findUnique({ where: { id: tag.workspaceId } });
+  }
 
   @ResolveField(() => [Tag])
   async items(

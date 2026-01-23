@@ -7,6 +7,7 @@ import {
   FormalAccessStrategy,
   GlobalAccessStrategy,
   UserToItemAccessStrategy,
+  UserToPaymentAccessStrategy,
   UserToTagAccessStrategy,
   UserToWorkspaceAccessStrategy,
 } from './strategy';
@@ -23,6 +24,7 @@ import { ACCESS_STRATEGIES } from './strategy/interface';
     GlobalAccessStrategy,
     UserToItemAccessStrategy,
     UserToTagAccessStrategy,
+    UserToPaymentAccessStrategy,
     UserToWorkspaceAccessStrategy,
     {
       provide: ACCESS_STRATEGIES,
@@ -32,6 +34,7 @@ import { ACCESS_STRATEGIES } from './strategy/interface';
         GlobalAccessStrategy,
         UserToItemAccessStrategy,
         UserToTagAccessStrategy,
+        UserToPaymentAccessStrategy,
         UserToWorkspaceAccessStrategy,
       ],
     },

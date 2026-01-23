@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { Rule } from './interfaces';
 import { ACCESS_STRATEGIES, AccessStrategy } from './strategy/interface';
@@ -13,6 +13,10 @@ export class RuleEngineService {
     const strategy = this.strategies.find((strategy) =>
       strategy.isApplicable(rule),
     );
+
+    if (!strategy) {
+      throw new InternalServerErrorException(`Strategy not defined`);
+    }
 
     return strategy.executeRule(rule, ctx);
   }
