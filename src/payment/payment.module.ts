@@ -3,7 +3,6 @@ import { ConsistencyModule } from '../consistency/consistency.module';
 import { CurrencyRateModule } from '../currency-rate/currency-rate.module';
 import { ItemCostModule } from '../item-cost/default-currency-cost.module';
 import { PaymentsByItemIdLoader } from './dataloaders/payments-by-item-id.loader.service';
-import { PaymentController } from './payment.controller';
 import { PaymentResolver } from './resolver/payment.resolver';
 import { PaymentService } from './payment.service';
 import { PrismaModule } from '../prisma/prisma.module';
@@ -26,7 +25,6 @@ import { AccessModule } from '../access/access.module';
     // resolvers
     PaymentResolver,
   ],
-  controllers: [PaymentController],
   exports: [PaymentService, PaymentsByItemIdLoader],
 })
 export class PaymentModule {}

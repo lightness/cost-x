@@ -12,8 +12,6 @@ export class Relation<T1, T2> {
   }
 
   ensureIsBelonging(t1: T1, t2: T2): void {
-    console.log('>>> this.isBelonging(t1, t2)', this.isBelonging(t1, t2));
-
     if (!this.isBelonging(t1, t2)) {
       throw new BadRequestException(this.messageFactory(t1, t2));
     }

@@ -39,4 +39,10 @@ export class ConsistencyService {
     (tag) => tag.workspaceId,
     (item, tag) => `Item #${item.id} and tag #${tag.id} does not belong to same workspace`,
   );
+
+  itemsToSameWorkspace = new Relation<Item, Item>(
+    (item) => item.workspaceId,
+    (item) => item.workspaceId,
+    (item1, item2) => `Items #${item1.id} and #${item2.id} does not belong to same workspace`,
+  )
 }

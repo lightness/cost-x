@@ -1,11 +1,18 @@
 import { Module } from '@nestjs/common';
-import { ItemMergeController } from './item-merge.controller';
-import { ItemMergeService } from './item-merge.service';
+import { ConsistencyModule } from '../consistency/consistency.module';
 import { PrismaModule } from '../prisma/prisma.module';
+import { ItemMergeService } from './item-merge.service';
+import { ItemMergeResolver } from './resolver/item-merge.resolver';
 
 @Module({
-  imports: [PrismaModule],
-  providers: [ItemMergeService],
-  controllers: [ItemMergeController],
+  imports: [
+    PrismaModule,
+    ConsistencyModule,
+  ],
+  providers: [
+    ItemMergeService,
+    // resolver
+    ItemMergeResolver,
+  ],
 })
 export class ItemMergeModule {}

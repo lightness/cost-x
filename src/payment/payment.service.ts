@@ -56,16 +56,19 @@ export class PaymentService {
   }
 
   async createPayment(item: Item, dto: PaymentInDto): Promise<Payment> {
-    return this.prisma.payment.create({ data: { ...dto, itemId: item.id } });
+    return this.prisma.payment.create({ 
+      data: { 
+        ...dto, 
+        item: { connect: item }  
+      },
+      
+    });
   }
 
   async updatePayment(
-    item: Item,
     payment: Payment,
     dto: PaymentInDto,
   ): Promise<Payment> {
-    this.consistencyService.paymentToItem.ensureIsBelonging(payment, item);
-
     return this.prisma.payment.update({
       where: { id: payment.id },
       data: {
@@ -77,9 +80,7 @@ export class PaymentService {
     });
   }
 
-  async deletePayment(item: Item, payment: Payment) {
-    this.consistencyService.paymentToItem.ensureIsBelonging(payment, item);
-
+  async deletePayment(payment: Payment) {
     await this.prisma.payment.delete({
       where: { id: payment.id },
     });

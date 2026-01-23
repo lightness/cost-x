@@ -2,6 +2,7 @@ import { NotFoundException, UseGuards } from '@nestjs/common';
 import {
   Args,
   Int,
+  Mutation,
   Parent,
   Query,
   ResolveField,
@@ -11,13 +12,15 @@ import { AccessGuard } from '../../access/guard/access.guard';
 import { AuthGuard } from '../../auth/guard/auth.guard';
 import Item from '../../item/entities/item.entity';
 import { PrismaService } from '../../prisma/prisma.service';
-import { PaymentsFilter } from '../dto';
+import { PaymentInDto, PaymentsFilter } from '../dto';
 import Payment from '../entities/payment.entity';
 import { PaymentService } from '../payment.service';
 import { Access } from '../../access/decorator/access.decorator';
 import { AccessScope } from '../../access/interfaces';
 import { UserRole } from '../../user/entities/user-role.enum';
 import { fromArg } from '../../access/function/from-arg.function';
+import { ItemByIdPipe } from '../../common/pipes/item-by-id.pipe';
+import { PaymentByIdPipe } from '../../common/pipes/payment-by-id.pipe';
 
 @Resolver(() => Payment)
 @UseGuards(AuthGuard, AccessGuard)
@@ -50,7 +53,7 @@ export class PaymentResolver {
     },
   ])
   async payment(@Args('id', { type: () => Int }) id: number) {
-    const payment = await this.prisma.payment.findFirst({ where: { id } });
+    const payment = await this.prisma.payment.findUnique({ where: { id } });
 
     if (!payment) {
       throw new NotFoundException(id);
@@ -75,5 +78,40 @@ export class PaymentResolver {
     const payments = await this.paymentService.getItemPayments(itemId, filter);
 
     return { data: payments };
+  }
+
+  @Mutation(() => Payment)
+  @Access.allow([
+    { targetScope: AccessScope.GLOBAL, role: [UserRole.ADMIN] },
+    { targetScope: AccessScope.ITEM, targetId: fromArg('itemId'), role: [UserRole.USER] },
+  ])
+  async createPayment(
+    @Args('itemId', { type: () => Int }, ItemByIdPipe) item: Item,
+    @Args('dto') dto: PaymentInDto,
+  ) {
+    return this.paymentService.createPayment(item, dto);
+  }
+
+  @Mutation(() => Payment)
+  @Access.allow([
+    { targetScope: AccessScope.GLOBAL, role: [UserRole.ADMIN] },
+    { targetScope: AccessScope.PAYMENT, targetId: fromArg('paymentId'), role: [UserRole.USER] },
+  ])
+  async updatePayment(
+    @Args('paymentId', { type: () => Int }, PaymentByIdPipe) payment: Payment,
+    @Args('dto') dto: PaymentInDto,
+  ) {
+    return this.paymentService.updatePayment(payment, dto);
+  }
+
+  @Mutation(() => Boolean)
+  @Access.allow([
+    { targetScope: AccessScope.GLOBAL, role: [UserRole.ADMIN] },
+    { targetScope: AccessScope.PAYMENT, targetId: fromArg('paymentId'), role: [UserRole.USER] },
+  ])
+  async deletePayment(
+    @Args('paymentId', { type: () => Int }, PaymentByIdPipe) payment: Payment,
+  ) {
+    await this.paymentService.deletePayment(payment);
   }
 }

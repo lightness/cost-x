@@ -186,6 +186,10 @@ type Mutation {
   createItem(workspaceId: Int!, dto: ItemInDto!): Item!
   updateItem(id: Int!, dto: ItemInDto!): Item!
   deleteItem(id: Int!): Boolean!
+  createPayment(itemId: Int!, dto: PaymentInDto!): Payment!
+  updatePayment(paymentId: Int!, dto: PaymentInDto!): Payment!
+  deletePayment(paymentId: Int!): Boolean!
+  mergeItems(dto: MergeItemsInDto!): Item!
   createUser(dto: CreateUserInDto!): User!
   updateUser(id: Int!, dto: UpdateUserInDto!): User!
   createWorkspace(dto: WorkspaceInDto!): Workspace!
@@ -223,6 +227,18 @@ input UnassignTagInDto {
 
 input ItemInDto {
   title: String!
+}
+
+input PaymentInDto {
+  title: String
+  cost: Decimal!
+  currency: Currency!
+  date: Date!
+}
+
+input MergeItemsInDto {
+  hostItemId: Int!
+  mergingItemId: Int!
 }
 
 input CreateUserInDto {
