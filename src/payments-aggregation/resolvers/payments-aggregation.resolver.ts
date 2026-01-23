@@ -62,14 +62,14 @@ export class PaymentsAggregationResolver {
     const { itemIds, paymentsFilter } = paymentsAggregation;
 
     // if (itemIds) {
-      const costInDefaultCurrencyByItemId =
-        await this.costInDefaultCurrencyByItemIdLoader
-          .withOptions(paymentsFilter)
-          .loadMany(itemIds);
+    const costInDefaultCurrencyByItemId =
+      await this.costInDefaultCurrencyByItemIdLoader
+        .withOptions(paymentsFilter)
+        .loadMany(itemIds);
 
-      return costInDefaultCurrencyByItemId
-        .filter(isNotError)
-        .reduce(...this.decimalSumAggregationService.reducer);
+    return costInDefaultCurrencyByItemId
+      .filter(isNotError)
+      .reduce(...this.decimalSumAggregationService.reducer);
     // }
 
     // return this.paymentAggregateService.getCostInDefaultCurrency(
@@ -82,13 +82,13 @@ export class PaymentsAggregationResolver {
     const { itemIds, paymentsFilter } = paymentsAggregation;
 
     // if (itemIds) {
-      const costByCurrencyByItemId = await this.costByCurrencyByItemIdLoader
-        .withOptions(paymentsFilter)
-        .loadMany(itemIds);
+    const costByCurrencyByItemId = await this.costByCurrencyByItemIdLoader
+      .withOptions(paymentsFilter)
+      .loadMany(itemIds);
 
-      return costByCurrencyByItemId
-        .filter(isNotError)
-        .reduce(...this.costByCurrencyAggregationService.reducer);
+    return costByCurrencyByItemId
+      .filter(isNotError)
+      .reduce(...this.costByCurrencyAggregationService.reducer);
     // }
 
     // return this.paymentAggregateService.getCostByCurrency(paymentsFilter);
@@ -99,13 +99,13 @@ export class PaymentsAggregationResolver {
     const { itemIds, paymentsFilter } = paymentsAggregation;
 
     // if (itemIds) {
-      const firstPaymentDateByItemId = await this.firstPaymentDateByItemIdLoader
-        .withOptions(paymentsFilter)
-        .loadMany(itemIds);
+    const firstPaymentDateByItemId = await this.firstPaymentDateByItemIdLoader
+      .withOptions(paymentsFilter)
+      .loadMany(itemIds);
 
-      return firstPaymentDateByItemId
-        .filter(isNotError)
-        .reduce(...this.earliestAggregationService.reducer);
+    return firstPaymentDateByItemId
+      .filter(isNotError)
+      .reduce(...this.earliestAggregationService.reducer);
     // }
 
     // return this.paymentAggregateService.getFirstPaymentDate(paymentsFilter);
@@ -116,13 +116,13 @@ export class PaymentsAggregationResolver {
     const { itemIds, paymentsFilter } = paymentsAggregation;
 
     // if (itemIds) {
-      const lastPaymentDateByItemId = await this.lastPaymentDateByItemIdLoader
-        .withOptions(paymentsFilter)
-        .loadMany(itemIds);
+    const lastPaymentDateByItemId = await this.lastPaymentDateByItemIdLoader
+      .withOptions(paymentsFilter)
+      .loadMany(itemIds);
 
-      return lastPaymentDateByItemId
-        .filter(isNotError)
-        .reduce(...this.latestAggregationService.reducer);
+    return lastPaymentDateByItemId
+      .filter(isNotError)
+      .reduce(...this.latestAggregationService.reducer);
     // }
 
     // return this.paymentAggregateService.getLastPaymentDate(paymentsFilter);

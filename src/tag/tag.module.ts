@@ -10,6 +10,7 @@ import { TagResolver } from './resolver/tag.resolver';
 import { TagService } from './tag.service';
 
 @Module({
+  exports: [TagService, TagsByWorkspaceIdLoader],
   imports: [
     PrismaModule,
     AuthModule,
@@ -25,9 +26,5 @@ import { TagService } from './tag.service';
     // dataloaders
     TagsByWorkspaceIdLoader,
   ],
-  exports: [
-    TagService,
-    TagsByWorkspaceIdLoader,
-  ],
 })
-export class TagModule { }
+export class TagModule {}

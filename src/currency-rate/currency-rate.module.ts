@@ -8,11 +8,12 @@ import { CurrencyRateLoader } from './dataloaders/currency-rate.loader.service';
 import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
+  exports: [CurrencyRateService, CurrencyRateLoader],
   imports: [
     PrismaModule,
     HttpModule.register({
-      timeout: 5000,
       maxRedirects: 5,
+      timeout: 5000,
     }),
     DateModule,
   ],
@@ -22,6 +23,5 @@ import { PrismaModule } from '../prisma/prisma.module';
     CurrencyRateResolver,
     CurrencyRateLoader,
   ],
-  exports: [CurrencyRateService, CurrencyRateLoader],
 })
 export class CurrencyRateModule {}

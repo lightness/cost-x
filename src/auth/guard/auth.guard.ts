@@ -29,7 +29,7 @@ export class AuthGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = this.getRequest(context);
     const token = this.getToken(req);
-console.log('>>> token', token);
+    console.log('>>> token', token);
     // public access
     if (!token) {
       return true;

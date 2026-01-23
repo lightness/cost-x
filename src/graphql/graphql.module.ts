@@ -10,19 +10,19 @@ import { get } from 'radash';
 @Module({
   imports: [
     GraphQLModule.forRoot<ApolloDriverConfig>({
-      driver: ApolloDriver,
-      graphiql: true,
       autoSchemaFile: join(process.cwd(), 'src/graphql/schema.gql'),
       context: async () => ({}),
+      driver: ApolloDriver,
+      formatError: (err) => ({
+        message: get(err, 'extensions.originalError.message', err.message),
+        status: err.extensions.code,
+      }),
+      graphiql: true,
       resolvers: {
         Date: DateScalar,
         DateIso: DateIsoScalar,
         Decimal: DecimalScalar,
       },
-      formatError: (err) => ({
-        message: get(err, 'extensions.originalError.message', err.message),
-        status: err.extensions.code,
-      }),
     }),
     ItemCostModule,
   ],

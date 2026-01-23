@@ -51,7 +51,9 @@ export class DataMigrationService {
       if (title && !date && !usdCost && !eurCost && !bynCost) {
         const cleanTitle = title.trim();
 
-        globalTag = await this.tagService.create(workspace.id, { title: cleanTitle });
+        globalTag = await this.tagService.create(workspace.id, {
+          title: cleanTitle,
+        });
 
         continue;
       }

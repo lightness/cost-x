@@ -7,10 +7,11 @@ import { ItemsAggregationService } from './items-aggregation.service';
 import { ItemsAggregationResolver } from './resolvers/items-aggregation.resolver';
 
 @Module({
-  imports: [
-    PrismaModule,
-    GroupModule,
+  exports: [
+    ItemsAggregationsByTagIdLoader,
+    ItemsAggregationsByWorkspaceIdLoader,
   ],
+  imports: [PrismaModule, GroupModule],
   providers: [
     // service
     ItemsAggregationService,
@@ -20,9 +21,5 @@ import { ItemsAggregationResolver } from './resolvers/items-aggregation.resolver
     ItemsAggregationsByTagIdLoader,
     ItemsAggregationsByWorkspaceIdLoader,
   ],
-  exports: [
-    ItemsAggregationsByTagIdLoader,
-    ItemsAggregationsByWorkspaceIdLoader,
-  ]
 })
 export class ItemsAggregationModule {}

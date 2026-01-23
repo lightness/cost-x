@@ -28,7 +28,6 @@ export class UserToItemAccessStrategy
     const itemId = getTargetId(ctx);
 
     const item = await this.prisma.item.findUnique({
-      where: { id: itemId },
       select: {
         workspace: {
           select: {
@@ -36,6 +35,7 @@ export class UserToItemAccessStrategy
           },
         },
       },
+      where: { id: itemId },
     });
 
     if (item?.workspace?.ownerId !== userId) {

@@ -25,24 +25,28 @@ export class ConsistencyService {
   itemToWorkspace = new Relation<Item, Workspace>(
     (item) => item.workspaceId,
     (workspace) => workspace.id,
-    (item, workspace) => `Item #${item.id} does not belong to workspace #${workspace.id}`,
+    (item, workspace) =>
+      `Item #${item.id} does not belong to workspace #${workspace.id}`,
   );
 
   tagToWorkspace = new Relation<Tag, Workspace>(
     (tag) => tag.workspaceId,
     (workspace) => workspace.id,
-    (tag, workspace) => `Tag #${tag.id} does not belong to workspace #${workspace.id}`,
+    (tag, workspace) =>
+      `Tag #${tag.id} does not belong to workspace #${workspace.id}`,
   );
 
   itemAndTagToSameWorkspace = new Relation<Item, Tag>(
     (item) => item.workspaceId,
     (tag) => tag.workspaceId,
-    (item, tag) => `Item #${item.id} and tag #${tag.id} does not belong to same workspace`,
+    (item, tag) =>
+      `Item #${item.id} and tag #${tag.id} does not belong to same workspace`,
   );
 
   itemsToSameWorkspace = new Relation<Item, Item>(
     (item) => item.workspaceId,
     (item) => item.workspaceId,
-    (item1, item2) => `Items #${item1.id} and #${item2.id} does not belong to same workspace`,
-  )
+    (item1, item2) =>
+      `Items #${item1.id} and #${item2.id} does not belong to same workspace`,
+  );
 }

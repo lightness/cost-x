@@ -71,15 +71,19 @@ export class ItemResolver {
   }
 
   @ResolveField(() => Workspace)
-  async workspace(
-    @Parent() item: Item,
-  ) {
-    return this.prisma.workspace.findUnique({ where: { id: item.workspaceId } });
+  async workspace(@Parent() item: Item) {
+    return this.prisma.workspace.findUnique({
+      where: { id: item.workspaceId },
+    });
   }
 
   @Access.allow([
-    { targetScope: AccessScope.GLOBAL, role: [UserRole.ADMIN] },
-    { targetScope: AccessScope.ITEM, targetId: fromArg('id'), role: [UserRole.USER] },
+    { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
+    {
+      role: [UserRole.USER],
+      targetId: fromArg('id'),
+      targetScope: AccessScope.ITEM,
+    },
   ])
   @Query(() => Item)
   async item(@Args('id', { type: () => Int }) id: number) {
@@ -87,8 +91,12 @@ export class ItemResolver {
   }
 
   @Access.allow([
-    { targetScope: AccessScope.GLOBAL, role: [UserRole.ADMIN] },
-    { targetScope: AccessScope.WORKSPACE, targetId: fromArg('workspaceId'), role: [UserRole.USER] },
+    { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
+    {
+      role: [UserRole.USER],
+      targetId: fromArg('workspaceId'),
+      targetScope: AccessScope.WORKSPACE,
+    },
   ])
   @Query(() => [Item])
   async items(
@@ -96,17 +104,21 @@ export class ItemResolver {
     @Args('itemsFilter', { nullable: true }) itemsFilter: ItemsFilter,
     @Args('paymentsFilter', { nullable: true }) paymentsFilter: PaymentsFilter,
   ): Promise<Item[]> {
-    const items = await this.itemService.list([workspaceId], itemsFilter, paymentsFilter);
+    const items = await this.itemService.list(
+      [workspaceId],
+      itemsFilter,
+      paymentsFilter,
+    );
 
     return items;
   }
 
   @Access.allow([
-    { targetScope: AccessScope.GLOBAL, role: [UserRole.ADMIN] },
+    { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
     {
-      targetScope: AccessScope.WORKSPACE,
-      targetId: fromArg('workspaceId'),
       role: [UserRole.USER],
+      targetId: fromArg('workspaceId'),
+      targetScope: AccessScope.WORKSPACE,
     },
   ])
   @Mutation(() => Item)
@@ -118,11 +130,11 @@ export class ItemResolver {
   }
 
   @Access.allow([
-    { targetScope: AccessScope.GLOBAL, role: [UserRole.ADMIN] },
+    { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
     {
-      targetScope: AccessScope.ITEM,
-      targetId: fromArg('id'),
       role: [UserRole.USER],
+      targetId: fromArg('id'),
+      targetScope: AccessScope.ITEM,
     },
   ])
   @Mutation(() => Item)
@@ -134,11 +146,11 @@ export class ItemResolver {
   }
 
   @Access.allow([
-    { targetScope: AccessScope.GLOBAL, role: [UserRole.ADMIN] },
+    { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
     {
-      targetScope: AccessScope.ITEM,
-      targetId: fromArg('id'),
       role: [UserRole.USER],
+      targetId: fromArg('id'),
+      targetScope: AccessScope.ITEM,
     },
   ])
   @Mutation(() => Boolean)

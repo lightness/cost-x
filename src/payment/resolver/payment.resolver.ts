@@ -45,11 +45,11 @@ export class PaymentResolver {
 
   @Query(() => Payment)
   @Access.allow([
-    { targetScope: AccessScope.GLOBAL, role: [UserRole.ADMIN] },
+    { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
     {
-      targetScope: AccessScope.PAYMENT,
-      targetId: fromArg('id'),
       role: [UserRole.USER],
+      targetId: fromArg('id'),
+      targetScope: AccessScope.PAYMENT,
     },
   ])
   async payment(@Args('id', { type: () => Int }) id: number) {
@@ -64,11 +64,11 @@ export class PaymentResolver {
 
   @Query(() => [Payment])
   @Access.allow([
-    { targetScope: AccessScope.GLOBAL, role: [UserRole.ADMIN] },
+    { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
     {
-      targetScope: AccessScope.ITEM,
-      targetId: fromArg('itemId'),
       role: [UserRole.USER],
+      targetId: fromArg('itemId'),
+      targetScope: AccessScope.ITEM,
     },
   ])
   async payments(
@@ -82,8 +82,12 @@ export class PaymentResolver {
 
   @Mutation(() => Payment)
   @Access.allow([
-    { targetScope: AccessScope.GLOBAL, role: [UserRole.ADMIN] },
-    { targetScope: AccessScope.ITEM, targetId: fromArg('itemId'), role: [UserRole.USER] },
+    { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
+    {
+      role: [UserRole.USER],
+      targetId: fromArg('itemId'),
+      targetScope: AccessScope.ITEM,
+    },
   ])
   async createPayment(
     @Args('itemId', { type: () => Int }, ItemByIdPipe) item: Item,
@@ -94,8 +98,12 @@ export class PaymentResolver {
 
   @Mutation(() => Payment)
   @Access.allow([
-    { targetScope: AccessScope.GLOBAL, role: [UserRole.ADMIN] },
-    { targetScope: AccessScope.PAYMENT, targetId: fromArg('paymentId'), role: [UserRole.USER] },
+    { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
+    {
+      role: [UserRole.USER],
+      targetId: fromArg('paymentId'),
+      targetScope: AccessScope.PAYMENT,
+    },
   ])
   async updatePayment(
     @Args('paymentId', { type: () => Int }, PaymentByIdPipe) payment: Payment,
@@ -106,8 +114,12 @@ export class PaymentResolver {
 
   @Mutation(() => Boolean)
   @Access.allow([
-    { targetScope: AccessScope.GLOBAL, role: [UserRole.ADMIN] },
-    { targetScope: AccessScope.PAYMENT, targetId: fromArg('paymentId'), role: [UserRole.USER] },
+    { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
+    {
+      role: [UserRole.USER],
+      targetId: fromArg('paymentId'),
+      targetScope: AccessScope.PAYMENT,
+    },
   ])
   async deletePayment(
     @Args('paymentId', { type: () => Int }, PaymentByIdPipe) payment: Payment,

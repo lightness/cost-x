@@ -42,11 +42,11 @@ export class ItemService {
 
   async update(itemId: number, dto: ItemInDto): Promise<Item> {
     return this.prisma.item.update({
-      where: {
-        id: itemId,
-      },
       data: {
         title: dto.title,
+      },
+      where: {
+        id: itemId,
       },
     });
   }
@@ -71,11 +71,11 @@ export class ItemService {
     const withPayments = Boolean(paymentDateFrom || paymentDateTo);
 
     return {
-      title: title ? { contains: title, mode: 'insensitive' } : undefined,
       itemTag: withTagIds ? { some: { tagId: { in: tagIds } } } : undefined,
       payment: withPayments
         ? { some: { date: { gte: paymentDateFrom, lte: paymentDateTo } } }
         : undefined,
+      title: title ? { contains: title, mode: 'insensitive' } : undefined,
       workspaceId: { in: workspaceIds },
     };
   }

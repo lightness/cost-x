@@ -46,12 +46,12 @@ export class ConfirmEmailService {
     }
 
     await this.prisma.user.update({
-      where: {
-        id: user.id,
-      },
       data: {
         status: UserStatus.ACTIVE,
         tempCode: null,
+      },
+      where: {
+        id: user.id,
       },
     });
 

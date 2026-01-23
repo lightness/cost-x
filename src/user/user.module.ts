@@ -9,6 +9,7 @@ import { UserResolver } from './resolvers/user.resolver';
 import { UserService } from './user.service';
 
 @Module({
+  exports: [UserService],
   imports: [
     PrismaModule,
     PasswordModule,
@@ -23,6 +24,5 @@ import { UserService } from './user.service';
     // resolvers
     UserResolver,
   ],
-  exports: [UserService],
 })
 export class UserModule {}

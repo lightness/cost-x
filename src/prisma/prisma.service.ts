@@ -12,13 +12,11 @@ import { PrismaClientOptions } from '../../generated/prisma/internal/prismaNames
 @Injectable()
 export class PrismaService
   extends PrismaClient
-  implements OnModuleInit, OnModuleDestroy {
+  implements OnModuleInit, OnModuleDestroy
+{
   private readonly logger = new Logger(PrismaService.name);
 
-  constructor(
-    adapter: PrismaPg,
-    configService: ConfigService,
-  ) {
+  constructor(adapter: PrismaPg, configService: ConfigService) {
     const needLogQuery = configService.get<boolean>('db.logQuery') || false;
 
     const options: PrismaClientOptions = { adapter };

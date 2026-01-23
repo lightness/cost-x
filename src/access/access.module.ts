@@ -14,6 +14,7 @@ import {
 import { ACCESS_STRATEGIES } from './strategy/interface';
 
 @Module({
+  exports: [AccessService, AccessGuard],
   imports: [PrismaModule],
   providers: [
     AccessService,
@@ -27,8 +28,6 @@ import { ACCESS_STRATEGIES } from './strategy/interface';
     UserToPaymentAccessStrategy,
     UserToWorkspaceAccessStrategy,
     {
-      provide: ACCESS_STRATEGIES,
-      useFactory: (...strategies) => strategies,
       inject: [
         FormalAccessStrategy,
         GlobalAccessStrategy,
@@ -37,8 +36,9 @@ import { ACCESS_STRATEGIES } from './strategy/interface';
         UserToPaymentAccessStrategy,
         UserToWorkspaceAccessStrategy,
       ],
+      provide: ACCESS_STRATEGIES,
+      useFactory: (...strategies) => strategies,
     },
   ],
-  exports: [AccessService, AccessGuard],
 })
 export class AccessModule {}

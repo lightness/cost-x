@@ -11,24 +11,21 @@ import { TagModule } from '../tag/tag.module';
 import { ItemsAggregationModule } from '../items-aggregation/items-aggregation.module';
 
 @Module({
+  exports: [WorkspaceService, WorkspacesByUserIdLoader],
   imports: [
-    PrismaModule, 
-    AuthModule, 
-    AccessModule, 
+    PrismaModule,
+    AuthModule,
+    AccessModule,
     ItemModule,
     TagModule,
     ItemsAggregationModule,
     GroupModule,
   ],
   providers: [
-    WorkspaceService, 
+    WorkspaceService,
     // resolver
     WorkspaceResolver,
     // dataloader
-    WorkspacesByUserIdLoader,
-  ],
-  exports: [
-    WorkspaceService,
     WorkspacesByUserIdLoader,
   ],
 })

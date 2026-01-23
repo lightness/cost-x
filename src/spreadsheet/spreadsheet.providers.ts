@@ -3,6 +3,7 @@ import { GoogleAuth } from 'google-auth-library';
 
 export const spreadsheetProviders = [
   {
+    inject: [ConfigService],
     provide: GoogleAuth,
     useFactory: (configService: ConfigService) => {
       const scopes = configService.get<string[]>('spreadsheet.scopes');
@@ -11,6 +12,5 @@ export const spreadsheetProviders = [
 
       return auth;
     },
-    inject: [ConfigService],
   },
 ];

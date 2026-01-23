@@ -14,9 +14,9 @@ export class CurrencyRateResolver {
     const { fromCurrency, toCurrency, date } = args;
 
     const currencyRate = await this.currencyRateLoader.load({
+      date,
       fromCurrency,
       toCurrency,
-      date,
     });
 
     return currencyRate;

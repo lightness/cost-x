@@ -10,8 +10,9 @@ import { AuthModule } from '../auth/auth.module';
 import { AccessModule } from '../access/access.module';
 
 @Module({
+  exports: [ItemTagService, ItemsByTagIdLoader, TagsByItemIdLoader],
   imports: [
-    PrismaModule, 
+    PrismaModule,
     AuthModule,
     AccessModule,
     GroupModule,
@@ -24,11 +25,6 @@ import { AccessModule } from '../access/access.module';
     TagsByItemIdLoader,
     // resolver
     ItemTagResolver,
-  ],
-  exports: [
-    ItemTagService, 
-    ItemsByTagIdLoader, 
-    TagsByItemIdLoader,
   ],
 })
 export class ItemTagModule {}

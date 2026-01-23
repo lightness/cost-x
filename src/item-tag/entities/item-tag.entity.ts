@@ -6,7 +6,7 @@ import Tag from '../../tag/entities/tag.entity';
 
 @ObjectType()
 class ItemTag implements PrismaItemTag {
-  @Field(() => Int) 
+  @Field(() => Int)
   id: number;
 
   @Field(() => DateIsoScalar)

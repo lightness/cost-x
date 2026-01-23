@@ -17,8 +17,8 @@ export class AccessService {
 
   private normalizeRule(rule: Rule): Rule {
     return {
-      sourceScope: AccessScope.USER,
       sourceId: fromReq('user.id'),
+      sourceScope: AccessScope.USER,
       ...rule,
       role: Array.isArray(rule.role) ? rule.role : [rule.role],
     };
@@ -41,19 +41,28 @@ export class AccessService {
     ctx: GqlExecutionContext,
   ): Promise<boolean> {
     if (Array.isArray(ruleDef)) {
-      const subRuleResults = await Promise.all(ruleDef.map((subRuleDef) => this.isRuleMatch(subRuleDef, ctx)));
+      const subRuleResults = await Promise.all(
+        ruleDef.map((subRuleDef) => this.isRuleMatch(subRuleDef, ctx)),
+      );
 
-      return subRuleResults.some((result) => result, subRuleResults.some((result) => result));
+      return subRuleResults.some(
+        (result) => result,
+        subRuleResults.some((result) => result),
+      );
     }
 
     if (this.isRuleOperatorOr(ruleDef)) {
-      const subRuleResults = await Promise.all(ruleDef.or.map((subRuleDef) => this.isRuleMatch(subRuleDef, ctx)));
+      const subRuleResults = await Promise.all(
+        ruleDef.or.map((subRuleDef) => this.isRuleMatch(subRuleDef, ctx)),
+      );
 
       return subRuleResults.some((result) => result);
     }
 
     if (this.isRuleOperatorAnd(ruleDef)) {
-      const subRuleResults = await Promise.all(ruleDef.and.map((subRuleDef) => this.isRuleMatch(subRuleDef, ctx)));
+      const subRuleResults = await Promise.all(
+        ruleDef.and.map((subRuleDef) => this.isRuleMatch(subRuleDef, ctx)),
+      );
 
       return subRuleResults.every((result) => result);
     }

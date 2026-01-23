@@ -28,7 +28,6 @@ export class UserToTagAccessStrategy
     const tagId = getTargetId(ctx);
 
     const tag = await this.prisma.tag.findUnique({
-      where: { id: tagId },
       select: {
         workspace: {
           select: {
@@ -36,6 +35,7 @@ export class UserToTagAccessStrategy
           },
         },
       },
+      where: { id: tagId },
     });
 
     if (tag?.workspace?.ownerId !== userId) {

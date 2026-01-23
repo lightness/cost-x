@@ -3,7 +3,7 @@ import { SpreadsheetService } from './spreadsheet.service';
 import { spreadsheetProviders } from './spreadsheet.providers';
 
 @Module({
-  providers: [...spreadsheetProviders, SpreadsheetService],
   exports: [SpreadsheetService],
+  providers: [...spreadsheetProviders, SpreadsheetService],
 })
 export class SpreadsheetModule {}

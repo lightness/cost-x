@@ -19,8 +19,8 @@ export class UserService {
     const user = await this.prisma.user.create({
       data: {
         email: dto.email.toLowerCase(),
-        password: await this.bcryptService.hashPassword(dto.password),
         name: dto.name,
+        password: await this.bcryptService.hashPassword(dto.password),
         status: UserStatus.EMAIL_NOT_VERIFIED,
         tempCode: uuid(),
       },
@@ -41,14 +41,14 @@ export class UserService {
     const isNewEmail = Boolean(dto.email) && user.email !== dto.email;
 
     const updatedUser = await this.prisma.user.update({
-      where: { id },
       data: {
         email: dto.email.toLowerCase(),
-        password: await this.bcryptService.hashPassword(dto.password),
         name: dto.name,
+        password: await this.bcryptService.hashPassword(dto.password),
         status: isNewEmail ? UserStatus.EMAIL_NOT_VERIFIED : user.status,
         tempCode: isNewEmail ? uuid() : user.tempCode,
       },
+      where: { id },
     });
 
     if (isNewEmail) {

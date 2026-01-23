@@ -22,11 +22,11 @@ export class PaymentService {
 
     const payments = await this.prisma.payment.findMany({
       where: {
-        itemId: { in: itemIds },
         date: {
           gte: dateFrom,
           lte: dateTo,
         },
+        itemId: { in: itemIds },
       },
     });
 
@@ -56,27 +56,23 @@ export class PaymentService {
   }
 
   async createPayment(item: Item, dto: PaymentInDto): Promise<Payment> {
-    return this.prisma.payment.create({ 
-      data: { 
-        ...dto, 
-        item: { connect: item }  
+    return this.prisma.payment.create({
+      data: {
+        ...dto,
+        item: { connect: item },
       },
-      
     });
   }
 
-  async updatePayment(
-    payment: Payment,
-    dto: PaymentInDto,
-  ): Promise<Payment> {
+  async updatePayment(payment: Payment, dto: PaymentInDto): Promise<Payment> {
     return this.prisma.payment.update({
-      where: { id: payment.id },
       data: {
-        title: dto.title,
         cost: dto.cost,
         currency: dto.currency,
         date: dto.date,
+        title: dto.title,
       },
+      where: { id: payment.id },
     });
   }
 
@@ -86,16 +82,19 @@ export class PaymentService {
     });
   }
 
-  async getItemPayments(itemId: number, filter: PaymentsFilter): Promise<Payment[]> {
+  async getItemPayments(
+    itemId: number,
+    filter: PaymentsFilter,
+  ): Promise<Payment[]> {
     const { dateFrom, dateTo } = filter || {};
 
     const payments = await this.prisma.payment.findMany({
       where: {
-        itemId,
         date: {
           gte: dateFrom,
           lte: dateTo,
         },
+        itemId,
       },
     });
 

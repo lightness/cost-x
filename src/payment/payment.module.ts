@@ -10,6 +10,7 @@ import { AuthModule } from '../auth/auth.module';
 import { AccessModule } from '../access/access.module';
 
 @Module({
+  exports: [PaymentService, PaymentsByItemIdLoader],
   imports: [
     PrismaModule,
     AuthModule,
@@ -25,6 +26,5 @@ import { AccessModule } from '../access/access.module';
     // resolvers
     PaymentResolver,
   ],
-  exports: [PaymentService, PaymentsByItemIdLoader],
 })
 export class PaymentModule {}

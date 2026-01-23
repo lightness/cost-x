@@ -11,7 +11,10 @@ export class ItemMergeService {
   ) {}
 
   async merge(hostItem: Item, mergingItem: Item) {
-    await this.consistencyService.itemsToSameWorkspace.ensureIsBelonging(hostItem, mergingItem);
+    await this.consistencyService.itemsToSameWorkspace.ensureIsBelonging(
+      hostItem,
+      mergingItem,
+    );
 
     return await this.prisma.$transaction(async (tx) => {
       const mergingPayments = await tx.payment.findMany({
@@ -21,8 +24,8 @@ export class ItemMergeService {
       await tx.payment.createMany({
         data: mergingPayments.map(({ id, ...payment }) => ({
           ...payment,
-          title: payment.title || mergingItem.title,
           itemId: hostItem.id,
+          title: payment.title || mergingItem.title,
         })),
       });
 
@@ -34,7 +37,7 @@ export class ItemMergeService {
         where: { id: mergingItem.id },
       });
 
-      return tx.item.findUnique({ where: { id: hostItem.id } })
+      return tx.item.findUnique({ where: { id: hostItem.id } });
     });
   }
 }

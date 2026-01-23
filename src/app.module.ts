@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { AccessModule } from './access/access.module';
 import config from './app.config';
+import { AuthModule } from './auth/auth.module';
 import { CurrencyRateModule } from './currency-rate/currency-rate.module';
 import { DataMigrationModule } from './data-migration/data-migration.module';
 import { GraphqlModule } from './graphql/graphql.module';
@@ -10,10 +12,9 @@ import { ItemModule } from './item/item.module';
 import { ItemsAggregationModule } from './items-aggregation/items-aggregation.module';
 import { PaymentModule } from './payment/payment.module';
 import { PaymentsAggregationModule } from './payments-aggregation/payments-aggregation.module';
+import { ResetPasswordModule } from './reset-password/reset-password.module';
 import { TagModule } from './tag/tag.module';
 import { UserModule } from './user/user.module';
-import { AuthModule } from './auth/auth.module';
-import { AccessModule } from './access/access.module';
 import { WorkspaceModule } from './workspace/workspace.module';
 
 @Module({
@@ -33,6 +34,7 @@ import { WorkspaceModule } from './workspace/workspace.module';
     ItemsAggregationModule,
     UserModule,
     WorkspaceModule,
+    ResetPasswordModule,
   ],
 })
 export class AppModule {}

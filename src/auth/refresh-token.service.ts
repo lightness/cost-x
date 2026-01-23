@@ -15,20 +15,27 @@ export class RefreshTokenService {
     private refreshTokenService: TokenService<JwtPayload>,
     private prisma: PrismaService,
     private authService: AuthService,
-  ) { }
+  ) {}
 
-  async refreshToken(accessToken: string, dto: RefreshTokenInDto): Promise<AuthOutDto> {
+  async refreshToken(
+    accessToken: string,
+    dto: RefreshTokenInDto,
+  ): Promise<AuthOutDto> {
     const accessTokenPayload = this.accessTokenService.decodeToken(accessToken);
-    const refreshTokenPayload = await this.refreshTokenService.verifyToken(dto.refreshToken);
+    const refreshTokenPayload = await this.refreshTokenService.verifyToken(
+      dto.refreshToken,
+    );
 
     if (accessTokenPayload.id !== refreshTokenPayload.id) {
-      throw new UnauthorizedException(`Refresh token does not match access token`);
+      throw new UnauthorizedException(
+        `Refresh token does not match access token`,
+      );
     }
 
-    const user = await this.prisma.user.findUnique({ 
-      where: { 
-        id: refreshTokenPayload.id 
-      } 
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id: refreshTokenPayload.id,
+      },
     });
 
     const newTokens = await this.authService.authenticateUser(user);

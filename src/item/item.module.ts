@@ -12,6 +12,7 @@ import { ItemService } from './item.service';
 import { ItemResolver } from './resolvers/item.resolver';
 
 @Module({
+  exports: [ItemService, ItemsByWorkspaceIdLoader],
   imports: [
     AuthModule,
     AccessModule,
@@ -29,6 +30,5 @@ import { ItemResolver } from './resolvers/item.resolver';
     ItemResolver,
     ItemsByWorkspaceIdLoader,
   ],
-  exports: [ItemService, ItemsByWorkspaceIdLoader],
 })
 export class ItemModule {}

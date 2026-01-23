@@ -21,10 +21,10 @@ export class WorkspaceService {
   async create(dto: WorkspaceInDto, currentUser: User): Promise<Workspace> {
     return this.prisma.workspace.create({
       data: {
-        title: dto.title,
         owner: {
           connect: currentUser,
         },
+        title: dto.title,
       },
       include: {
         owner: true,
@@ -34,10 +34,10 @@ export class WorkspaceService {
 
   async update(id: number, dto: WorkspaceInDto): Promise<Workspace> {
     return this.prisma.workspace.update({
-      where: { id },
       data: {
         title: dto.title,
       },
+      where: { id },
     });
   }
 

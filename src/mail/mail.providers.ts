@@ -4,12 +4,12 @@ import { MailerSend } from 'mailersend';
 
 export const providers: Provider[] = [
   {
+    inject: [ConfigService],
     provide: MailerSend,
     useFactory: (configService: ConfigService) => {
       return new MailerSend({
         apiKey: configService.getOrThrow('mailersend.apiKey'),
       });
     },
-    inject: [ConfigService],
   },
 ];

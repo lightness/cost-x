@@ -8,7 +8,8 @@ import { GlobalAccessStrategy } from './global.access-strategy';
 @Injectable()
 export class UserToPaymentAccessStrategy
   extends GlobalAccessStrategy
-  implements AccessStrategy {
+  implements AccessStrategy
+{
   constructor(private prisma: PrismaService) {
     super();
   }
@@ -27,7 +28,6 @@ export class UserToPaymentAccessStrategy
     const paymentId = getTargetId(ctx);
 
     const payment = await this.prisma.payment.findUnique({
-      where: { id: paymentId },
       select: {
         item: {
           select: {
@@ -39,6 +39,7 @@ export class UserToPaymentAccessStrategy
           },
         },
       },
+      where: { id: paymentId },
     });
 
     if (payment?.item?.workspace?.ownerId !== userId) {

@@ -1,5 +1,13 @@
 import { UseGuards, UseInterceptors } from '@nestjs/common';
-import { Args, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
+import {
+  Args,
+  Int,
+  Mutation,
+  Parent,
+  Query,
+  ResolveField,
+  Resolver,
+} from '@nestjs/graphql';
 import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
@@ -38,7 +46,7 @@ export class UserResolver {
   }
 
   @Query(() => [User])
-  @Access.allow([{ targetScope: AccessScope.GLOBAL, role: UserRole.ADMIN }])
+  @Access.allow([{ role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL }])
   async users() {
     return this.userService.list();
   }
@@ -46,11 +54,11 @@ export class UserResolver {
   @Query(() => User)
   @Access.allow([
     {
-      targetScope: AccessScope.USER,
-      targetId: fromArg('id'),
       role: UserRole.USER,
+      targetId: fromArg('id'),
+      targetScope: AccessScope.USER,
     },
-    { targetScope: AccessScope.GLOBAL, role: UserRole.ADMIN },
+    { role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL },
   ])
   async user(@Args('id', { type: () => Int }) id: number) {
     return this.userService.getById(id);
@@ -71,11 +79,11 @@ export class UserResolver {
   @Mutation(() => User)
   @Access.allow([
     {
-      targetScope: AccessScope.USER,
-      targetId: fromArg('id'),
       role: UserRole.USER,
+      targetId: fromArg('id'),
+      targetScope: AccessScope.USER,
     },
-    { targetScope: AccessScope.GLOBAL, role: UserRole.ADMIN },
+    { role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL },
   ])
   async updateUser(
     @Args('id', { type: () => Int }) id: number,
@@ -85,12 +93,8 @@ export class UserResolver {
   }
 
   @Mutation(() => Boolean)
-  @Access.allow([
-    { targetScope: AccessScope.GLOBAL, role: UserRole.ADMIN },
-  ])
-  async deleteUser(
-    @Args('id', { type: () => Int }, UserByIdPipe) user: User,
-  ) {
+  @Access.allow([{ role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL }])
+  async deleteUser(@Args('id', { type: () => Int }, UserByIdPipe) user: User) {
     await this.userService.delete(user);
 
     return true;

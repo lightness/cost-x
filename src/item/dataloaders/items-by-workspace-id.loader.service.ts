@@ -36,6 +36,8 @@ export class ItemsByWorkspaceIdLoader extends NestedLoader<
 
     const itemsByWorkspaceId = this.groupService.groupBy(items, 'workspaceId');
 
-    return workspaceIds.map((workspaceId) => itemsByWorkspaceId.get(workspaceId) || []);
+    return workspaceIds.map(
+      (workspaceId) => itemsByWorkspaceId.get(workspaceId) || [],
+    );
   }
 }

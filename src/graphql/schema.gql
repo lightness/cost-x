@@ -2,6 +2,15 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type AuthOutDto {
+  accessToken: String!
+  refreshToken: String!
+}
+
+type LogoutOutDto {
+  success: Boolean!
+}
+
 type CurrencyRate {
   id: Int!
   createdAt: DateIso!
@@ -124,15 +133,6 @@ type ItemTag {
   tagId: Int!
 }
 
-type AuthOutDto {
-  accessToken: String!
-  refreshToken: String!
-}
-
-type LogoutOutDto {
-  success: Boolean!
-}
-
 type User {
   id: Int!
   createdAt: DateIso!
@@ -196,6 +196,8 @@ type Mutation {
   createWorkspace(dto: WorkspaceInDto!): Workspace!
   updateWorkspace(id: Int!, dto: WorkspaceInDto!): Workspace!
   deleteWorkspace(id: Int!): Workspace!
+  forgotPassword(dto: ForgotPasswordInDto!): Boolean!
+  resetPassword(dto: ResetPasswordInDto!): Boolean!
 }
 
 input AuthInDto {
@@ -256,4 +258,13 @@ input UpdateUserInDto {
 
 input WorkspaceInDto {
   title: String!
+}
+
+input ForgotPasswordInDto {
+  email: String!
+}
+
+input ResetPasswordInDto {
+  token: String!
+  password: String!
 }

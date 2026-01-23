@@ -21,11 +21,11 @@ export class CurrencyRateService {
     const { fromCurrency, toCurrency, date } = dto;
 
     const [sourceRate, targetRate] = await Promise.all([
-      this.findOrPull({ fromCurrency, toCurrency: Currency.BYN, date }),
+      this.findOrPull({ date, fromCurrency, toCurrency: Currency.BYN }),
       this.findOrPull({
+        date,
         fromCurrency: toCurrency,
         toCurrency: Currency.BYN,
-        date,
       }),
     ]);
 
@@ -61,10 +61,10 @@ export class CurrencyRateService {
       };
 
       return {
-        fromCurrency,
-        toCurrency,
         date,
+        fromCurrency,
         rate: getRate(),
+        toCurrency,
       } as CurrencyRate;
     });
   }
@@ -108,14 +108,14 @@ export class CurrencyRateService {
       );
 
       const currencyRates = await this.prisma.currencyRate.findMany({
+        select: {
+          date: true,
+          rate: true,
+        },
         where: {
+          date: { in: dates },
           fromCurrency,
           toCurrency: Currency.BYN,
-          date: { in: dates },
-        },
-        select: {
-          rate: true,
-          date: true,
         },
       });
 
@@ -154,9 +154,9 @@ export class CurrencyRateService {
 
     const foundCurrencyRate = await this.prisma.currencyRate.findFirst({
       where: {
+        date,
         fromCurrency,
         toCurrency,
-        date,
       },
     });
 
@@ -177,10 +177,10 @@ export class CurrencyRateService {
 
     const createdCurrencyRate = await this.prisma.currencyRate.create({
       data: {
-        fromCurrency,
-        toCurrency: Currency.BYN,
         date: new Date(datePart),
+        fromCurrency,
         rate,
+        toCurrency: Currency.BYN,
       },
     });
 

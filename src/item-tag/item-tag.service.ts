@@ -21,10 +21,10 @@ export class ItemTagService {
     paymentsFilter: PaymentsFilter,
   ): Promise<ItemTag[]> {
     const itemTags = await this.prisma.itemTag.findMany({
-      where: this.getWhereClause(tagIds, itemsFilter, paymentsFilter),
       include: {
         item: true,
       },
+      where: this.getWhereClause(tagIds, itemsFilter, paymentsFilter),
     });
 
     return itemTags;
@@ -105,13 +105,13 @@ export class ItemTagService {
     const withPayments = Boolean(paymentDateFrom || paymentDateTo);
 
     return {
-      tagId: { in: tagIds },
       item: {
-        title: title ? { contains: title, mode: 'insensitive' } : undefined,
         payment: withPayments
           ? { some: { date: { gte: paymentDateFrom, lte: paymentDateTo } } }
           : undefined,
+        title: title ? { contains: title, mode: 'insensitive' } : undefined,
       },
+      tagId: { in: tagIds },
     };
   }
 }

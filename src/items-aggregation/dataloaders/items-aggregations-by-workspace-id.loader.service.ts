@@ -28,12 +28,11 @@ export class ItemsAggregationsByWorkspaceIdLoader extends NestedLoader<
     workspaceIds: number[],
     filter: Filter,
   ): Promise<ItemsAggregation[]> {
-    const items =
-      await this.itemsAggregationService.listByWorkspaceIds(
-        workspaceIds,
-        filter.itemsFilter,
-        filter.paymentsFilter,
-      );
+    const items = await this.itemsAggregationService.listByWorkspaceIds(
+      workspaceIds,
+      filter.itemsFilter,
+      filter.paymentsFilter,
+    );
 
     const itemsByWorkspaceId = this.groupService.groupBy(items, 'workspaceId');
 
@@ -42,7 +41,7 @@ export class ItemsAggregationsByWorkspaceIdLoader extends NestedLoader<
 
       return {
         itemIds: items.map(({ id }) => id),
-        ...filter
+        ...filter,
       };
     });
   }

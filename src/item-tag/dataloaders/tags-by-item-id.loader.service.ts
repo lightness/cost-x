@@ -11,11 +11,11 @@ export class TagsByItemIdLoader extends BaseLoader<number, Tag[]> {
 
   protected async loaderFn(itemIds: number[]): Promise<Tag[][]> {
     const itemTags = await this.prisma.itemTag.findMany({
-      where: {
-        itemId: { in: itemIds },
-      },
       include: {
         tag: true,
+      },
+      where: {
+        itemId: { in: itemIds },
       },
     });
 

@@ -8,12 +8,13 @@ import { RedisModule } from '../redis/redis.module';
 export class TokenModule {
   static register(token: string | symbol, configPath: string): DynamicModule {
     return {
-      module: TokenModule,
+      exports: [token],
       imports: [RedisModule],
+      module: TokenModule,
       providers: [
         {
-          provide: CONFIG,
           inject: [ConfigService],
+          provide: CONFIG,
           useFactory: (configService: ConfigService) => {
             return configService.get(configPath);
           },
@@ -23,7 +24,6 @@ export class TokenModule {
           useClass: TokenService,
         },
       ],
-      exports: [token],
     };
   }
 }

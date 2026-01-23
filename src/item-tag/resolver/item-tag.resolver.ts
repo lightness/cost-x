@@ -1,5 +1,11 @@
 import { UseGuards } from '@nestjs/common';
-import { Args, Mutation, Parent, ResolveField, Resolver } from '@nestjs/graphql';
+import {
+  Args,
+  Mutation,
+  Parent,
+  ResolveField,
+  Resolver,
+} from '@nestjs/graphql';
 import { Access } from '../../access/decorator/access.decorator';
 import { AccessGuard } from '../../access/guard/access.guard';
 import { AccessScope } from '../../access/interfaces';
@@ -25,26 +31,30 @@ export class ItemTagResolver {
   ) {}
 
   @ResolveField(() => Item)
-  async item(
-    @Parent() itemTag: ItemTag,
-  ) {
+  async item(@Parent() itemTag: ItemTag) {
     return this.prisma.item.findUnique({ where: { id: itemTag.itemId } });
   }
 
   @ResolveField(() => Tag)
-  async tag(
-    @Parent() itemTag: ItemTag,
-  ) {
+  async tag(@Parent() itemTag: ItemTag) {
     return this.prisma.tag.findUnique({ where: { id: itemTag.tagId } });
   }
 
   @Mutation(() => ItemTag)
   @Access.allow([
-    { targetScope: AccessScope.GLOBAL, role: [UserRole.ADMIN] },
+    { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
     {
       and: [
-        { targetScope: AccessScope.ITEM, targetId: fromArg('dto.itemId'), role: [UserRole.USER] },
-        { targetScope: AccessScope.TAG, targetId: fromArg('dto.tagId'), role: [UserRole.USER] },
+        {
+          role: [UserRole.USER],
+          targetId: fromArg('dto.itemId'),
+          targetScope: AccessScope.ITEM,
+        },
+        {
+          role: [UserRole.USER],
+          targetId: fromArg('dto.tagId'),
+          targetScope: AccessScope.TAG,
+        },
       ],
     },
   ])
@@ -58,11 +68,19 @@ export class ItemTagResolver {
 
   @Mutation(() => Boolean)
   @Access.allow([
-    { targetScope: AccessScope.GLOBAL, role: [UserRole.ADMIN] },
+    { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
     {
       and: [
-        { targetScope: AccessScope.ITEM, targetId: fromArg('dto.itemId'), role: [UserRole.USER] },
-        { targetScope: AccessScope.TAG, targetId: fromArg('dto.tagId'), role: [UserRole.USER] },
+        {
+          role: [UserRole.USER],
+          targetId: fromArg('dto.itemId'),
+          targetScope: AccessScope.ITEM,
+        },
+        {
+          role: [UserRole.USER],
+          targetId: fromArg('dto.tagId'),
+          targetScope: AccessScope.TAG,
+        },
       ],
     },
   ])

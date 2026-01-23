@@ -72,10 +72,9 @@ export class WorkspaceResolver {
     return itemsAggregation;
   }
 
-
   @Mutation(() => Workspace)
   @Access.allow([
-    { targetScope: AccessScope.GLOBAL, role: [UserRole.USER, UserRole.ADMIN] },
+    { role: [UserRole.USER, UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
   ])
   async createWorkspace(
     @Args('dto') dto: WorkspaceInDto,
@@ -87,11 +86,11 @@ export class WorkspaceResolver {
   @Mutation(() => Workspace)
   @Access.allow([
     {
-      targetScope: AccessScope.WORKSPACE,
-      targetId: fromArg('id'),
       role: [UserRole.USER],
+      targetId: fromArg('id'),
+      targetScope: AccessScope.WORKSPACE,
     },
-    { targetScope: AccessScope.GLOBAL, role: [UserRole.ADMIN] },
+    { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
   ])
   async updateWorkspace(
     @Args('id', { type: () => Int }) id: number,
@@ -103,11 +102,11 @@ export class WorkspaceResolver {
   @Mutation(() => Workspace)
   @Access.allow([
     {
-      targetScope: AccessScope.WORKSPACE,
-      targetId: fromArg('id'),
       role: [UserRole.USER],
+      targetId: fromArg('id'),
+      targetScope: AccessScope.WORKSPACE,
     },
-    { targetScope: AccessScope.GLOBAL, role: [UserRole.ADMIN] },
+    { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
   ])
   async deleteWorkspace(@Args('id', { type: () => Int }) id: number) {
     return this.workspaceService.delete(id);

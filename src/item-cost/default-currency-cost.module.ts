@@ -5,8 +5,8 @@ import { CostByCurrencyService } from './cost-by-currency.service';
 import { DefaultCurrencyCostService } from './default-currency-cost.service';
 
 @Module({
+  exports: [DefaultCurrencyCostService, CostByCurrencyService],
   imports: [ConfigModule, CurrencyRateModule],
   providers: [DefaultCurrencyCostService, CostByCurrencyService],
-  exports: [DefaultCurrencyCostService, CostByCurrencyService],
 })
 export class ItemCostModule {}

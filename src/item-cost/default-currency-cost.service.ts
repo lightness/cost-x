@@ -15,9 +15,9 @@ export class DefaultCurrencyCostService {
     return payments
       .filter((payment) => payment.currency !== this.defaultCurrency)
       .map((payment) => ({
+        date: payment.date,
         fromCurrency: payment.currency,
         toCurrency: this.defaultCurrency,
-        date: payment.date,
       }));
   }
 

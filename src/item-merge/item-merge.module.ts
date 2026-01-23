@@ -5,10 +5,7 @@ import { ItemMergeService } from './item-merge.service';
 import { ItemMergeResolver } from './resolver/item-merge.resolver';
 
 @Module({
-  imports: [
-    PrismaModule,
-    ConsistencyModule,
-  ],
+  imports: [PrismaModule, ConsistencyModule],
   providers: [
     ItemMergeService,
     // resolver

@@ -3,24 +3,34 @@ const asInteger = (env: string | undefined, defaultValue: number) => {
 };
 
 export default () => ({
-  port: asInteger(process.env.PORT, 8080),
-  db: {
-    url: process.env.DATABASE_URL,
-    logQuery: false,
+  authenticate: {
+    access: {
+      jwt: {
+        expiresIn: '180min',
+        redisPrefix: 'expired:access:',
+        secret: 'AccessTopSecret',
+      },
+    },
+    refresh: {
+      jwt: {
+        expiresIn: '181min',
+        redisPrefix: 'expired:refresh:',
+        secret: 'RefreshTopSecret',
+      },
+    },
   },
-  redis: {
-    url: process.env.REDIS_URL,
+  confirmEmail: {
+    jwt: {
+      expiresIn: '7d',
+      redisPrefix: 'expired:confirm-email:',
+      secret: 'TopSECRET',
+    },
+    linkUrl: process.env.CONFIRM_EMAIL_LINK_URL,
   },
   costCurrency: process.env.COST_CURRENCY || 'USD',
-  spreadsheet: {
-    id: '1oFQIOD0OfztKcVdTntcU9IQ-uM8oAVL3yD9b7cahma4',
-    name: 'Затраты на строительство',
-    scopes: [
-      'https://www.googleapis.com/auth/spreadsheets',
-      'https://www.googleapis.com/auth/drive',
-      'https://www.googleapis.com/auth/calendar',
-    ],
-    columnNames: ['title', 'date', 'bynCost', 'usdCost', 'eurCost'],
+  db: {
+    logQuery: false,
+    url: process.env.DATABASE_URL,
   },
   graphql: {
     logTime: true,
@@ -32,28 +42,26 @@ export default () => ({
       name: 'Cost-X',
     },
   },
-  confirmEmail: {
-      linkUrl: process.env.CONFIRM_EMAIL_LINK_URL,
-      jwt: {
-        secret: 'TopSECRET',
-        expiresIn: '7d',
-        redisPrefix: 'expired:confirm-email:',
-      },
+  port: asInteger(process.env.PORT, 8080),
+  redis: {
+    url: process.env.REDIS_URL,
+  },
+  resetPassword: {
+    jwt: {
+      expiresIn: '5min',
+      redisPrefix: 'expired:reset-password:',
+      secret: 'ResetPasswordTopSecret',
     },
-  authenticate: {
-    access: {
-      jwt: {
-        secret: 'AccessTopSecret',
-        expiresIn: '180min',
-        redisPrefix: 'expired:access:',
-      },
-    },
-    refresh: {
-      jwt: {
-        secret: 'RefreshTopSecret',
-        expiresIn: '181min',
-        redisPrefix: 'expired:refresh:',
-      },
-    },
+    linkUrl: process.env.RESET_PASSWORD_LINK_URL,
+  },
+  spreadsheet: {
+    columnNames: ['title', 'date', 'bynCost', 'usdCost', 'eurCost'],
+    id: '1oFQIOD0OfztKcVdTntcU9IQ-uM8oAVL3yD9b7cahma4',
+    name: 'Затраты на строительство',
+    scopes: [
+      'https://www.googleapis.com/auth/spreadsheets',
+      'https://www.googleapis.com/auth/drive',
+      'https://www.googleapis.com/auth/calendar',
+    ],
   },
 });

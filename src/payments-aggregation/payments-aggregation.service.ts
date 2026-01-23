@@ -36,13 +36,13 @@ export class PaymentsAggregationService {
     // console.log('🔮 itemIds, paymentsFilter', itemIds, paymentsFilter);
 
     const rows = await this.prisma.payment.groupBy({
+      _count: {
+        _all: true,
+      },
+      by: ['itemId'],
       where: {
         ...this.getWhereClause(paymentsFilter),
         itemId: { in: itemIds },
-      },
-      by: ['itemId'],
-      _count: {
-        _all: true,
       },
     });
 
@@ -140,12 +140,12 @@ export class PaymentsAggregationService {
     paymentsFilter: PaymentsFilter,
   ): Promise<Map<number, Date>> {
     const rows = await this.prisma.payment.groupBy({
+      _min: { date: true },
+      by: ['itemId'],
       where: {
         ...this.getWhereClause(paymentsFilter),
         itemId: { in: itemIds },
       },
-      by: ['itemId'],
-      _min: { date: true },
     });
 
     return new Map(rows.map(({ itemId, _min: { date } }) => [itemId, date]));
@@ -167,12 +167,12 @@ export class PaymentsAggregationService {
     paymentsFilter: PaymentsFilter,
   ): Promise<Map<number, Date>> {
     const rows = await this.prisma.payment.groupBy({
+      _max: { date: true },
+      by: ['itemId'],
       where: {
         ...this.getWhereClause(paymentsFilter),
         itemId: { in: itemIds },
       },
-      by: ['itemId'],
-      _max: { date: true },
     });
 
     return new Map(rows.map(({ itemId, _max: { date } }) => [itemId, date]));

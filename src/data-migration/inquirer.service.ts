@@ -23,7 +23,7 @@ export class InquirerService {
       repeatedPassword = await this.askForPassword('Confirm your password:');
     }
 
-    return { name, email, password };
+    return { email, name, password };
   }
 
   private async askForName(
@@ -31,9 +31,9 @@ export class InquirerService {
   ): Promise<string> {
     const questions = [
       {
-        type: 'input',
-        name: 'name',
         message,
+        name: 'name',
+        type: 'input',
         validate: (input: string) => {
           return input.length <= 50 || 'Please enter a valid email address';
         },
@@ -50,9 +50,9 @@ export class InquirerService {
   ): Promise<string> {
     const questions = [
       {
-        type: 'input',
-        name: 'email',
         message,
+        name: 'email',
+        type: 'input',
         validate: (input: string) => {
           return (
             this.emailRegex.test(input) || 'Please enter a valid email address'
@@ -72,10 +72,10 @@ export class InquirerService {
   ): Promise<string> {
     const questions = [
       {
-        type: mask ? 'password' : 'input',
-        name: 'password',
-        message,
         mask: mask ? '*' : undefined,
+        message,
+        name: 'password',
+        type: mask ? 'password' : 'input',
         validate: (input: string) => {
           return (
             input.length >= 6 || 'Password must be at least 6 characters long'

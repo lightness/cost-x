@@ -38,9 +38,7 @@ export class TagResolver {
   ) {}
 
   @ResolveField(() => Workspace)
-  async workspace(
-    @Parent() tag: Tag
-  ) {
+  async workspace(@Parent() tag: Tag) {
     return this.prisma.workspace.findUnique({ where: { id: tag.workspaceId } });
   }
 
@@ -71,11 +69,11 @@ export class TagResolver {
   @Query(() => [Tag])
   @Access.allow([
     {
-      targetScope: AccessScope.WORKSPACE,
-      targetId: fromArg('workspaceId'),
       role: [UserRole.USER],
+      targetId: fromArg('workspaceId'),
+      targetScope: AccessScope.WORKSPACE,
     },
-    { targetScope: AccessScope.GLOBAL, role: [UserRole.ADMIN] },
+    { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
   ])
   async tags(
     @Args('workspaceId', { type: () => Int }) workspaceId: number,
@@ -87,11 +85,11 @@ export class TagResolver {
   @Query(() => Tag)
   @Access.allow([
     {
-      targetScope: AccessScope.TAG,
-      targetId: fromArg('id'),
       role: [UserRole.USER],
+      targetId: fromArg('id'),
+      targetScope: AccessScope.TAG,
     },
-    { targetScope: AccessScope.GLOBAL, role: [UserRole.ADMIN] },
+    { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
   ])
   async tag(@Args('id', { type: () => Int }) id: number): Promise<Tag> {
     return this.tagService.getById(id);
@@ -100,11 +98,11 @@ export class TagResolver {
   @Mutation(() => Tag)
   @Access.allow([
     {
-      targetScope: AccessScope.WORKSPACE,
-      targetId: fromArg('workspaceId'),
       role: [UserRole.USER],
+      targetId: fromArg('workspaceId'),
+      targetScope: AccessScope.WORKSPACE,
     },
-    { targetScope: AccessScope.GLOBAL, role: [UserRole.ADMIN] },
+    { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
   ])
   async createTag(
     @Args('workspaceId', { type: () => Int }) workspaceId: number,
@@ -116,11 +114,11 @@ export class TagResolver {
   @Mutation(() => Tag)
   @Access.allow([
     {
-      targetScope: AccessScope.TAG,
-      targetId: fromArg('id'),
       role: [UserRole.USER],
+      targetId: fromArg('id'),
+      targetScope: AccessScope.TAG,
     },
-    { targetScope: AccessScope.GLOBAL, role: [UserRole.ADMIN] },
+    { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
   ])
   async updateTag(
     @Args('id', { type: () => Int }) id: number,
@@ -132,11 +130,11 @@ export class TagResolver {
   @Mutation(() => Boolean)
   @Access.allow([
     {
-      targetScope: AccessScope.TAG,
-      targetId: fromArg('id'),
       role: [UserRole.USER],
+      targetId: fromArg('id'),
+      targetScope: AccessScope.TAG,
     },
-    { targetScope: AccessScope.GLOBAL, role: [UserRole.ADMIN] },
+    { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
   ])
   async deleteTag(@Args('id', { type: () => Int }) id: number) {
     await this.tagService.delete(id);

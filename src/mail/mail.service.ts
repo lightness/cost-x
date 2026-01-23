@@ -23,6 +23,12 @@ export class MailService {
     return url;
   }
 
+  private get resetPasswordLinkUrl() {
+    const url = this.configService.getOrThrow('resetPassword.linkUrl');
+
+    return url;
+  }
+
   async send(params: MailParams) {
     const {
       toUser: { name, email },
@@ -49,14 +55,34 @@ export class MailService {
     const url = `${this.confirmEmailLinkUrl}?token=${token}`;
 
     return this.send({
-      toUser: user,
-      subject: 'Welcome to Cost-X',
       html: [
         `<p>Hey, ${name}!</p>`,
         '<br/>',
         '<p>You are welcome to Cost-X.</p>',
         `<p>Click to confirm your email: <a href="${url}">LINK</a></p>`,
       ].join('\n'),
+      subject: 'Welcome to Cost-X',
+      toUser: user,
+    });
+  }
+
+  async sendResetPassword(user: User, token: string) {
+    const { name } = user;
+
+    const url = `${this.resetPasswordLinkUrl}?token=${token}`;
+
+    return this.send({
+      html: [
+        `<p>Hey, ${name}!</p>`,
+        '<br/>',
+        `<p>You've requested password reset on Cost-X.</p>`,
+        '<h3>PROD (does not work)</h3>',
+        `<p>Click to navigate to reset password page: <a href="${url}">LINK</a></p>`,
+        '<h3>DEV</h3>',
+        `<p>Call "resetPassword" mutation using following token: ${token}</p>`,
+      ].join('\n'),
+      subject: 'Reset password on Cost-X',
+      toUser: user,
     });
   }
 }

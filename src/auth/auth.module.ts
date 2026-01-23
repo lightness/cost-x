@@ -11,6 +11,10 @@ import { AuthResolver } from './resolver/auth.resolver';
 import { ACCESS_TOKEN_SERVICE, REFRESH_TOKEN_SERVICE } from './symbols';
 
 @Module({
+  exports: [
+    AuthGuard,
+    TokenModule.register(ACCESS_TOKEN_SERVICE, 'authenticate.access.jwt'),
+  ],
   imports: [
     PrismaModule,
     PasswordModule,
@@ -24,10 +28,6 @@ import { ACCESS_TOKEN_SERVICE, REFRESH_TOKEN_SERVICE } from './symbols';
     AuthGuard,
     RefreshTokenService,
     LogoutService,
-  ],
-  exports: [
-    AuthGuard,
-    TokenModule.register(ACCESS_TOKEN_SERVICE, 'authenticate.access.jwt'),
   ],
 })
 export class AuthModule {}

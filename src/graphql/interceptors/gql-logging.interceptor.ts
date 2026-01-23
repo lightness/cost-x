@@ -1,4 +1,10 @@
-import { CallHandler, ExecutionContext, Injectable, Logger, NestInterceptor } from '@nestjs/common';
+import {
+  CallHandler,
+  ExecutionContext,
+  Injectable,
+  Logger,
+  NestInterceptor,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { Observable, tap } from 'rxjs';
@@ -7,7 +13,7 @@ import { Observable, tap } from 'rxjs';
 export class GqlLoggingInterceptor implements NestInterceptor {
   private readonly logger = new Logger(GqlLoggingInterceptor.name);
 
-  constructor(private configService: ConfigService) { }
+  constructor(private configService: ConfigService) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const ctx = GqlExecutionContext.create(context);
@@ -18,14 +24,14 @@ export class GqlLoggingInterceptor implements NestInterceptor {
     const now = Date.now();
 
     if (this.isTimeLogNeeded) {
-      return next
-        .handle()
-        .pipe(
-          tap(() => {
-            const elapsedTime = Date.now() - now;
-            this.logger.log(`GraphQL ${operationType} "${operationName}" took ${elapsedTime}ms`);
-          }),
-        );
+      return next.handle().pipe(
+        tap(() => {
+          const elapsedTime = Date.now() - now;
+          this.logger.log(
+            `GraphQL ${operationType} "${operationName}" took ${elapsedTime}ms`,
+          );
+        }),
+      );
     } else {
       return next.handle();
     }
