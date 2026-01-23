@@ -14,6 +14,7 @@ import { UserRole } from '../entities/user-role.enum';
 import { User } from '../entities/user.entity';
 import { UserService } from '../user.service';
 import { GqlLoggingInterceptor } from '../../graphql/interceptors/gql-logging.interceptor';
+import { UserByIdPipe } from '../../common/pipes/user-by-id.pipe';
 
 @Resolver(() => User)
 @UseGuards(AuthGuard, AccessGuard)
@@ -81,5 +82,17 @@ export class UserResolver {
     @Args('dto', { type: () => UpdateUserInDto }) dto: UpdateUserInDto,
   ) {
     return this.userService.update(id, dto);
+  }
+
+  @Mutation(() => Boolean)
+  @Access.allow([
+    { targetScope: AccessScope.GLOBAL, role: UserRole.ADMIN },
+  ])
+  async deleteUser(
+    @Args('id', { type: () => Int }, UserByIdPipe) user: User,
+  ) {
+    await this.userService.delete(user);
+
+    return true;
   }
 }

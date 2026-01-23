@@ -58,6 +58,10 @@ export class UserService {
     return updatedUser;
   }
 
+  async delete(user: User) {
+    return this.prisma.user.delete({ where: user });
+  }
+
   async list(): Promise<User[]> {
     return this.prisma.user.findMany();
   }

@@ -18,9 +18,7 @@ export class MailService {
   }
 
   private get confirmEmailLinkUrl() {
-    const url = this.configService.getOrThrow(
-      'mailersend.confirmEmail.linkUrl',
-    );
+    const url = this.configService.getOrThrow('confirmEmail.linkUrl');
 
     return url;
   }

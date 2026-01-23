@@ -31,7 +31,8 @@ export default () => ({
       email: process.env.SENDER_EMAIL,
       name: 'Cost-X',
     },
-    confirmEmail: {
+  },
+  confirmEmail: {
       linkUrl: process.env.CONFIRM_EMAIL_LINK_URL,
       jwt: {
         secret: 'TopSECRET',
@@ -39,7 +40,6 @@ export default () => ({
         redisPrefix: 'expired:confirm-email:',
       },
     },
-  },
   authenticate: {
     access: {
       jwt: {

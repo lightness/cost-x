@@ -192,6 +192,7 @@ type Mutation {
   mergeItems(dto: MergeItemsInDto!): Item!
   createUser(dto: CreateUserInDto!): User!
   updateUser(id: Int!, dto: UpdateUserInDto!): User!
+  deleteUser(id: Int!): Boolean!
   createWorkspace(dto: WorkspaceInDto!): Workspace!
   updateWorkspace(id: Int!, dto: WorkspaceInDto!): Workspace!
   deleteWorkspace(id: Int!): Workspace!

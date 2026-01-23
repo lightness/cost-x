@@ -9,14 +9,11 @@ import { ConfirmEmailController } from './confirm-email.controller';
 @Module({
   imports: [
     PrismaModule,
-    TokenModule.register(
-      CONFIRM_EMAIL_TOKEN_SERVICE,
-      'mailersend.confirmEmail.jwt',
-    ),
+    TokenModule.register(CONFIRM_EMAIL_TOKEN_SERVICE, 'confirmEmail.jwt'),
     MailModule,
   ],
   providers: [ConfirmEmailService],
   exports: [ConfirmEmailService],
   controllers: [ConfirmEmailController],
 })
-export class ConfirmEmailModule {}
+export class ConfirmEmailModule { }

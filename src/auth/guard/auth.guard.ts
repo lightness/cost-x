@@ -29,7 +29,7 @@ export class AuthGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = this.getRequest(context);
     const token = this.getToken(req);
-
+console.log('>>> token', token);
     // public access
     if (!token) {
       return true;
@@ -37,6 +37,7 @@ export class AuthGuard implements CanActivate {
 
     try {
       const payload = await this.accessTokenService.verifyToken(token);
+      console.log('>>> payload', payload);
       const user = await this.prisma.user.findUniqueOrThrow({
         where: { id: payload.id },
       });
