@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { ItemCostModule } from '../item-cost/default-currency-cost.module';
 import { ConstantsResolver } from './resolvers/constants.resolver';
 import { DateIsoScalar, DateScalar, DecimalScalar } from './scalars';
+import { get } from 'radash';
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { DateIsoScalar, DateScalar, DecimalScalar } from './scalars';
         Decimal: DecimalScalar,
       },
       formatError: (err) => ({
-        message: err.message,
+        message: get(err, 'extensions.originalError.message', err.message),
         status: err.extensions.code,
       }),
     }),

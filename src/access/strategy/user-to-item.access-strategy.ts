@@ -38,7 +38,7 @@ export class UserToItemAccessStrategy
       },
     });
 
-    if (item.workspace.ownerId !== userId) {
+    if (item?.workspace?.ownerId !== userId) {
       return false;
     }
 

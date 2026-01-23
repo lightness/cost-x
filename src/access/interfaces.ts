@@ -23,8 +23,8 @@ export interface Rule {
   role: UserRole | UserRole[];
 }
 
-export type RuleOperationAnd = { and: (Rule | RuleOperationOr)[] };
-export type RuleOperationOr = { or: (Rule | RuleOperationAnd)[] };
-export type RuleDef = Rule | Rule[] | RuleOperationAnd | RuleOperationOr;
+export type RuleOperationAnd = { and: (RuleDef | RuleOperationOr)[] };
+export type RuleOperationOr = { or: (RuleDef | RuleOperationAnd)[] };
+export type RuleDef = Rule | RuleDef[] | RuleOperationAnd | RuleOperationOr;
 
 export type GetId = (ctx: GqlExecutionContext) => number;

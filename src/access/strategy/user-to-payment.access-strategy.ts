@@ -41,7 +41,7 @@ export class UserToPaymentAccessStrategy
       },
     });
 
-    if (payment.item.workspace.ownerId !== userId) {
+    if (payment?.item?.workspace?.ownerId !== userId) {
       return false;
     }
 

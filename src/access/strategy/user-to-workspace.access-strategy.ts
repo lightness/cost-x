@@ -31,7 +31,7 @@ export class UserToWorkspaceAccessStrategy
       where: { id: workspaceId },
     });
 
-    if (workspace.ownerId !== userId) {
+    if (workspace?.ownerId !== userId) {
       return false;
     }
 

@@ -114,6 +114,16 @@ type Item {
   tags: [Tag!]
 }
 
+type ItemTag {
+  id: Int!
+  createdAt: DateIso!
+  updatedAt: DateIso!
+  item: Item
+  itemId: Int!
+  tag: Item
+  tagId: Int!
+}
+
 type AuthOutDto {
   accessToken: String!
   refreshToken: String!
@@ -171,6 +181,8 @@ type Mutation {
   createTag(workspaceId: Int!, dto: TagInDto!): Tag!
   updateTag(id: Int!, dto: TagInDto!): Tag!
   deleteTag(id: Int!): Boolean!
+  assignTag(dto: AssignTagInDto!): ItemTag!
+  unassignTag(dto: UnassignTagInDto!): Boolean!
   createItem(workspaceId: Int!, dto: ItemInDto!): Item!
   updateItem(id: Int!, dto: ItemInDto!): Item!
   deleteItem(id: Int!): Boolean!
@@ -197,6 +209,16 @@ input LogoutInDto {
 input TagInDto {
   title: String!
   color: String
+}
+
+input AssignTagInDto {
+  tagId: Int!
+  itemId: Int!
+}
+
+input UnassignTagInDto {
+  tagId: Int!
+  itemId: Int!
 }
 
 input ItemInDto {

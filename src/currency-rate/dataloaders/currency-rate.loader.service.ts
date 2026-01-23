@@ -1,13 +1,13 @@
 import { Injectable, Scope } from '@nestjs/common';
 import { DateService } from '../../date/date.service';
-import { CurrencyRateService } from '../currency-rate.service';
-import { GetCurrencyRateArgs, GetCurrencyRateInDto } from '../dto';
-import CurrencyRate from '../entities/currency-rate.entity';
 import { BaseLoader } from '../../graphql/dataloaders/base.loader';
+import { CurrencyRateService } from '../currency-rate.service';
+import { GetCurrencyRateInDto } from '../dto';
+import CurrencyRate from '../entities/currency-rate.entity';
 
 @Injectable({ scope: Scope.REQUEST })
 export class CurrencyRateLoader extends BaseLoader<
-  GetCurrencyRateArgs,
+  GetCurrencyRateInDto,
   CurrencyRate,
   string
 > {

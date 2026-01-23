@@ -59,7 +59,7 @@ export class DataMigrationService {
       const item = await this.itemService.create(workspace.id, { title });
 
       if (globalTag) {
-        await this.itemTagService.setTag(item, globalTag);
+        await this.itemTagService.assignTag(item, globalTag);
       }
 
       if (usdCost) {

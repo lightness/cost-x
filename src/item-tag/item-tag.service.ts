@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { ItemTagWhereInput } from '../../generated/prisma/models';
+import { ConsistencyService } from '../consistency/consistency.service';
 import { ItemsFilter } from '../item/dto';
 import Item from '../item/entities/item.entity';
 import { PaymentsFilter } from '../payment/dto';
@@ -9,9 +10,16 @@ import ItemTag from './entities/item-tag.entity';
 
 @Injectable()
 export class ItemTagService {
-  constructor(private prisma: PrismaService) { }
+  constructor(
+    private prisma: PrismaService,
+    private consistencyService: ConsistencyService,
+  ) {}
 
-  async findByTagIds(tagIds: number[], itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): Promise<ItemTag[]> {
+  async findByTagIds(
+    tagIds: number[],
+    itemsFilter: ItemsFilter,
+    paymentsFilter: PaymentsFilter,
+  ): Promise<ItemTag[]> {
     const itemTags = await this.prisma.itemTag.findMany({
       where: this.getWhereClause(tagIds, itemsFilter, paymentsFilter),
       include: {
@@ -22,11 +30,19 @@ export class ItemTagService {
     return itemTags;
   }
 
-  async setTag(item: Item, tag: Tag): Promise<ItemTag> {
-    const itemTag = await this.prisma.itemTag.findFirst({
+  // TODO: make transactional
+  async assignTag(item: Item, tag: Tag): Promise<ItemTag> {
+    await this.consistencyService.itemAndTagToSameWorkspace.ensureIsBelonging(
+      item,
+      tag,
+    );
+
+    const itemTag = await this.prisma.itemTag.findUnique({
       where: {
-        itemId: item.id,
-        tagId: tag.id,
+        itemId_tagId: {
+          itemId: item.id,
+          tagId: tag.id,
+        },
       },
     });
 
@@ -44,7 +60,13 @@ export class ItemTagService {
     });
   }
 
-  async removeTag(item: Item, tag: Tag): Promise<void> {
+  // TODO: make transactional
+  async unassignTag(item: Item, tag: Tag): Promise<void> {
+    await this.consistencyService.itemAndTagToSameWorkspace.ensureIsBelonging(
+      item,
+      tag,
+    );
+
     const itemTag = await this.prisma.itemTag.findUnique({
       where: {
         itemId_tagId: {
@@ -89,7 +111,7 @@ export class ItemTagService {
         payment: withPayments
           ? { some: { date: { gte: paymentDateFrom, lte: paymentDateTo } } }
           : undefined,
-      }
+      },
     };
   }
 }

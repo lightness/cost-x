@@ -1,7 +1,7 @@
 import { Args, Query, Resolver } from '@nestjs/graphql';
-import { CurrencyRateLoader } from './dataloaders/currency-rate.loader.service';
-import { GetCurrencyRateArgs } from './dto/get-currency-rate.args';
-import CurrencyRate from './entities/currency-rate.entity';
+import { CurrencyRateLoader } from '../dataloaders/currency-rate.loader.service';
+import { GetCurrencyRateInDto } from '../dto';
+import CurrencyRate from '../entities/currency-rate.entity';
 
 @Resolver(() => CurrencyRate)
 export class CurrencyRateResolver {
@@ -9,7 +9,7 @@ export class CurrencyRateResolver {
 
   @Query(() => CurrencyRate)
   async currencyRate(
-    @Args({ type: () => GetCurrencyRateArgs }) args: GetCurrencyRateArgs,
+    @Args({ type: () => GetCurrencyRateInDto }) args: GetCurrencyRateInDto,
   ): Promise<CurrencyRate> {
     const { fromCurrency, toCurrency, date } = args;
 
