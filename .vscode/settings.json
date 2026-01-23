@@ -1,6 +1,27 @@
 {
   "cSpell.words": [
-    "mailersend"
+    "mailersend",
+    "unban"
   ],
-  "typescript.tsdk": "node_modules/typescript/lib"
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "workbench.colorCustomizations": {
+    "activityBar.activeBackground": "#6e5959",
+    "activityBar.background": "#6e5959",
+    "activityBar.foreground": "#e7e7e7",
+    "activityBar.inactiveForeground": "#e7e7e799",
+    "activityBarBadge.background": "#38a738",
+    "activityBarBadge.foreground": "#e7e7e7",
+    "commandCenter.border": "#e7e7e799",
+    "sash.hoverBorder": "#6e5959",
+    "statusBar.background": "#524242",
+    "statusBar.foreground": "#e7e7e7",
+    "statusBarItem.hoverBackground": "#6e5959",
+    "statusBarItem.remoteBackground": "#524242",
+    "statusBarItem.remoteForeground": "#e7e7e7",
+    "titleBar.activeBackground": "#524242",
+    "titleBar.activeForeground": "#e7e7e7",
+    "titleBar.inactiveBackground": "#52424299",
+    "titleBar.inactiveForeground": "#e7e7e799"
+  },
+  "peacock.color": "#524242"
 }

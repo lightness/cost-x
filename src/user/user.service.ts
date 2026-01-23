@@ -1,11 +1,11 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { v4 as uuid } from 'uuid';
-import { PrismaService } from '../prisma/prisma.service';
+import { ConfirmEmailService } from '../confirm-email/confirm-email.service';
 import { BcryptService } from '../password/bcrypt.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserInDto, UpdateUserInDto } from './dto';
 import { UserStatus } from './entities/user-status.enum';
 import { User } from './entities/user.entity';
-import { ConfirmEmailService } from '../confirm-email/confirm-email.service';
 
 @Injectable()
 export class UserService {
@@ -60,6 +60,36 @@ export class UserService {
 
   async delete(user: User) {
     return this.prisma.user.delete({ where: user });
+  }
+
+  async ban(user: User) {
+    if (user.status === UserStatus.BANNED) {
+      throw new BadRequestException(`User is already banned`);
+    }
+
+    return this.prisma.user.update({
+      data: {
+        status: UserStatus.BANNED,
+      },
+      where: {
+        id: user.id,
+      },
+    });
+  }
+
+  async unban(user: User) {
+    if (user.status !== UserStatus.BANNED) {
+      throw new BadRequestException(`User is not banned`);
+    }
+
+    return this.prisma.user.update({
+      data: {
+        status: UserStatus.ACTIVE,
+      },
+      where: {
+        id: user.id,
+      },
+    });
   }
 
   async list(): Promise<User[]> {

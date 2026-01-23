@@ -14,6 +14,8 @@ import { AccessGuard } from '../../access/guard/access.guard';
 import { AccessScope } from '../../access/interfaces';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
+import { UserByIdPipe } from '../../common/pipes/user-by-id.pipe';
+import { GqlLoggingInterceptor } from '../../graphql/interceptors/gql-logging.interceptor';
 import { WorkspacesByUserIdLoader } from '../../workspace/dataloader/workspaces-by-user-id.loader';
 import { WorkspacesFilter } from '../../workspace/dto';
 import { Workspace } from '../../workspace/entity/workspace.entity';
@@ -21,8 +23,6 @@ import { CreateUserInDto, UpdateUserInDto } from '../dto';
 import { UserRole } from '../entities/user-role.enum';
 import { User } from '../entities/user.entity';
 import { UserService } from '../user.service';
-import { GqlLoggingInterceptor } from '../../graphql/interceptors/gql-logging.interceptor';
-import { UserByIdPipe } from '../../common/pipes/user-by-id.pipe';
 
 @Resolver(() => User)
 @UseGuards(AuthGuard, AccessGuard)
@@ -98,5 +98,17 @@ export class UserResolver {
     await this.userService.delete(user);
 
     return true;
+  }
+
+  @Mutation(() => User)
+  @Access.allow([{ role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL }])
+  async banUser(@Args('id', { type: () => Int }, UserByIdPipe) user: User) {
+    return this.userService.ban(user);
+  }
+
+  @Mutation(() => User)
+  @Access.allow([{ role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL }])
+  async unbanUser(@Args('id', { type: () => Int }, UserByIdPipe) user: User) {
+    return this.userService.unban(user);
   }
 }
