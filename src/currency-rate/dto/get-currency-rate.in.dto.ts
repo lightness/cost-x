@@ -1,15 +1,19 @@
-import { IsDate, IsEnum, IsIn } from 'class-validator';
+import { ArgsType, Field } from '@nestjs/graphql';
+import { IsDate, IsEnum } from 'class-validator';
+import { DateScalar } from '../../graphql/scalars';
 import { Currency } from '../entities/currency.enum';
 
+@ArgsType()
 export class GetCurrencyRateInDto {
+  @Field(() => Currency)
   @IsEnum(Currency)
-  @IsIn([Currency.USD, Currency.EUR])
   fromCurrency: Currency;
 
+  @Field(() => Currency)
   @IsEnum(Currency)
-  @IsIn([Currency.BYN])
   toCurrency: Currency;
 
+  @Field(() => DateScalar)
   @IsDate()
   date: Date;
 }

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, PipeTransform } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  type PipeTransform,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import Tag from '../../tag/entities/tag.entity';
 

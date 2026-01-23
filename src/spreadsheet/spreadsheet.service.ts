@@ -9,7 +9,10 @@ import { RowDto } from './dto/row.dto';
 export class SpreadsheetService {
   private readonly logger = new Logger('SpreadsheetService');
 
-  constructor(private googleAuth: GoogleAuth, private configService: ConfigService) {}
+  constructor(
+    private googleAuth: GoogleAuth,
+    private configService: ConfigService,
+  ) {}
 
   async loadEverything(): Promise<RowDto[]> {
     const document = await this.getDocument();
@@ -27,8 +30,10 @@ export class SpreadsheetService {
 
   private normalize(rows): RowDto[] {
     return rows.slice(1).map((row) => {
-      return this.columnNames.map((columnName, index) => ({ [columnName]: row._rawData[index] })).reduce((acc, cur) => ({ ...acc, ...cur }), {});
-    })
+      return this.columnNames
+        .map((columnName, index) => ({ [columnName]: row._rawData[index] }))
+        .reduce((acc, cur) => ({ ...acc, ...cur }), {});
+    });
   }
 
   private async getDocument(): Promise<GoogleSpreadsheet> {

@@ -12,12 +12,12 @@ export class CostByCurrencyService {
         acc[cur.currency] = Decimal.add(acc[cur.currency], cur.cost);
 
         return acc;
-      }, 
+      },
       {
         [Currency.BYN]: new Decimal(0),
         [Currency.USD]: new Decimal(0),
         [Currency.EUR]: new Decimal(0),
-      }
-    )
+      },
+    );
   }
 }

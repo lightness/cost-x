@@ -2,6 +2,15 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type AuthOutDto {
+  accessToken: String!
+  refreshToken: String!
+}
+
+type LogoutOutDto {
+  success: Boolean!
+}
+
 type CurrencyRate {
   id: Int!
   createdAt: DateIso!
@@ -52,11 +61,6 @@ type FindPaymentsAggregates {
   lastPaymentDate: Date
 }
 
-type FindPaymentsResponse {
-  data: [Payment!]
-  aggregates: FindPaymentsAggregates
-}
-
 type PaymentsAggregation {
   count: Int
   costInDefaultCurrency: Decimal
@@ -65,23 +69,20 @@ type PaymentsAggregation {
   lastPaymentDate: Date
 }
 
-type Tag {
+type Workspace {
   id: Int!
   createdAt: DateIso!
   updatedAt: DateIso!
   title: String!
-  color: String!
-  items: [Item!]
+  ownerId: Int!
+  items(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): [Item!]!
+  tags(tagsFilter: TagsFilter): [Tag!]!
+  itemsAggregation(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): ItemsAggregation!
 }
 
-type Item {
-  id: Int!
-  createdAt: DateIso!
-  updatedAt: DateIso!
-  title: String!
-  payments(paymentsFilter: PaymentsFilter): [Payment!]
-  paymentsAggregation(paymentsFilter: PaymentsFilter): PaymentsAggregation
-  tags: [Tag!]
+input ItemsFilter {
+  tagIds: [Int!]
+  title: String
 }
 
 input PaymentsFilter {
@@ -89,29 +90,183 @@ input PaymentsFilter {
   dateTo: Date
 }
 
+input TagsFilter {
+  title: String
+}
+
 type ItemsAggregation {
   count: Int
   paymentsAggregation(paymentsFilter: PaymentsFilter): PaymentsAggregation
 }
 
+type Tag {
+  id: Int!
+  createdAt: DateIso!
+  updatedAt: DateIso!
+  title: String!
+  color: String!
+  workspaceId: Int!
+  workspace: Workspace
+  items(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): [Item!]
+  itemsAggregation(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): ItemsAggregation
+}
+
+type Item {
+  id: Int!
+  createdAt: DateIso!
+  updatedAt: DateIso!
+  title: String!
+  workspaceId: Int!
+  workspace: Workspace
+  payments(paymentsFilter: PaymentsFilter): [Payment!]
+  paymentsAggregation(paymentsFilter: PaymentsFilter): PaymentsAggregation
+  tags: [Tag!]
+}
+
+type ItemTag {
+  id: Int!
+  createdAt: DateIso!
+  updatedAt: DateIso!
+  item: Item
+  itemId: Int!
+  tag: Item
+  tagId: Int!
+}
+
+type User {
+  id: Int!
+  createdAt: DateIso!
+  updatedAt: DateIso!
+  name: String!
+  email: String!
+  status: UserStatus!
+  role: UserRole!
+  workspaces(workspacesFilter: WorkspacesFilter): [Workspace!]!
+}
+
+enum UserStatus {
+  ACTIVE
+  EMAIL_NOT_VERIFIED
+  BANNED
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+input WorkspacesFilter {
+  title: String
+}
+
 type Query {
   defaultCurrency: Currency!
   currencyRate(fromCurrency: Currency!, toCurrency: Currency!, date: Date!): CurrencyRate!
+  tags(workspaceId: Int!, dto: TagsFilter): [Tag!]!
   tag(id: Int!): Tag!
-  tags(filter: TagsFilter): [Tag!]!
-  item(id: Int!): Item!
-  items(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): [Item!]!
-  payment(id: Int!): Payment!
-  payments(paymentsFilter: PaymentsFilter): FindPaymentsResponse!
-  paymentsAggregation(paymentsFilter: PaymentsFilter): PaymentsAggregation!
   itemsAggregation(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): ItemsAggregation!
+  item(id: Int!): Item!
+  items(workspaceId: Int!, itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): [Item!]!
+  payment(id: Int!): Payment!
+  payments(itemId: Int!, paymentsFilter: PaymentsFilter): [Payment!]!
+  users: [User!]!
+  user(id: Int!): User!
+  me: User!
 }
 
-input TagsFilter {
-  title: String
+type Mutation {
+  authenticate(dto: AuthInDto!): AuthOutDto!
+  refreshToken(dto: RefreshTokenInDto!): AuthOutDto!
+  logout(dto: LogoutInDto!): LogoutOutDto!
+  createTag(workspaceId: Int!, dto: TagInDto!): Tag!
+  updateTag(id: Int!, dto: TagInDto!): Tag!
+  deleteTag(id: Int!): Boolean!
+  assignTag(dto: AssignTagInDto!): ItemTag!
+  unassignTag(dto: UnassignTagInDto!): Boolean!
+  createItem(workspaceId: Int!, dto: ItemInDto!): Item!
+  updateItem(id: Int!, dto: ItemInDto!): Item!
+  deleteItem(id: Int!): Boolean!
+  createPayment(itemId: Int!, dto: PaymentInDto!): Payment!
+  updatePayment(paymentId: Int!, dto: PaymentInDto!): Payment!
+  deletePayment(paymentId: Int!): Boolean!
+  mergeItems(dto: MergeItemsInDto!): Item!
+  createUser(dto: CreateUserInDto!): User!
+  updateUser(id: Int!, dto: UpdateUserInDto!): User!
+  deleteUser(id: Int!): Boolean!
+  banUser(id: Int!): User!
+  unbanUser(id: Int!): User!
+  createWorkspace(dto: WorkspaceInDto!): Workspace!
+  updateWorkspace(id: Int!, dto: WorkspaceInDto!): Workspace!
+  deleteWorkspace(id: Int!): Workspace!
+  forgotPassword(dto: ForgotPasswordInDto!): Boolean!
+  resetPassword(dto: ResetPasswordInDto!): Boolean!
 }
 
-input ItemsFilter {
-  tagIds: [Int!]
+input AuthInDto {
+  email: String!
+  password: String!
+}
+
+input RefreshTokenInDto {
+  refreshToken: String!
+}
+
+input LogoutInDto {
+  refreshToken: String!
+}
+
+input TagInDto {
+  title: String!
+  color: String
+}
+
+input AssignTagInDto {
+  tagId: Int!
+  itemId: Int!
+}
+
+input UnassignTagInDto {
+  tagId: Int!
+  itemId: Int!
+}
+
+input ItemInDto {
+  title: String!
+}
+
+input PaymentInDto {
   title: String
+  cost: Decimal!
+  currency: Currency!
+  date: Date!
+}
+
+input MergeItemsInDto {
+  hostItemId: Int!
+  mergingItemId: Int!
+}
+
+input CreateUserInDto {
+  name: String!
+  email: String!
+  password: String!
+}
+
+input UpdateUserInDto {
+  name: String!
+  email: String!
+  password: String!
+}
+
+input WorkspaceInDto {
+  title: String!
+}
+
+input ForgotPasswordInDto {
+  email: String!
+}
+
+input ResetPasswordInDto {
+  token: String!
+  password: String!
 }

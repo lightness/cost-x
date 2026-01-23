@@ -1,30 +1,39 @@
 import { Injectable, Scope } from '@nestjs/common';
-import { BaseLoader } from '../../graphql/dataloaders/base.loader';
-import { PrismaService } from '../../prisma/prisma.service';
 import Item from '../../item/entities/item.entity';
+import { NestedLoader } from '../../graphql/dataloaders/nested.loader';
+import { ItemsFilter } from '../../item/dto';
+import { PaymentsFilter } from '../../payment/dto';
+import { ItemTagService } from '../item-tag.service';
+import { GroupService } from '../../group/group.service';
+
+interface Filter {
+  itemsFilter: ItemsFilter;
+  paymentsFilter: PaymentsFilter;
+}
 
 @Injectable({ scope: Scope.REQUEST })
-export class ItemsByTagIdLoader extends BaseLoader<number, Item[]> {
-  constructor(private prisma: PrismaService) {
+export class ItemsByTagIdLoader extends NestedLoader<number, Item[], Filter> {
+  constructor(
+    private itemTagService: ItemTagService,
+    private groupService: GroupService,
+  ) {
     super();
   }
 
-  protected async loaderFn(tagIds: number[]): Promise<Item[][]> {
-    const itemTags = await this.prisma.itemTag.findMany({
-      where: {
-        tagId: { in: tagIds },
-      },
-      include: {
-        item: true,
-      },
-    });
-
-    const itemsByTagId = tagIds.map(tagId =>
-      itemTags
-        .filter(itemTag => itemTag.tagId === tagId)
-        .map(itemTag => itemTag.item)
+  protected async loaderWithOptionsFn(
+    tagIds: number[],
+    filter: Filter,
+  ): Promise<Item[][]> {
+    const itemTags = await this.itemTagService.findByTagIds(
+      tagIds,
+      filter.itemsFilter,
+      filter.paymentsFilter,
     );
 
-    return itemsByTagId;
+    const itemsByTagId = this.groupService.groupBy(itemTags, 'tagId');
+
+    return tagIds.map((tagId) =>
+      (itemsByTagId.get(tagId) || []).map((itemTag) => itemTag.item),
+    );
   }
 }

@@ -1,23 +1,32 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import Item from '../item/entities/item.entity';
+import { ConsistencyService } from '../consistency/consistency.service';
 
 @Injectable()
 export class ItemMergeService {
-  constructor(private prisma: PrismaService) { }
+  constructor(
+    private prisma: PrismaService,
+    private consistencyService: ConsistencyService,
+  ) {}
 
   async merge(hostItem: Item, mergingItem: Item) {
+    await this.consistencyService.itemsToSameWorkspace.ensureIsBelonging(
+      hostItem,
+      mergingItem,
+    );
+
     return await this.prisma.$transaction(async (tx) => {
-      const mergingPayments = await tx.payment.findMany({ where: { itemId: mergingItem.id } });
+      const mergingPayments = await tx.payment.findMany({
+        where: { itemId: mergingItem.id },
+      });
 
       await tx.payment.createMany({
-        data: mergingPayments.map(
-          (payment) => ({
-            ...payment,
-            title: payment.title || mergingItem.title,
-            itemId: hostItem.id,
-          }),
-        ),
+        data: mergingPayments.map(({ id, ...payment }) => ({
+          ...payment,
+          itemId: hostItem.id,
+          title: payment.title || mergingItem.title,
+        })),
       });
 
       await tx.itemTag.deleteMany({
@@ -28,11 +37,7 @@ export class ItemMergeService {
         where: { id: mergingItem.id },
       });
 
-      // TODO: Refactor simplify query
-      return {
-        item: await tx.item.findUnique({ where: { id: hostItem.id } }),
-        payments: await tx.payment.findMany({ where: { itemId: hostItem.id } }),
-      };
+      return tx.item.findUnique({ where: { id: hostItem.id } });
     });
   }
 }
