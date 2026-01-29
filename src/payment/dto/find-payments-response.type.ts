@@ -1,5 +1,5 @@
 import { Field, ObjectType } from '@nestjs/graphql';
-import PaymentEntity from '../entities/payment.entity';
+import PaymentEntity from '../entity/payment.entity';
 import { FindPaymentsAggregates } from './find-payments-aggregates.type';
 
 @ObjectType()

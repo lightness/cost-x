@@ -17,99 +17,109 @@ export class PaymentsAggregationService {
     private costByCurrencyService: CostByCurrencyService,
     private paymentService: PaymentService,
     private currencyRateService: CurrencyRateService,
-  ) { }
+  ) {}
 
   // count
 
   async getPaymentsCount(paymentsFilter: PaymentsFilter): Promise<number> {
     const count = await this.prisma.payment.count({
-      where: this.getWhereClause(paymentsFilter)
+      where: this.getWhereClause(paymentsFilter),
     });
 
-    return count
+    return count;
   }
 
-  async getPaymentsCountByItemIds(itemIds: number[], paymentsFilter: PaymentsFilter): Promise<Map<number, number>> {
-    console.log('🔮 itemIds, paymentsFilter', itemIds, paymentsFilter);
-
+  async getPaymentsCountByItemIds(
+    itemIds: number[],
+    paymentsFilter: PaymentsFilter,
+  ): Promise<Map<number, number>> {
     const rows = await this.prisma.payment.groupBy({
+      _count: {
+        _all: true,
+      },
+      by: ['itemId'],
       where: {
         ...this.getWhereClause(paymentsFilter),
         itemId: { in: itemIds },
       },
-      by: ['itemId'],
-      _count: {
-        _all: true,
-      }
     });
 
-    console.log('🔮 rows', rows);
-
-    return new Map(rows.map(({ itemId, _count: { _all: count } }) => [itemId, count]));
+    return new Map(
+      rows.map(({ itemId, _count: { _all: count } }) => [itemId, count]),
+    );
   }
 
   // costInDefaultCurrency
 
-  async getCostInDefaultCurrency(paymentsFilter: PaymentsFilter): Promise<Decimal> {
-    const payments = await this.paymentService.list(paymentsFilter);
-    const requiredCurrencyRateRequests = this.defaultCurrencyCostService.getRequiredCurrencyRates(payments);
-    const currencyRates = await this.currencyRateService.getMany(requiredCurrencyRateRequests);
-
-    return this.defaultCurrencyCostService.getCostInDefaultCurrency(payments, currencyRates);
-  }
-
-  async getCostInDefaultCurrencyByItemIds(itemIds: number[], paymentsFilter: PaymentsFilter): Promise<Map<number, Decimal>> {
-    const paymentsByItemId = await this.paymentService.getPaymentsByItemIds(itemIds, paymentsFilter);
+  async getCostInDefaultCurrencyByItemIds(
+    itemIds: number[],
+    paymentsFilter: PaymentsFilter,
+  ): Promise<Map<number, Decimal>> {
+    const paymentsByItemId = await this.paymentService.getPaymentsByItemIds(
+      itemIds,
+      paymentsFilter,
+    );
     const allPayments = Array.from(paymentsByItemId.values()).flat();
-    const requiredCurrencyRateRequests = this.defaultCurrencyCostService.getRequiredCurrencyRates(allPayments);
-    const currencyRates = await this.currencyRateService.getMany(requiredCurrencyRateRequests);
+
+    const defaultCurrency =
+      await this.defaultCurrencyCostService.getDefaultCurrencyByItemIds(
+        itemIds,
+      );
+
+    const requiredCurrencyRateRequests =
+      this.defaultCurrencyCostService.getRequiredCurrencyRates(
+        allPayments,
+        defaultCurrency,
+      );
+
+    const currencyRates = await this.currencyRateService.getMany(
+      requiredCurrencyRateRequests,
+    );
 
     return new Map(
-      Array.from(
-        paymentsByItemId, 
-        ([itemId, payments]) => [itemId, this.defaultCurrencyCostService.getCostInDefaultCurrency(payments, currencyRates)],
-      )
+      Array.from(paymentsByItemId, ([itemId, payments]) => [
+        itemId,
+        this.defaultCurrencyCostService.getCostInDefaultCurrency(
+          payments,
+          currencyRates,
+          defaultCurrency,
+        ),
+      ]),
     );
   }
 
   // costByCurrency
 
-  async getCostByCurrency(paymentsFilter: PaymentsFilter): Promise<CostByCurrency> {
-    const payments = await this.paymentService.list(paymentsFilter);
-
-    return this.costByCurrencyService.getCostByCurrency(payments);
-  }
-
-  async getCostByCurrencyByItemIds(itemIds: number[], paymentsFilter: PaymentsFilter): Promise<Map<number, CostByCurrency>> {
-    const paymentsByItemId = await this.paymentService.getPaymentsByItemIds(itemIds, paymentsFilter);
+  async getCostByCurrencyByItemIds(
+    itemIds: number[],
+    paymentsFilter: PaymentsFilter,
+  ): Promise<Map<number, CostByCurrency>> {
+    const paymentsByItemId = await this.paymentService.getPaymentsByItemIds(
+      itemIds,
+      paymentsFilter,
+    );
 
     return new Map(
-      Array.from(
-        paymentsByItemId, 
-        ([itemId, payments]) => [itemId, this.costByCurrencyService.getCostByCurrency(payments)],
-      )
+      Array.from(paymentsByItemId, ([itemId, payments]) => [
+        itemId,
+        this.costByCurrencyService.getCostByCurrency(payments),
+      ]),
     );
   }
 
   // firstPaymentDate
 
-  async getFirstPaymentDate(paymentsFilter: PaymentsFilter): Promise<Date> {
-    const stats = await this.prisma.payment.aggregate({
-      where: this.getWhereClause(paymentsFilter),
-      _min: { date: true },
-    });
-
-    return stats._min.date;
-  }
-
-  async getFirstPaymentDateByItemId(itemIds: number[], paymentsFilter: PaymentsFilter): Promise<Map<number, Date>> {
+  async getFirstPaymentDateByItemId(
+    itemIds: number[],
+    paymentsFilter: PaymentsFilter,
+  ): Promise<Map<number, Date>> {
     const rows = await this.prisma.payment.groupBy({
+      _min: { date: true },
+      by: ['itemId'],
       where: {
         ...this.getWhereClause(paymentsFilter),
         itemId: { in: itemIds },
       },
-      by: ['itemId'],
-      _min: { date: true },
     });
 
     return new Map(rows.map(({ itemId, _min: { date } }) => [itemId, date]));
@@ -117,23 +127,17 @@ export class PaymentsAggregationService {
 
   // lastPaymentDate
 
-  async getLastPaymentDate(paymentsFilter: PaymentsFilter): Promise<Date> {
-    const stats = await this.prisma.payment.aggregate({
-      where: this.getWhereClause(paymentsFilter),
-      _max: { date: true }
-    });
-
-    return stats._max.date;
-  }
-
-  async getLastPaymentDateByItemId(itemIds: number[], paymentsFilter: PaymentsFilter): Promise<Map<number, Date>> {
+  async getLastPaymentDateByItemId(
+    itemIds: number[],
+    paymentsFilter: PaymentsFilter,
+  ): Promise<Map<number, Date>> {
     const rows = await this.prisma.payment.groupBy({
-      where: { 
+      _max: { date: true },
+      by: ['itemId'],
+      where: {
         ...this.getWhereClause(paymentsFilter),
         itemId: { in: itemIds },
       },
-      by: ['itemId'],
-      _max: { date: true },
     });
 
     return new Map(rows.map(({ itemId, _max: { date } }) => [itemId, date]));
@@ -150,9 +154,8 @@ export class PaymentsAggregationService {
         gte: dateFrom,
         lte: dateTo,
       },
-    }
+    };
 
     return result;
   }
-
 }
