@@ -4,7 +4,7 @@ import { ItemTagService } from '../item-tag/item-tag.service';
 import { ItemService } from '../item/item.service';
 import { PaymentService } from '../payment/payment.service';
 import { SpreadsheetService } from '../spreadsheet/spreadsheet.service';
-import Tag from '../tag/entities/tag.entity';
+import Tag from '../tag/entity/tag.entity';
 import { TagService } from '../tag/tag.service';
 import { UserService } from '../user/user.service';
 import { WorkspaceService } from '../workspace/workspace.service';

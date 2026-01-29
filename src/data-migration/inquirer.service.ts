@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import inquirer from 'inquirer';
-import { Currency } from '../currency-rate/entities/currency.enum';
-import { Credentials } from './interface';
+import { Currency } from '../currency-rate/entity/currency.enum';
+import { Credentials } from './interfaces';
 
 @Injectable()
 export class InquirerService {

@@ -4,7 +4,7 @@ import { MailService } from '../mail/mail.service';
 import { BcryptService } from '../password/bcrypt.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { TokenService } from '../token/token.service';
-import { UserStatus } from '../user/entities/user-status.enum';
+import { UserStatus } from '../user/entity/user-status.enum';
 import { ForgotPasswordInDto, ResetPasswordInDto } from './dto';
 import { JwtPayload } from './interfaces';
 import { RESET_PASSWORD_TOKEN_SERVICE } from './symbols';

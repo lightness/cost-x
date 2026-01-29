@@ -1,7 +1,7 @@
 import { Args, Query, Resolver } from '@nestjs/graphql';
-import { CurrencyRateLoader } from '../dataloaders/currency-rate.loader.service';
+import { CurrencyRateLoader } from '../dataloader/currency-rate.loader.service';
 import { GetCurrencyRateInDto } from '../dto';
-import CurrencyRate from '../entities/currency-rate.entity';
+import CurrencyRate from '../entity/currency-rate.entity';
 
 @Resolver(() => CurrencyRate)
 export class CurrencyRateResolver {

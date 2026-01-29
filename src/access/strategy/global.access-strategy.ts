@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
-import { UserRole } from '../../user/entities/user-role.enum';
+import { UserRole } from '../../user/entity/user-role.enum';
 import { fromReq } from '../function/from-req.function';
 import { AccessScope, Rule } from '../interfaces';
 import { AccessStrategy } from './interface';

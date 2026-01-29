@@ -1,7 +1,7 @@
 import { Args, Mutation, Resolver } from '@nestjs/graphql';
-import { ItemByIdPipe } from '../../common/pipes/item-by-id.pipe';
+import { ItemByIdPipe } from '../../common/pipe/item-by-id.pipe';
 import { DeepArgs } from '../../graphql/decorator/deep-args.decorator';
-import Item from '../../item/entities/item.entity';
+import Item from '../../item/entity/item.entity';
 import { MergeItemsInDto } from '../dto';
 import { ItemMergeService } from '../item-merge.service';
 

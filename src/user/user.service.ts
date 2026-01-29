@@ -4,8 +4,8 @@ import { ConfirmEmailService } from '../confirm-email/confirm-email.service';
 import { BcryptService } from '../password/bcrypt.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserInDto, UpdateUserInDto } from './dto';
-import { UserStatus } from './entities/user-status.enum';
-import { User } from './entities/user.entity';
+import { UserStatus } from './entity/user-status.enum';
+import { User } from './entity/user.entity';
 
 @Injectable()
 export class UserService {

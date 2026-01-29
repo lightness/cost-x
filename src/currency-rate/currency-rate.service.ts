@@ -5,7 +5,7 @@ import { DateService } from '../date/date.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CurrencyRateApiService } from './currency-rate-api.service';
 import { GetCurrencyRateInDto } from './dto';
-import CurrencyRate from './entities/currency-rate.entity';
+import CurrencyRate from './entity/currency-rate.entity';
 
 type DerivativeMap = Map<Currency, Map<string, Decimal>>;
 

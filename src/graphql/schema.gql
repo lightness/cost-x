@@ -69,6 +69,16 @@ type PaymentsAggregation {
   lastPaymentDate: Date
 }
 
+type ItemsAggregation {
+  count: Int
+  paymentsAggregation(paymentsFilter: PaymentsFilter): PaymentsAggregation
+}
+
+input PaymentsFilter {
+  dateFrom: Date
+  dateTo: Date
+}
+
 type Workspace {
   id: Int!
   createdAt: DateIso!
@@ -86,18 +96,8 @@ input ItemsFilter {
   title: String
 }
 
-input PaymentsFilter {
-  dateFrom: Date
-  dateTo: Date
-}
-
 input TagsFilter {
   title: String
-}
-
-type ItemsAggregation {
-  count: Int
-  paymentsAggregation(paymentsFilter: PaymentsFilter): PaymentsAggregation
 }
 
 type Tag {

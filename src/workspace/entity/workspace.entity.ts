@@ -3,7 +3,7 @@ import {
   Currency,
   Workspace as PrismaWorkspace,
 } from '../../../generated/prisma/client';
-import { DateIsoScalar } from '../../graphql/scalars';
+import { DateIsoScalar } from '../../graphql/scalar';
 
 @ObjectType()
 export class Workspace implements PrismaWorkspace {

@@ -7,20 +7,20 @@ import {
   Resolver,
 } from '@nestjs/graphql';
 import { Access } from '../../access/decorator/access.decorator';
+import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
 import { AccessScope } from '../../access/interfaces';
 import { AuthGuard } from '../../auth/guard/auth.guard';
-import Item from '../../item/entities/item.entity';
-import { PrismaService } from '../../prisma/prisma.service';
-import Tag from '../../tag/entities/tag.entity';
-import { UserRole } from '../../user/entities/user-role.enum';
-import { AssignTagInDto, UnassignTagInDto } from '../dto';
-import ItemTag from '../entities/item-tag.entity';
-import { ItemTagService } from '../item-tag.service';
-import { fromArg } from '../../access/function/from-arg.function';
+import { ItemByIdPipe } from '../../common/pipe/item-by-id.pipe';
+import { TagByIdPipe } from '../../common/pipe/tag-by-id.pipe';
 import { DeepArgs } from '../../graphql/decorator/deep-args.decorator';
-import { ItemByIdPipe } from '../../common/pipes/item-by-id.pipe';
-import { TagByIdPipe } from '../../common/pipes/tag-by-id.pipe';
+import Item from '../../item/entity/item.entity';
+import { PrismaService } from '../../prisma/prisma.service';
+import Tag from '../../tag/entity/tag.entity';
+import { UserRole } from '../../user/entity/user-role.enum';
+import { AssignTagInDto, UnassignTagInDto } from '../dto';
+import ItemTag from '../entity/item-tag.entity';
+import { ItemTagService } from '../item-tag.service';
 
 @Resolver(() => ItemTag)
 @UseGuards(AuthGuard, AccessGuard)

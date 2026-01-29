@@ -2,10 +2,10 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { cmp } from 'type-comparator';
 import { ConsistencyService } from '../consistency/consistency.service';
 import { PaymentLike } from '../item-cost/interfaces';
-import Item from '../item/entities/item.entity';
+import Item from '../item/entity/item.entity';
 import { PrismaService } from '../prisma/prisma.service';
 import { PaymentInDto, PaymentsFilter } from './dto';
-import Payment from './entities/payment.entity';
+import Payment from './entity/payment.entity';
 
 @Injectable()
 export class PaymentService {

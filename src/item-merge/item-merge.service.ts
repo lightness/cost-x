@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import Item from '../item/entities/item.entity';
 import { ConsistencyService } from '../consistency/consistency.service';
+import Item from '../item/entity/item.entity';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class ItemMergeService {

@@ -1,7 +1,7 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { Decimal } from '@prisma/client/runtime/client';
 import { GetCurrencyRateInDto } from '../currency-rate/dto';
-import { Currency } from '../currency-rate/entities/currency.enum';
+import { Currency } from '../currency-rate/entity/currency.enum';
 import { PrismaService } from '../prisma/prisma.service';
 import { CurrencyRateLike, PaymentLike } from './interfaces';
 

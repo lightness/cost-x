@@ -2,11 +2,11 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { ItemTagWhereInput } from '../../generated/prisma/models';
 import { ConsistencyService } from '../consistency/consistency.service';
 import { ItemsFilter } from '../item/dto';
-import Item from '../item/entities/item.entity';
+import Item from '../item/entity/item.entity';
 import { PaymentsFilter } from '../payment/dto';
 import { PrismaService } from '../prisma/prisma.service';
-import Tag from '../tag/entities/tag.entity';
-import ItemTag from './entities/item-tag.entity';
+import Tag from '../tag/entity/tag.entity';
+import ItemTag from './entity/item-tag.entity';
 
 @Injectable()
 export class ItemTagService {

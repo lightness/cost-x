@@ -3,7 +3,7 @@ import { ItemWhereInput } from '../../generated/prisma/models';
 import { PaymentsFilter } from '../payment/dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { ItemInDto, ItemsFilter } from './dto';
-import Item from './entities/item.entity';
+import Item from './entity/item.entity';
 
 @Injectable()
 export class ItemService {

@@ -2,9 +2,9 @@ import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { MailService } from '../mail/mail.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { TokenService } from '../token/token.service';
-import { UserStatus } from '../user/entities/user-status.enum';
-import { User } from '../user/entities/user.entity';
-import { JwtPayload } from './interface';
+import { UserStatus } from '../user/entity/user-status.enum';
+import { User } from '../user/entity/user.entity';
+import { JwtPayload } from './interfaces';
 import { CONFIRM_EMAIL_TOKEN_SERVICE } from './symbols';
 
 @Injectable()

@@ -1,5 +1,5 @@
 import { Field, InputType } from '@nestjs/graphql';
-import { Currency } from '../../currency-rate/entities/currency.enum';
+import { Currency } from '../../currency-rate/entity/currency.enum';
 
 @InputType()
 export class WorkspaceInDto {

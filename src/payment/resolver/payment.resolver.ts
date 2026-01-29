@@ -8,19 +8,19 @@ import {
   ResolveField,
   Resolver,
 } from '@nestjs/graphql';
-import { AccessGuard } from '../../access/guard/access.guard';
-import { AuthGuard } from '../../auth/guard/auth.guard';
-import Item from '../../item/entities/item.entity';
-import { PrismaService } from '../../prisma/prisma.service';
-import { PaymentInDto, PaymentsFilter } from '../dto';
-import Payment from '../entities/payment.entity';
-import { PaymentService } from '../payment.service';
 import { Access } from '../../access/decorator/access.decorator';
-import { AccessScope } from '../../access/interfaces';
-import { UserRole } from '../../user/entities/user-role.enum';
 import { fromArg } from '../../access/function/from-arg.function';
-import { ItemByIdPipe } from '../../common/pipes/item-by-id.pipe';
-import { PaymentByIdPipe } from '../../common/pipes/payment-by-id.pipe';
+import { AccessGuard } from '../../access/guard/access.guard';
+import { AccessScope } from '../../access/interfaces';
+import { AuthGuard } from '../../auth/guard/auth.guard';
+import { ItemByIdPipe } from '../../common/pipe/item-by-id.pipe';
+import { PaymentByIdPipe } from '../../common/pipe/payment-by-id.pipe';
+import Item from '../../item/entity/item.entity';
+import { PrismaService } from '../../prisma/prisma.service';
+import { UserRole } from '../../user/entity/user-role.enum';
+import { PaymentInDto, PaymentsFilter } from '../dto';
+import Payment from '../entity/payment.entity';
+import { PaymentService } from '../payment.service';
 
 @Resolver(() => Payment)
 @UseGuards(AuthGuard, AccessGuard)
