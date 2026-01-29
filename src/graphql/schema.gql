@@ -75,6 +75,7 @@ type Workspace {
   updatedAt: DateIso!
   title: String!
   ownerId: Int!
+  defaultCurrency: Currency!
   items(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): [Item!]!
   tags(tagsFilter: TagsFilter): [Tag!]!
   itemsAggregation(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): ItemsAggregation!
@@ -157,16 +158,16 @@ enum UserRole {
 
 input WorkspacesFilter {
   title: String
+  defaultCurrency: Currency
 }
 
 type Query {
-  defaultCurrency: Currency!
-  currencyRate(fromCurrency: Currency!, toCurrency: Currency!, date: Date!): CurrencyRate!
   tags(workspaceId: Int!, dto: TagsFilter): [Tag!]!
   tag(id: Int!): Tag!
   itemsAggregation(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): ItemsAggregation!
   item(id: Int!): Item!
   items(workspaceId: Int!, itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): [Item!]!
+  currencyRate(fromCurrency: Currency!, toCurrency: Currency!, date: Date!): CurrencyRate!
   payment(id: Int!): Payment!
   payments(itemId: Int!, paymentsFilter: PaymentsFilter): [Payment!]!
   users: [User!]!
@@ -260,6 +261,7 @@ input UpdateUserInDto {
 
 input WorkspaceInDto {
   title: String!
+  defaultCurrency: Currency!
 }
 
 input ForgotPasswordInDto {

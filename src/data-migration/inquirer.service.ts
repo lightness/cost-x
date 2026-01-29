@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import inquirer from 'inquirer';
+import { Currency } from '../currency-rate/entities/currency.enum';
 import { Credentials } from './interface';
 
 @Injectable()
@@ -7,6 +8,23 @@ export class InquirerService {
   private readonly logger = new Logger(InquirerService.name);
 
   private emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  async askForDefaultCurrency(
+    message: string = 'Pick workspace currency:',
+  ): Promise<Currency> {
+    const questions = [
+      {
+        choices: Object.values(Currency),
+        message,
+        name: 'defaultCurrency',
+        type: 'select',
+      },
+    ];
+
+    const answers = await inquirer.prompt(questions);
+
+    return answers.defaultCurrency;
+  }
 
   async askForCredentials(): Promise<Credentials> {
     const name = await this.askForName();

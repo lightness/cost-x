@@ -31,13 +31,6 @@ export class PaymentsAggregationResolver {
     private costByCurrencyAggregationService: CostByCurrencyAggregationService,
   ) {}
 
-  // @Query(() => PaymentsAggregation)
-  // paymentsAggregation(
-  //   @Args('paymentsFilter', { nullable: true }) paymentsFilter: PaymentsFilter,
-  // ) {
-  //   return { paymentsFilter };
-  // }
-
   @ResolveField(() => Int)
   async count(@Parent() paymentsAggregation: PaymentsAggregation) {
     const { itemIds, paymentsFilter } = paymentsAggregation;
@@ -61,7 +54,6 @@ export class PaymentsAggregationResolver {
   ) {
     const { itemIds, paymentsFilter } = paymentsAggregation;
 
-    // if (itemIds) {
     const costInDefaultCurrencyByItemId =
       await this.costInDefaultCurrencyByItemIdLoader
         .withOptions(paymentsFilter)
@@ -70,18 +62,12 @@ export class PaymentsAggregationResolver {
     return costInDefaultCurrencyByItemId
       .filter(isNotError)
       .reduce(...this.decimalSumAggregationService.reducer);
-    // }
-
-    // return this.paymentAggregateService.getCostInDefaultCurrency(
-    //   paymentsFilter,
-    // );
   }
 
   @ResolveField(() => CostByCurrency)
   async costByCurrency(@Parent() paymentsAggregation: PaymentsAggregation) {
     const { itemIds, paymentsFilter } = paymentsAggregation;
 
-    // if (itemIds) {
     const costByCurrencyByItemId = await this.costByCurrencyByItemIdLoader
       .withOptions(paymentsFilter)
       .loadMany(itemIds);
@@ -89,16 +75,12 @@ export class PaymentsAggregationResolver {
     return costByCurrencyByItemId
       .filter(isNotError)
       .reduce(...this.costByCurrencyAggregationService.reducer);
-    // }
-
-    // return this.paymentAggregateService.getCostByCurrency(paymentsFilter);
   }
 
   @ResolveField(() => DateScalar)
   async firstPaymentDate(@Parent() paymentsAggregation: PaymentsAggregation) {
     const { itemIds, paymentsFilter } = paymentsAggregation;
 
-    // if (itemIds) {
     const firstPaymentDateByItemId = await this.firstPaymentDateByItemIdLoader
       .withOptions(paymentsFilter)
       .loadMany(itemIds);
@@ -106,16 +88,12 @@ export class PaymentsAggregationResolver {
     return firstPaymentDateByItemId
       .filter(isNotError)
       .reduce(...this.earliestAggregationService.reducer);
-    // }
-
-    // return this.paymentAggregateService.getFirstPaymentDate(paymentsFilter);
   }
 
   @ResolveField(() => DateScalar)
   async lastPaymentDate(@Parent() paymentsAggregation: PaymentsAggregation) {
     const { itemIds, paymentsFilter } = paymentsAggregation;
 
-    // if (itemIds) {
     const lastPaymentDateByItemId = await this.lastPaymentDateByItemIdLoader
       .withOptions(paymentsFilter)
       .loadMany(itemIds);
@@ -123,8 +101,5 @@ export class PaymentsAggregationResolver {
     return lastPaymentDateByItemId
       .filter(isNotError)
       .reduce(...this.latestAggregationService.reducer);
-    // }
-
-    // return this.paymentAggregateService.getLastPaymentDate(paymentsFilter);
   }
 }

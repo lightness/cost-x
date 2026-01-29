@@ -36,8 +36,11 @@ export class DataMigrationService {
       password: credentials.password,
     });
 
+    const defaultCurrency = await this.inquirerService.askForDefaultCurrency();
+
     const workspace = await this.workspaceService.create(
       {
+        defaultCurrency,
         title: `Imported workspace ${new Date().toISOString()}`,
       },
       user,
