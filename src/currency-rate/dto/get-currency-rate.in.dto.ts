@@ -1,7 +1,7 @@
 import { ArgsType, Field } from '@nestjs/graphql';
 import { IsDate, IsEnum } from 'class-validator';
-import { DateScalar } from '../../graphql/scalars';
-import { Currency } from '../entities/currency.enum';
+import { DateScalar } from '../../graphql/scalar';
+import { Currency } from '../entity/currency.enum';
 
 @ArgsType()
 export class GetCurrencyRateInDto {

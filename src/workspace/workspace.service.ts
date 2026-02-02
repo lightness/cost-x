@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
+import { WorkspaceWhereInput } from '../../generated/prisma/models';
 import { PrismaService } from '../prisma/prisma.service';
-import { User } from '../user/entities/user.entity';
+import { User } from '../user/entity/user.entity';
 import { WorkspaceInDto, WorkspacesFilter } from './dto';
 import { Workspace } from './entity/workspace.entity';
-import { WorkspaceWhereInput } from '../../generated/prisma/models';
 
 @Injectable()
 export class WorkspaceService {
@@ -21,6 +21,7 @@ export class WorkspaceService {
   async create(dto: WorkspaceInDto, currentUser: User): Promise<Workspace> {
     return this.prisma.workspace.create({
       data: {
+        defaultCurrency: dto.defaultCurrency,
         owner: {
           connect: currentUser,
         },
@@ -35,6 +36,7 @@ export class WorkspaceService {
   async update(id: number, dto: WorkspaceInDto): Promise<Workspace> {
     return this.prisma.workspace.update({
       data: {
+        defaultCurrency: dto.defaultCurrency,
         title: dto.title,
       },
       where: { id },
@@ -52,6 +54,9 @@ export class WorkspaceService {
     filters: WorkspacesFilter,
   ): WorkspaceWhereInput {
     return {
+      defaultCurrency: filters.defaultCurrency
+        ? { equals: filters.defaultCurrency }
+        : undefined,
       ownerId: { in: ownerIds },
       title: filters.title
         ? { contains: filters.title, mode: 'insensitive' }

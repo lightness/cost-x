@@ -33,8 +33,6 @@ export class PaymentsAggregationService {
     itemIds: number[],
     paymentsFilter: PaymentsFilter,
   ): Promise<Map<number, number>> {
-    // console.log('🔮 itemIds, paymentsFilter', itemIds, paymentsFilter);
-
     const rows = await this.prisma.payment.groupBy({
       _count: {
         _all: true,
@@ -46,30 +44,12 @@ export class PaymentsAggregationService {
       },
     });
 
-    // console.log('🔮 rows', rows);
-
     return new Map(
       rows.map(({ itemId, _count: { _all: count } }) => [itemId, count]),
     );
   }
 
   // costInDefaultCurrency
-
-  // async getCostInDefaultCurrency(
-  //   paymentsFilter: PaymentsFilter,
-  // ): Promise<Decimal> {
-  //   const payments = await this.paymentService.list(paymentsFilter);
-  //   const requiredCurrencyRateRequests =
-  //     this.defaultCurrencyCostService.getRequiredCurrencyRates(payments);
-  //   const currencyRates = await this.currencyRateService.getMany(
-  //     requiredCurrencyRateRequests,
-  //   );
-
-  //   return this.defaultCurrencyCostService.getCostInDefaultCurrency(
-  //     payments,
-  //     currencyRates,
-  //   );
-  // }
 
   async getCostInDefaultCurrencyByItemIds(
     itemIds: number[],
@@ -80,8 +60,18 @@ export class PaymentsAggregationService {
       paymentsFilter,
     );
     const allPayments = Array.from(paymentsByItemId.values()).flat();
+
+    const defaultCurrency =
+      await this.defaultCurrencyCostService.getDefaultCurrencyByItemIds(
+        itemIds,
+      );
+
     const requiredCurrencyRateRequests =
-      this.defaultCurrencyCostService.getRequiredCurrencyRates(allPayments);
+      this.defaultCurrencyCostService.getRequiredCurrencyRates(
+        allPayments,
+        defaultCurrency,
+      );
+
     const currencyRates = await this.currencyRateService.getMany(
       requiredCurrencyRateRequests,
     );
@@ -92,20 +82,13 @@ export class PaymentsAggregationService {
         this.defaultCurrencyCostService.getCostInDefaultCurrency(
           payments,
           currencyRates,
+          defaultCurrency,
         ),
       ]),
     );
   }
 
   // costByCurrency
-
-  // async getCostByCurrency(
-  //   paymentsFilter: PaymentsFilter,
-  // ): Promise<CostByCurrency> {
-  //   const payments = await this.paymentService.list(paymentsFilter);
-
-  //   return this.costByCurrencyService.getCostByCurrency(payments);
-  // }
 
   async getCostByCurrencyByItemIds(
     itemIds: number[],
@@ -126,15 +109,6 @@ export class PaymentsAggregationService {
 
   // firstPaymentDate
 
-  // async getFirstPaymentDate(paymentsFilter: PaymentsFilter): Promise<Date> {
-  //   const stats = await this.prisma.payment.aggregate({
-  //     where: this.getWhereClause(paymentsFilter),
-  //     _min: { date: true },
-  //   });
-
-  //   return stats._min.date;
-  // }
-
   async getFirstPaymentDateByItemId(
     itemIds: number[],
     paymentsFilter: PaymentsFilter,
@@ -152,15 +126,6 @@ export class PaymentsAggregationService {
   }
 
   // lastPaymentDate
-
-  // async getLastPaymentDate(paymentsFilter: PaymentsFilter): Promise<Date> {
-  //   const stats = await this.prisma.payment.aggregate({
-  //     where: this.getWhereClause(paymentsFilter),
-  //     _max: { date: true },
-  //   });
-
-  //   return stats._max.date;
-  // }
 
   async getLastPaymentDateByItemId(
     itemIds: number[],

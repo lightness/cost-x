@@ -2,10 +2,8 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 import { join } from 'node:path';
-import { ItemCostModule } from '../item-cost/default-currency-cost.module';
-import { ConstantsResolver } from './resolvers/constants.resolver';
-import { DateIsoScalar, DateScalar, DecimalScalar } from './scalars';
 import { get } from 'radash';
+import { DateIsoScalar, DateScalar, DecimalScalar } from './scalar';
 
 @Module({
   imports: [
@@ -24,8 +22,7 @@ import { get } from 'radash';
         Decimal: DecimalScalar,
       },
     }),
-    ItemCostModule,
   ],
-  providers: [ConstantsResolver],
+  providers: [],
 })
 export class GraphqlModule {}

@@ -7,9 +7,9 @@ import { ItemCostModule } from '../item-cost/default-currency-cost.module';
 import { ItemTagModule } from '../item-tag/item-tag.module';
 import { PaymentModule } from '../payment/payment.module';
 import { PrismaModule } from '../prisma/prisma.module';
-import { ItemsByWorkspaceIdLoader } from './dataloaders/items-by-workspace-id.loader.service';
+import { ItemsByWorkspaceIdLoader } from './dataloader/items-by-workspace-id.loader.service';
 import { ItemService } from './item.service';
-import { ItemResolver } from './resolvers/item.resolver';
+import { ItemResolver } from './resolver/item.resolver';
 
 @Module({
   exports: [ItemService, ItemsByWorkspaceIdLoader],

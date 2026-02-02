@@ -5,7 +5,7 @@ import { ConfirmEmailModule } from '../confirm-email/confirm-email.module';
 import { PasswordModule } from '../password/password.module';
 import { PrismaModule } from '../prisma/prisma.module';
 import { WorkspaceModule } from '../workspace/workspace.module';
-import { UserResolver } from './resolvers/user.resolver';
+import { UserResolver } from './resolver/user.resolver';
 import { UserService } from './user.service';
 
 @Module({

@@ -1,3 +1,5 @@
+import { Field, InputType } from '@nestjs/graphql';
+import { Transform } from 'class-transformer';
 import {
   IsDate,
   IsEnum,
@@ -5,10 +7,8 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
-import { Transform } from 'class-transformer';
-import { Currency } from '../../currency-rate/entities/currency.enum';
-import { Field, InputType } from '@nestjs/graphql';
-import { DateScalar, DecimalScalar } from '../../graphql/scalars';
+import { Currency } from '../../currency-rate/entity/currency.enum';
+import { DateScalar, DecimalScalar } from '../../graphql/scalar';
 
 @InputType()
 export class PaymentInDto {

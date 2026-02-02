@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import Item from '../item/entities/item.entity';
-import Payment from '../payment/entities/payment.entity';
-import { User } from '../user/entities/user.entity';
+import Item from '../item/entity/item.entity';
+import Payment from '../payment/entity/payment.entity';
+import Tag from '../tag/entity/tag.entity';
+import { User } from '../user/entity/user.entity';
 import { Workspace } from '../workspace/entity/workspace.entity';
 import { Relation } from './relation';
-import Tag from '../tag/entities/tag.entity';
 
 @Injectable()
 export class ConsistencyService {

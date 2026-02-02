@@ -1,5 +1,5 @@
 import { Field, InputType } from '@nestjs/graphql';
-import { DateScalar } from '../../graphql/scalars';
+import { DateScalar } from '../../graphql/scalar';
 
 @InputType()
 export class PaymentsFilter {

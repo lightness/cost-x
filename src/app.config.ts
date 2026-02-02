@@ -6,28 +6,28 @@ export default () => ({
   authenticate: {
     access: {
       jwt: {
-        expiresIn: '180min',
-        redisPrefix: 'expired:access:',
-        secret: 'AccessTopSecret',
+        expiresIn: process.env.ACCESS_JWT_EXPIRES_IN || '180min',
+        redisPrefix: process.env.ACCESS_JWT_REDIS_PREFIX || 'expired:access:',
+        secret: process.env.ACCESS_JWT_SECRET || 'AccessTopSecret',
       },
     },
     refresh: {
       jwt: {
-        expiresIn: '181min',
-        redisPrefix: 'expired:refresh:',
-        secret: 'RefreshTopSecret',
+        expiresIn: process.env.REFRESH_JWT_EXPIRES_IN || '181min',
+        redisPrefix: process.env.REFRESH_JWT_REDIS_PREFIX || 'expired:refresh:',
+        secret: process.env.REFRESH_JWT_SECRET || 'RefreshTopSecret',
       },
     },
   },
   confirmEmail: {
     jwt: {
-      expiresIn: '7d',
-      redisPrefix: 'expired:confirm-email:',
-      secret: 'TopSECRET',
+      expiresIn: process.env.CONFIRM_EMAIL_JWT_EXPIRES_IN || '7d',
+      redisPrefix:
+        process.env.CONFIRM_EMAIL_JWT_REDIS_PREFIX || 'expired:confirm-email:',
+      secret: process.env.CONFIRM_EMAIL_JWT_SECRET || 'TopSECRET',
     },
     linkUrl: process.env.CONFIRM_EMAIL_LINK_URL,
   },
-  costCurrency: process.env.COST_CURRENCY || 'USD',
   db: {
     logQuery: false,
     url: process.env.DATABASE_URL,
@@ -48,9 +48,11 @@ export default () => ({
   },
   resetPassword: {
     jwt: {
-      expiresIn: '5min',
-      redisPrefix: 'expired:reset-password:',
-      secret: 'ResetPasswordTopSecret',
+      expiresIn: process.env.RESET_PASSWORD_JWT_EXPIRES_IN || '5min',
+      redisPrefix:
+        process.env.RESET_PASSWORD_JWT_REDIS_PREFIX ||
+        'expired:reset-password:',
+      secret: process.env.RESET_PASSWORD_JWT_SECRET || 'ResetPasswordTopSecret',
     },
     linkUrl: process.env.RESET_PASSWORD_LINK_URL,
   },

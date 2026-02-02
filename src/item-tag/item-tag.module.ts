@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
-import { ItemTagService } from './item-tag.service';
-import { ItemsByTagIdLoader } from './dataloaders/items-by-tag-id.loader.service';
-import { TagsByItemIdLoader } from './dataloaders/tags-by-item-id.loader.service';
-import { PrismaModule } from '../prisma/prisma.module';
-import { GroupModule } from '../group/group.module';
-import { ItemTagResolver } from './resolver/item-tag.resolver';
-import { ConsistencyModule } from '../consistency/consistency.module';
-import { AuthModule } from '../auth/auth.module';
 import { AccessModule } from '../access/access.module';
+import { AuthModule } from '../auth/auth.module';
+import { ConsistencyModule } from '../consistency/consistency.module';
+import { GroupModule } from '../group/group.module';
+import { PrismaModule } from '../prisma/prisma.module';
+import { ItemsByTagIdLoader } from './dataloader/items-by-tag-id.loader.service';
+import { TagsByItemIdLoader } from './dataloader/tags-by-item-id.loader.service';
+import { ItemTagService } from './item-tag.service';
+import { ItemTagResolver } from './resolver/item-tag.resolver';
 
 @Module({
   exports: [ItemTagService, ItemsByTagIdLoader, TagsByItemIdLoader],

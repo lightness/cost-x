@@ -1,6 +1,9 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
-import { Workspace as PrismaWorkspace } from '../../../generated/prisma/client';
-import { DateIsoScalar } from '../../graphql/scalars';
+import {
+  Currency,
+  Workspace as PrismaWorkspace,
+} from '../../../generated/prisma/client';
+import { DateIsoScalar } from '../../graphql/scalar';
 
 @ObjectType()
 export class Workspace implements PrismaWorkspace {
@@ -18,4 +21,7 @@ export class Workspace implements PrismaWorkspace {
 
   @Field(() => Int)
   ownerId: number;
+
+  @Field(() => Currency)
+  defaultCurrency: Currency;
 }

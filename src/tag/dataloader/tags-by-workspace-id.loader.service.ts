@@ -1,8 +1,8 @@
 import { Injectable, Scope } from '@nestjs/common';
-import { NestedLoader } from '../../graphql/dataloaders/nested.loader';
+import { NestedLoader } from '../../graphql/dataloader/nested.loader';
 import { GroupService } from '../../group/group.service';
 import { TagsFilter } from '../dto';
-import Tag from '../entities/tag.entity';
+import Tag from '../entity/tag.entity';
 import { TagService } from '../tag.service';
 
 @Injectable({ scope: Scope.REQUEST })

@@ -13,18 +13,18 @@ import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
 import { AccessScope } from '../../access/interfaces';
 import { AuthGuard } from '../../auth/guard/auth.guard';
-import { GqlLoggingInterceptor } from '../../graphql/interceptors/gql-logging.interceptor';
-import { ItemsByTagIdLoader } from '../../item-tag/dataloaders/items-by-tag-id.loader.service';
+import { GqlLoggingInterceptor } from '../../graphql/interceptor/gql-logging.interceptor';
+import { ItemsByTagIdLoader } from '../../item-tag/dataloader/items-by-tag-id.loader.service';
 import { ItemsFilter } from '../../item/dto';
-import { ItemsAggregationsByTagIdLoader } from '../../items-aggregation/dataloaders/items-aggregations-by-tag-id.loader.service';
-import { ItemsAggregation } from '../../items-aggregation/entities/items-aggregation.entity';
+import { ItemsAggregationsByTagIdLoader } from '../../items-aggregation/dataloader/items-aggregations-by-tag-id.loader.service';
+import { ItemsAggregation } from '../../items-aggregation/entity/items-aggregation.entity';
 import { PaymentsFilter } from '../../payment/dto';
-import { UserRole } from '../../user/entities/user-role.enum';
-import { TagInDto, TagsFilter } from '../dto';
-import Tag from '../entities/tag.entity';
-import { TagService } from '../tag.service';
-import { Workspace } from '../../workspace/entity/workspace.entity';
 import { PrismaService } from '../../prisma/prisma.service';
+import { UserRole } from '../../user/entity/user-role.enum';
+import { Workspace } from '../../workspace/entity/workspace.entity';
+import { TagInDto, TagsFilter } from '../dto';
+import Tag from '../entity/tag.entity';
+import { TagService } from '../tag.service';
 
 @Resolver(() => Tag)
 @UseGuards(AuthGuard, AccessGuard)
