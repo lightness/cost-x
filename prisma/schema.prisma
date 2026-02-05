@@ -89,7 +89,7 @@ model User {
   id         Int         @id(map: "PK_user_id") @default(autoincrement())
   createdAt  DateTime    @default(now()) @map("created_at") @db.Timestamp(6)
   updatedAt  DateTime    @default(now()) @map("updated_at") @db.Timestamp(6)
-  email      String      @db.VarChar(255)
+  email      String      @unique @db.VarChar(255)
   password   String      @db.VarChar(72)
   name       String      @db.VarChar(50)
   role       UserRole    @default(USER)
