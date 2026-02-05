@@ -40,24 +40,19 @@ export class PaymentsAggregationResolver {
         .withOptions(paymentsFilter)
         .loadMany(itemIds);
 
-      return countByItemId
-        .filter(isNotError)
-        .reduce(...this.sumAggregationService.reducer);
+      return countByItemId.filter(isNotError).reduce(...this.sumAggregationService.reducer);
     }
 
     return this.paymentAggregateService.getPaymentsCount(paymentsFilter);
   }
 
   @ResolveField(() => Float)
-  async costInDefaultCurrency(
-    @Parent() paymentsAggregation: PaymentsAggregation,
-  ) {
+  async costInDefaultCurrency(@Parent() paymentsAggregation: PaymentsAggregation) {
     const { itemIds, paymentsFilter } = paymentsAggregation;
 
-    const costInDefaultCurrencyByItemId =
-      await this.costInDefaultCurrencyByItemIdLoader
-        .withOptions(paymentsFilter)
-        .loadMany(itemIds);
+    const costInDefaultCurrencyByItemId = await this.costInDefaultCurrencyByItemIdLoader
+      .withOptions(paymentsFilter)
+      .loadMany(itemIds);
 
     return costInDefaultCurrencyByItemId
       .filter(isNotError)
