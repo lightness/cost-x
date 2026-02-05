@@ -1,7 +1,4 @@
-export abstract class BaseFactoryService<T> {
-  constructor() {}
-
-  abstract get repo();
-
-  abstract create(inDto: Partial<T>): Promise<T>;
+export abstract class BaseFactoryService<T, I> {
+  abstract create(overrides: I): Promise<T>;
+  abstract generate(): I;
 }
