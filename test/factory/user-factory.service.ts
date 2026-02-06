@@ -10,7 +10,7 @@ import { BaseFactoryService } from './base-factory.service';
 export class UserFactoryService implements BaseFactoryService<User, UserCreateInput> {
   constructor(private prisma: PrismaService) {}
 
-  create(overrides: UserCreateInput): Promise<User> {
+  create(overrides: Partial<UserCreateInput> = {}): Promise<User> {
     return this.prisma.user.create({
       data: {
         ...this.generate(),
