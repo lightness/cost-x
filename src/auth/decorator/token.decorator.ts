@@ -1,12 +1,12 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
-import { GqlExecutionContext } from '@nestjs/graphql';
 
 export const Token = createParamDecorator(
-  (_data: unknown, context: ExecutionContext) => {
-    const ctx = GqlExecutionContext.create(context);
-    const req = ctx.getContext().req;
+  (_data: unknown, ctx: ExecutionContext) => {
+    const request = ctx.switchToHttp().getRequest();
 
-    // Right part is needed for endpoints without AuthGuard (ex. RefreshToken)
-    return req.token || (req.get('authorization') || '').replace('Bearer ', '');
+    return (
+      request.token ||
+      (request.get('authorization') || '').replace('Bearer ', '')
+    );
   },
 );

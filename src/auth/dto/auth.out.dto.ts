@@ -5,6 +5,6 @@ export class AuthOutDto {
   @Field()
   accessToken: string;
 
-  @Field()
-  refreshToken: string;
+  @Field(() => String, { nullable: true })
+  refreshToken?: string;
 }
