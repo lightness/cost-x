@@ -1,44 +1,51 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { ListTagQueryDto, TagInDto, TagOutDto } from './dto';
-import Tag from './entities/tag.entity';
+import { TagInDto, TagsFilter } from './dto';
+import Tag from './entity/tag.entity';
 
 @Injectable()
 export class TagService {
-  constructor(
-    private prisma: PrismaService,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   async getById(id: number): Promise<Tag | null> {
-    const tag = await this.prisma.tag.findFirst({ where: { id } });
+    const tag = await this.prisma.tag.findFirst({
+      where: { id },
+    });
 
     return tag;
   }
 
-  async list(query: ListTagQueryDto): Promise<Tag[]> {
-    let { title } =  query || {};
+  async listByWorkspaceIds(
+    workspaceIds: number[],
+    query: TagsFilter,
+  ): Promise<Tag[]> {
+    const { title } = query || {};
 
     const tags = await this.prisma.tag.findMany({
       where: {
-        title: title 
-          ? { contains: title, mode: 'insensitive' } 
-          : undefined
-      }
-    })
+        title: title ? { contains: title, mode: 'insensitive' } : undefined,
+        workspaceId: { in: workspaceIds },
+      },
+    });
 
     return tags;
   }
 
-  async create(dto: TagInDto): Promise<TagOutDto> {
-    const tag = await this.prisma.tag.create({ data: dto });
+  async create(workspaceId: number, dto: TagInDto): Promise<Tag> {
+    const tag = await this.prisma.tag.create({
+      data: {
+        ...dto,
+        workspaceId,
+      },
+    });
 
     return tag;
   }
 
-  async update(id: number, dto: TagInDto): Promise<TagOutDto> {
+  async update(id: number, dto: TagInDto): Promise<Tag> {
     return this.prisma.$transaction(async (tx) => {
       // TODO: Select for update
-      const tag = await tx.tag.findUnique({ 
+      const tag = await tx.tag.findUnique({
         where: { id },
       });
 
@@ -47,11 +54,11 @@ export class TagService {
       }
 
       return this.prisma.tag.update({
-        where: { id },
         data: {
-          title: dto.title,
           color: dto.color,
+          title: dto.title,
         },
+        where: { id },
       });
     });
   }

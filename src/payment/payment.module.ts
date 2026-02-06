@@ -1,20 +1,22 @@
 import { Module } from '@nestjs/common';
+import { AccessModule } from '../access/access.module';
+import { AuthModule } from '../auth/auth.module';
 import { ConsistencyModule } from '../consistency/consistency.module';
 import { CurrencyRateModule } from '../currency-rate/currency-rate.module';
 import { ItemCostModule } from '../item-cost/default-currency-cost.module';
-import { PaymentsByItemIdLoader } from './dataloaders/payments-by-item-id.loader.service';
-import { FindPaymentsAggregatesResolver } from './find-payments-aggregates.resolver';
-import { FindPaymentsResponseResolver } from './find-payments-response.resolver';
-import { PaymentController } from './payment.controller';
-import { PaymentResolver } from './payment.resolver';
-import { PaymentService } from './payment.service';
 import { PrismaModule } from '../prisma/prisma.module';
+import { PaymentsByItemIdLoader } from './dataloader/payments-by-item-id.loader.service';
+import { PaymentService } from './payment.service';
+import { PaymentResolver } from './resolver/payment.resolver';
 
-@Module({ 
+@Module({
+  exports: [PaymentService, PaymentsByItemIdLoader],
   imports: [
     PrismaModule,
-    ConsistencyModule, 
-    ItemCostModule, 
+    AuthModule,
+    AccessModule,
+    ConsistencyModule,
+    ItemCostModule,
     CurrencyRateModule,
   ],
   providers: [
@@ -23,10 +25,6 @@ import { PrismaModule } from '../prisma/prisma.module';
     PaymentsByItemIdLoader,
     // resolvers
     PaymentResolver,
-    FindPaymentsAggregatesResolver,
-    FindPaymentsResponseResolver,
   ],
-  controllers: [PaymentController],
-  exports: [PaymentService, PaymentsByItemIdLoader],
 })
 export class PaymentModule {}

@@ -1,7 +1,7 @@
 import { Field, ObjectType } from '@nestjs/graphql';
 import { Decimal } from '@prisma/client/runtime/client';
-import { DecimalScalar } from '../../graphql/scalars';
-import { Currency } from '../../currency-rate/entities/currency.enum';
+import { Currency } from '../../currency-rate/entity/currency.enum';
+import { DecimalScalar } from '../../graphql/scalar';
 
 @ObjectType()
 export class CostByCurrency {

@@ -3,13 +3,11 @@ import { ItemWhereInput } from '../../generated/prisma/models';
 import { PaymentsFilter } from '../payment/dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { ItemInDto, ItemsFilter } from './dto';
-import Item from './entities/item.entity';
+import Item from './entity/item.entity';
 
 @Injectable()
 export class ItemService {
-  constructor(
-    private prisma: PrismaService,
-  ) { }
+  constructor(private prisma: PrismaService) {}
 
   async getById(id: number): Promise<Item> {
     const item = await this.prisma.item.findUnique({ where: { id } });
@@ -17,38 +15,55 @@ export class ItemService {
     return item;
   }
 
-  async list(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): Promise<Item[]> {
+  async list(
+    workspaceIds: number[],
+    itemsFilter: ItemsFilter,
+    paymentsFilter: PaymentsFilter,
+  ): Promise<Item[]> {
     return this.prisma.item.findMany({
-      where: this.getWhereClause(itemsFilter, paymentsFilter),
+      where: this.getWhereClause(workspaceIds, itemsFilter, paymentsFilter),
     });
   }
 
-  async create(dto: ItemInDto): Promise<Item> {
-    const item = await this.prisma.item.create({ data: dto });
+  async create(workspaceId: number, dto: ItemInDto): Promise<Item> {
+    const item = await this.prisma.item.create({
+      data: {
+        title: dto.title,
+        workspace: {
+          connect: {
+            id: workspaceId,
+          },
+        },
+      },
+    });
 
     return item;
   }
 
-  async update(item: Item, dto: ItemInDto): Promise<Item> {
+  async update(itemId: number, dto: ItemInDto): Promise<Item> {
     return this.prisma.item.update({
-      where: {
-        id: item.id,
-      },
       data: {
         title: dto.title,
+      },
+      where: {
+        id: itemId,
       },
     });
   }
 
-  async delete(item: Item): Promise<void> {
+  async delete(itemId: number): Promise<void> {
     await this.prisma.item.delete({
-      where: { id: item.id },
+      where: { id: itemId },
     });
   }
 
   // private
 
-  private getWhereClause(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): ItemWhereInput {
+  private getWhereClause(
+    workspaceIds: number[],
+    itemsFilter: ItemsFilter,
+    paymentsFilter: PaymentsFilter,
+  ): ItemWhereInput {
     const { title, tagIds } = itemsFilter;
     const { dateFrom: paymentDateFrom, dateTo: paymentDateTo } = paymentsFilter;
 
@@ -56,13 +71,12 @@ export class ItemService {
     const withPayments = Boolean(paymentDateFrom || paymentDateTo);
 
     return {
-      title: title ? { contains: title, mode: 'insensitive' } : undefined,
-      itemTag: withTagIds
-        ? { some: { tagId: { in: tagIds } } }
-        : undefined,
+      itemTag: withTagIds ? { some: { tagId: { in: tagIds } } } : undefined,
       payment: withPayments
         ? { some: { date: { gte: paymentDateFrom, lte: paymentDateTo } } }
         : undefined,
-    }
+      title: title ? { contains: title, mode: 'insensitive' } : undefined,
+      workspaceId: { in: workspaceIds },
+    };
   }
 }

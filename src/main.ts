@@ -1,6 +1,7 @@
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
+import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
@@ -9,6 +10,7 @@ async function bootstrap() {
   const expressApp = app.getHttpAdapter().getInstance();
   expressApp.set('etag', false);
   expressApp.set('x-powered-by', false);
+  expressApp.use(cookieParser());
 
   app.enableCors();
   // app.enableCors({
@@ -17,7 +19,14 @@ async function bootstrap() {
   //   credentials: true,
   // });
 
-  app.useGlobalPipes(new ValidationPipe({ transform: true }));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      // exceptionFactory: (validationErrors: ValidationError[] = []) => {
+      //   return new BadRequestException(validationErrors);
+      // },
+    }),
+  );
 
   const configService = app.get(ConfigService);
   const port = configService.get('port');
