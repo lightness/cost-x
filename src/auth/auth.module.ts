@@ -3,14 +3,16 @@ import { PasswordModule } from '../password/password.module';
 import { PrismaModule } from '../prisma/prisma.module';
 import { RedisModule } from '../redis/redis.module';
 import { TokenModule } from '../token/token.module';
+import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { CookieService } from './cookie.service';
 import { AuthGuard } from './guard/auth.guard';
 import { LogoutService } from './logout.service';
 import { RefreshTokenService } from './refresh-token.service';
-import { AuthResolver } from './resolver/auth.resolver';
 import { ACCESS_TOKEN_SERVICE, REFRESH_TOKEN_SERVICE } from './symbols';
 
 @Module({
+  controllers: [AuthController],
   exports: [
     AuthGuard,
     TokenModule.register(ACCESS_TOKEN_SERVICE, 'authenticate.access.jwt'),
@@ -24,8 +26,8 @@ import { ACCESS_TOKEN_SERVICE, REFRESH_TOKEN_SERVICE } from './symbols';
   ],
   providers: [
     AuthService,
-    AuthResolver,
     AuthGuard,
+    CookieService,
     RefreshTokenService,
     LogoutService,
   ],

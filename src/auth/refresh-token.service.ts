@@ -1,10 +1,10 @@
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
-import { AuthOutDto, RefreshTokenInDto } from './dto';
-import { ACCESS_TOKEN_SERVICE, REFRESH_TOKEN_SERVICE } from './symbols';
-import { TokenService } from '../token/token.service';
-import { JwtPayload } from './interfaces';
+import { Inject, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { TokenService } from '../token/token.service';
 import { AuthService } from './auth.service';
+import { AuthOutDto } from './dto';
+import { JwtPayload } from './interfaces';
+import { ACCESS_TOKEN_SERVICE, REFRESH_TOKEN_SERVICE } from './symbols';
 
 @Injectable()
 export class RefreshTokenService {
@@ -19,18 +19,10 @@ export class RefreshTokenService {
 
   async refreshToken(
     accessToken: string,
-    dto: RefreshTokenInDto,
+    refreshToken: string,
   ): Promise<AuthOutDto> {
-    const accessTokenPayload = this.accessTokenService.decodeToken(accessToken);
-    const refreshTokenPayload = await this.refreshTokenService.verifyToken(
-      dto.refreshToken,
-    );
-
-    if (accessTokenPayload.id !== refreshTokenPayload.id) {
-      throw new UnauthorizedException(
-        `Refresh token does not match access token`,
-      );
-    }
+    const refreshTokenPayload =
+      await this.refreshTokenService.verifyToken(refreshToken);
 
     const user = await this.prisma.user.findUnique({
       where: {
@@ -40,9 +32,29 @@ export class RefreshTokenService {
 
     const newTokens = await this.authService.authenticateUser(user);
 
-    await this.accessTokenService.invalidateToken(accessToken);
-    await this.refreshTokenService.invalidateToken(dto.refreshToken);
+    await this.invalidateAccessToken(accessToken, user.id);
+    await this.invalidateRefreshToken(refreshToken);
 
     return newTokens;
+  }
+
+  private async invalidateRefreshToken(refreshToken: string) {
+    await this.refreshTokenService.invalidateToken(refreshToken);
+    // TODO: Remove after testing e2e
+    console.log('🔑❌ refreshToken', refreshToken);
+  }
+
+  private async invalidateAccessToken(accessToken: string, userId: number) {
+    const accessTokenPayload = this.accessTokenService.decodeToken(accessToken);
+
+    if (accessTokenPayload.id !== userId) {
+      // access and refresh tokens belongs to different users
+      // no need to invalidate access token
+      return;
+    }
+
+    await this.accessTokenService.invalidateToken(accessToken);
+    // TODO: Remove after testing e2e
+    console.log('🔑❌ accessToken', accessToken);
   }
 }

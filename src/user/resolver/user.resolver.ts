@@ -1,4 +1,4 @@
-import { UseGuards, UseInterceptors } from '@nestjs/common';
+import { UseFilters, UseGuards, UseInterceptors } from '@nestjs/common';
 import {
   Args,
   Int,
@@ -16,6 +16,7 @@ import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
 import { UserByIdPipe } from '../../common/pipe/user-by-id.pipe';
 import { GqlLoggingInterceptor } from '../../graphql/interceptor/gql-logging.interceptor';
+import { DbExceptionFilter } from '../../prisma/db.exception-filter';
 import { WorkspacesByUserIdLoader } from '../../workspace/dataloader/workspaces-by-user-id.loader';
 import { WorkspacesFilter } from '../../workspace/dto';
 import { Workspace } from '../../workspace/entity/workspace.entity';
@@ -70,6 +71,7 @@ export class UserResolver {
   }
 
   @Mutation(() => User)
+  @UseFilters(DbExceptionFilter)
   async createUser(
     @Args('dto', { type: () => CreateUserInDto }) dto: CreateUserInDto,
   ) {
@@ -77,6 +79,7 @@ export class UserResolver {
   }
 
   @Mutation(() => User)
+  @UseFilters(DbExceptionFilter)
   @Access.allow([
     {
       role: UserRole.USER,

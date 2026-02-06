@@ -59,6 +59,9 @@ export class AuthService {
       this.accessTokenService.createToken({ id: user.id }),
       this.refreshTokenService.createToken({ id: user.id }),
     ]);
+    // TODO: Remove after testing e2e
+    console.log('🔑✅ accessToken', accessToken);
+    console.log('🔑✅ refreshToken', refreshToken);
 
     return {
       accessToken,

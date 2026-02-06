@@ -2,15 +2,6 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-type AuthOutDto {
-  accessToken: String!
-  refreshToken: String!
-}
-
-type LogoutOutDto {
-  success: Boolean!
-}
-
 type CurrencyRate {
   id: Int!
   createdAt: DateIso!
@@ -176,9 +167,6 @@ type Query {
 }
 
 type Mutation {
-  authenticate(dto: AuthInDto!): AuthOutDto!
-  refreshToken(dto: RefreshTokenInDto!): AuthOutDto!
-  logout(dto: LogoutInDto!): LogoutOutDto!
   createTag(workspaceId: Int!, dto: TagInDto!): Tag!
   updateTag(id: Int!, dto: TagInDto!): Tag!
   deleteTag(id: Int!): Boolean!
@@ -201,19 +189,6 @@ type Mutation {
   deleteWorkspace(id: Int!): Workspace!
   forgotPassword(dto: ForgotPasswordInDto!): Boolean!
   resetPassword(dto: ResetPasswordInDto!): Boolean!
-}
-
-input AuthInDto {
-  email: String!
-  password: String!
-}
-
-input RefreshTokenInDto {
-  refreshToken: String!
-}
-
-input LogoutInDto {
-  refreshToken: String!
 }
 
 input TagInDto {

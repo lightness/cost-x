@@ -1,9 +1,9 @@
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
-import * as crypto from 'node:crypto';
 import { decode, sign, verify } from 'jsonwebtoken';
+import * as crypto from 'node:crypto';
+import { RedisService } from '../redis/redis.service';
 import { ExpiresIn } from './interfaces';
 import { CONFIG } from './symbols';
-import { RedisService } from '../redis/redis.service';
 
 @Injectable()
 export class TokenService<T extends object> {
@@ -25,13 +25,24 @@ export class TokenService<T extends object> {
   }
 
   async createToken(payload: T): Promise<string> {
-    return sign(payload, this.secret, { expiresIn: this.expiresIn });
+    // Salt is needed to make different tokens even if called at same second
+    const saltedPayload = { ...payload, salt: Math.random() };
+
+    return sign(saltedPayload, this.secret, {
+      expiresIn: this.expiresIn,
+    });
   }
 
   decodeToken(token: string): T {
     const decoded = decode(token, { json: true });
 
     return decoded as T;
+  }
+
+  getIat(token: string): number {
+    const decoded = decode(token, { json: true });
+
+    return decoded.iat;
   }
 
   async verifyToken(token: string): Promise<T> {
@@ -55,7 +66,13 @@ export class TokenService<T extends object> {
     const expiresInSeconds = exp - Math.floor(Date.now() / 1000) + 1;
 
     if (expiresInSeconds > 0) {
-      await this.redis.set(this.getRedisKey(token), '', 'EX', expiresInSeconds);
+      await this.redis.set(
+        this.getRedisKey(token),
+        '',
+        'EX',
+        expiresInSeconds,
+        'NX',
+      );
     }
   }
 
@@ -63,11 +80,11 @@ export class TokenService<T extends object> {
     const count = await this.redis.exists(this.getRedisKey(token));
 
     if (count > 0) {
-      throw new UnauthorizedException(`Not authorized`);
+      throw new UnauthorizedException(`Not authorized (invalidated)`);
     }
   }
 
-  protected getExp(token: string): number {
+  getExp(token: string): number {
     const decoded = decode(token, { json: true });
 
     return decoded.exp;
