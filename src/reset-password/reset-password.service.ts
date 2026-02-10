@@ -19,10 +19,13 @@ export class ResetPasswordService {
     private bcryptService: BcryptService,
   ) {}
 
-  async sendForgotPasswordEmail(dto: ForgotPasswordInDto) {
+  async sendForgotPasswordEmail(
+    dto: ForgotPasswordInDto,
+    generateTempCode = true,
+  ) {
     const { email } = dto;
 
-    const user = await this.prisma.user.findFirst({
+    let user = await this.prisma.user.findUnique({
       where: {
         email,
       },
@@ -36,16 +39,16 @@ export class ResetPasswordService {
       throw new BadRequestException(`User is not active`);
     }
 
-    const tempCode = uuid();
-
-    await this.prisma.user.update({
-      data: { tempCode },
-      where: { id: user.id },
-    });
+    if (generateTempCode) {
+      user = await this.prisma.user.update({
+        data: { tempCode: uuid() },
+        where: { id: user.id },
+      });
+    }
 
     const token = await this.tokenService.createToken({
       id: user.id,
-      tempCode,
+      tempCode: user.tempCode,
     });
 
     return this.mailService.sendResetPassword(user, token);

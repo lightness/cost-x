@@ -152,6 +152,10 @@ input WorkspacesFilter {
   defaultCurrency: Currency
 }
 
+type ResendEmailOutDto {
+  success: Boolean!
+}
+
 type Query {
   tags(workspaceId: Int!, dto: TagsFilter): [Tag!]!
   tag(id: Int!): Tag!
@@ -189,6 +193,8 @@ type Mutation {
   deleteWorkspace(id: Int!): Workspace!
   forgotPassword(dto: ForgotPasswordInDto!): Boolean!
   resetPassword(dto: ResetPasswordInDto!): Boolean!
+  resendConfirmEmail(dto: ResendConfirmEmailInDto!): ResendEmailOutDto!
+  resendForgotPasswordEmail(dto: ForgotPasswordInDto!): ResendEmailOutDto!
 }
 
 input TagInDto {
@@ -246,4 +252,8 @@ input ForgotPasswordInDto {
 input ResetPasswordInDto {
   token: String!
   password: String!
+}
+
+input ResendConfirmEmailInDto {
+  userId: Int!
 }
