@@ -1,0 +1,23 @@
+import { ApplicationError } from './application-error';
+
+export enum ApplicationErrorCode {
+  EMAIL_IS_NOT_VERIFIED = 'email_is_not_verified',
+  USER_BANNED = 'user_banned',
+  INVALID_CREDENTIALS = 'invalid_credentials',
+  UNKNOWN_USER = 'unknown_user',
+  UNIQUE_CONSTRAINT_VIOLATION = 'unique_constraint_violation',
+}
+
+export class CodedApplicationError extends ApplicationError {
+  public readonly code: ApplicationErrorCode;
+
+  constructor(code: ApplicationErrorCode, message: string) {
+    super(message);
+    this.name = 'CodedApplicationError';
+    this.code = code;
+
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, CodedApplicationError);
+    }
+  }
+}
