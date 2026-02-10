@@ -29,7 +29,7 @@ export class ResendEmailService {
       return { success: true };
     }
 
-    await this.confirmEmailService.sendConfirmEmail(user);
+    await this.confirmEmailService.runConfirmationProcess(user);
 
     return { success: true };
   }
