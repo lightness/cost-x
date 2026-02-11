@@ -3,6 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
+import { ApplicationExceptionFilter } from './common/error/application.exception-filter';
+import { DbExceptionInterceptor } from './prisma/error/db-exception.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -22,11 +24,11 @@ async function bootstrap() {
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
-      // exceptionFactory: (validationErrors: ValidationError[] = []) => {
-      //   return new BadRequestException(validationErrors);
-      // },
     }),
   );
+
+  app.useGlobalInterceptors(new DbExceptionInterceptor());
+  app.useGlobalFilters(new ApplicationExceptionFilter());
 
   const configService = app.get(ConfigService);
   const port = configService.get('port');

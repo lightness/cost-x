@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { TokenService } from '../token/token.service';
 import { AuthService } from './auth.service';
 import { AuthOutDto } from './dto';
+import { UnknownUserError } from './error/unknown-user.error';
 import { JwtPayload } from './interfaces';
 import { ACCESS_TOKEN_SERVICE, REFRESH_TOKEN_SERVICE } from './symbols';
 
@@ -29,6 +30,10 @@ export class RefreshTokenService {
         id: refreshTokenPayload.id,
       },
     });
+
+    if (!user) {
+      throw new UnknownUserError();
+    }
 
     const newTokens = await this.authService.authenticateUser(user);
 
