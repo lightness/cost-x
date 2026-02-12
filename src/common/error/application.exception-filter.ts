@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { GqlArgumentsHost } from '@nestjs/graphql';
 import { Response } from 'express';
+import { GraphQLError } from 'graphql/error';
 import { ApplicationError } from './application-error';
 import {
   ApplicationErrorCode,
@@ -38,10 +39,19 @@ export class ApplicationExceptionFilter implements ExceptionFilter {
     const response = ctx.req.res;
 
     const payload = this.getPayloadByApplicationError(exception);
+    const httpCode = this.getHttpCodeByApplicationError(exception);
 
-    response.status(HttpStatus.OK).json({
-      data: null,
-      errors: [payload],
+    throw new GraphQLError(payload.message, {
+      extensions: {
+        code:
+          exception instanceof CodedApplicationError
+            ? exception.code
+            : ApplicationErrorCode.UNKNOWN,
+        error: payload.error,
+        status: payload.status,
+        // field: error.extensions.field || 'xxx', //error.extensions.field,
+        statusCode: httpCode,
+      },
     });
   }
 
@@ -49,13 +59,15 @@ export class ApplicationExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
 
-    const status = this.getHttpCodeByApplicationError(exception);
+    const httpCode = this.getHttpCodeByApplicationError(exception);
     const payload = this.getPayloadByApplicationError(exception);
 
-    response.status(status).json(payload);
+    response.status(httpCode).json(payload);
   }
 
-  private getPayloadByApplicationError(exception: ApplicationError): unknown {
+  private getPayloadByApplicationError(
+    exception: ApplicationError,
+  ): IErrorPayload {
     const payload: IErrorPayload = {
       error: exception.constructor.name,
       message: exception.message,

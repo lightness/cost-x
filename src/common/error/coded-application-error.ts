@@ -6,6 +6,7 @@ export enum ApplicationErrorCode {
   INVALID_CREDENTIALS = 'invalid_credentials',
   UNKNOWN_USER = 'unknown_user',
   UNIQUE_CONSTRAINT_VIOLATION = 'unique_constraint_violation',
+  UNKNOWN = 'unknown',
 }
 
 export class CodedApplicationError extends ApplicationError {

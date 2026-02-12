@@ -11,10 +11,14 @@ import { DateIsoScalar, DateScalar, DecimalScalar } from './scalar';
       autoSchemaFile: join(process.cwd(), 'src/graphql/schema.gql'),
       context: async () => ({}),
       driver: ApolloDriver,
-      formatError: (err) => ({
-        message: get(err, 'extensions.originalError.message', err.message),
-        status: err.extensions.code,
-      }),
+      formatError: (err) => {
+        return {
+          code: err.extensions.code,
+          error: err.extensions.error,
+          message: get(err, 'extensions.originalError.message', err.message),
+          status: err.extensions.status,
+        };
+      },
       graphiql: true,
       resolvers: {
         Date: DateScalar,
