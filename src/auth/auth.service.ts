@@ -25,7 +25,11 @@ export class AuthService {
   async authenticate(dto: AuthInDto): Promise<AuthOutDto> {
     const { email, password } = dto;
 
-    const user = await this.prisma.user.findFirst({
+    if (!email || !password) {
+      throw new InvalidCredentialsError();
+    }
+
+    const user = await this.prisma.user.findUnique({
       where: { email },
     });
 

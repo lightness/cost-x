@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { TokenService } from '../token/token.service';
 import { AuthService } from './auth.service';
 import { AuthOutDto } from './dto';
+import { InvalidRefreshTokenError } from './error/invalid-refresh-token.error';
 import { UnknownUserError } from './error/unknown-user.error';
 import { JwtPayload } from './interfaces';
 import { ACCESS_TOKEN_SERVICE, REFRESH_TOKEN_SERVICE } from './symbols';
@@ -22,12 +23,24 @@ export class RefreshTokenService {
     accessToken: string,
     refreshToken: string,
   ): Promise<AuthOutDto> {
-    const refreshTokenPayload =
-      await this.refreshTokenService.verifyToken(refreshToken);
+    if (!refreshToken) {
+      throw new InvalidRefreshTokenError();
+    }
+
+    let userId: number;
+
+    try {
+      const refreshTokenPayload =
+        await this.refreshTokenService.verifyToken(refreshToken);
+
+      userId = refreshTokenPayload.id;
+    } catch (_e) {
+      throw new InvalidRefreshTokenError();
+    }
 
     const user = await this.prisma.user.findUnique({
       where: {
-        id: refreshTokenPayload.id,
+        id: userId,
       },
     });
 
