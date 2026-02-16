@@ -14,6 +14,7 @@ import { DateIsoScalar, DateScalar, DecimalScalar } from './scalar';
       formatError: (err) => {
         return {
           code: err.extensions.code,
+          details: err.extensions.details,
           error: err.extensions.error,
           message: get(err, 'extensions.originalError.message', err.message),
           status: err.extensions.status,

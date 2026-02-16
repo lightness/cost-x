@@ -1,4 +1,4 @@
-import { ApplicationError } from './application-error';
+import { ApplicationError } from './application.error';
 
 export enum ApplicationErrorCode {
   EMAIL_IS_NOT_VERIFIED = 'email_is_not_verified',
@@ -9,6 +9,7 @@ export enum ApplicationErrorCode {
   UNKNOWN_USER = 'unknown_user',
   UNIQUE_CONSTRAINT_VIOLATION = 'unique_constraint_violation',
   UNKNOWN = 'unknown',
+  VALIDATION = 'validation',
 }
 
 export class CodedApplicationError extends ApplicationError {

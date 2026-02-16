@@ -1,7 +1,7 @@
 import {
   ApplicationErrorCode,
   CodedApplicationError,
-} from '../../common/error/coded-application-error';
+} from '../../common/error/coded-application.error';
 
 export class UniqueConstraintViolationError extends CodedApplicationError {
   constructor(
