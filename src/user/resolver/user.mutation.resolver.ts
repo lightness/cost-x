@@ -13,7 +13,6 @@ import { User } from '../entity/user.entity';
 import { UserService } from '../user.service';
 
 @Resolver()
-@UseGuards(AuthGuard, AccessGuard)
 @UseInterceptors(GqlLoggingInterceptor)
 export class UserMutationResolver {
   constructor(private userService: UserService) {}
@@ -26,6 +25,7 @@ export class UserMutationResolver {
   }
 
   @Mutation(() => User)
+  @UseGuards(AuthGuard, AccessGuard)
   @Access.allow([
     {
       role: UserRole.USER,
@@ -42,6 +42,7 @@ export class UserMutationResolver {
   }
 
   @Mutation(() => Boolean)
+  @UseGuards(AuthGuard, AccessGuard)
   @Access.allow([{ role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL }])
   async deleteUser(@Args('id', { type: () => Int }, UserByIdPipe) user: User) {
     await this.userService.delete(user);
@@ -50,12 +51,14 @@ export class UserMutationResolver {
   }
 
   @Mutation(() => User)
+  @UseGuards(AuthGuard, AccessGuard)
   @Access.allow([{ role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL }])
   async banUser(@Args('id', { type: () => Int }, UserByIdPipe) user: User) {
     return this.userService.ban(user);
   }
 
   @Mutation(() => User)
+  @UseGuards(AuthGuard, AccessGuard)
   @Access.allow([{ role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL }])
   async unbanUser(@Args('id', { type: () => Int }, UserByIdPipe) user: User) {
     return this.userService.unban(user);

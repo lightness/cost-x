@@ -63,9 +63,15 @@ export class RefreshTokenService {
   }
 
   private async invalidateAccessToken(accessToken: string, userId: number) {
+    if (!accessToken) {
+      // no access token attached to request
+      // impossible to invalidate
+      return;
+    }
+
     const accessTokenPayload = this.accessTokenService.decodeToken(accessToken);
 
-    if (accessTokenPayload.id !== userId) {
+    if (accessTokenPayload?.id !== userId) {
       // access and refresh tokens belongs to different users
       // no need to invalidate access token
       return;

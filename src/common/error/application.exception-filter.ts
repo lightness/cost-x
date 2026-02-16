@@ -4,7 +4,6 @@ import {
   ExceptionFilter,
   HttpStatus,
 } from '@nestjs/common';
-import { GqlArgumentsHost } from '@nestjs/graphql';
 import { Response } from 'express';
 import { GraphQLError } from 'graphql/error';
 import { ApplicationError } from './application-error';
@@ -32,12 +31,8 @@ export class ApplicationExceptionFilter implements ExceptionFilter {
 
   private catchAsGraphqlError(
     exception: ApplicationError,
-    host: ArgumentsHost,
+    _host: ArgumentsHost,
   ) {
-    const gqlHost = GqlArgumentsHost.create(host);
-    const ctx = gqlHost.getContext();
-    const response = ctx.req.res;
-
     const payload = this.getPayloadByApplicationError(exception);
     const httpCode = this.getHttpCodeByApplicationError(exception);
 
@@ -49,7 +44,6 @@ export class ApplicationExceptionFilter implements ExceptionFilter {
             : ApplicationErrorCode.UNKNOWN,
         error: payload.error,
         status: payload.status,
-        // field: error.extensions.field || 'xxx', //error.extensions.field,
         statusCode: httpCode,
       },
     });
@@ -91,10 +85,12 @@ export class ApplicationExceptionFilter implements ExceptionFilter {
     switch (exception.code) {
       case ApplicationErrorCode.EMAIL_IS_NOT_VERIFIED:
       case ApplicationErrorCode.INVALID_CREDENTIALS:
+      case ApplicationErrorCode.INVALID_REFRESH_TOKEN:
       case ApplicationErrorCode.UNKNOWN_USER:
       case ApplicationErrorCode.USER_BANNED:
         return HttpStatus.UNAUTHORIZED;
       case ApplicationErrorCode.UNIQUE_CONSTRAINT_VIOLATION:
+      case ApplicationErrorCode.USER_ALREADY_EXISTS:
         return HttpStatus.BAD_REQUEST;
       default:
         return HttpStatus.INTERNAL_SERVER_ERROR;
