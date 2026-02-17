@@ -24,8 +24,6 @@ interface IErrorPayload {
 @Catch(ApplicationError)
 export class ApplicationExceptionFilter implements ExceptionFilter {
   catch(exception: ApplicationError, host: ArgumentsHost) {
-    console.log('>>> exception', exception);
-
     if ((host.getType() as unknown) === 'graphql') {
       return this.catchAsGraphqlError(exception, host);
     } else {
