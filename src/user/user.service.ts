@@ -1,5 +1,4 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { v4 as uuid } from 'uuid';
 import { ConfirmEmailService } from '../confirm-email/confirm-email.service';
 import { BcryptService } from '../password/bcrypt.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -33,11 +32,10 @@ export class UserService {
         name: dto.name,
         password: await this.bcryptService.hashPassword(dto.password),
         status: UserStatus.EMAIL_NOT_VERIFIED,
-        tempCode: uuid(),
       },
     });
 
-    await this.confirmEmailService.sendConfirmEmail(user);
+    await this.confirmEmailService.runConfirmationProcess(user);
 
     return user;
   }
@@ -57,13 +55,12 @@ export class UserService {
         name: dto.name,
         password: await this.bcryptService.hashPassword(dto.password),
         status: isNewEmail ? UserStatus.EMAIL_NOT_VERIFIED : user.status,
-        tempCode: isNewEmail ? uuid() : user.tempCode,
       },
       where: { id },
     });
 
     if (isNewEmail) {
-      await this.confirmEmailService.sendConfirmEmail(updatedUser);
+      await this.confirmEmailService.runConfirmationProcess(updatedUser);
     }
 
     return updatedUser;
