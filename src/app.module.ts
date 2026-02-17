@@ -12,6 +12,7 @@ import { ItemModule } from './item/item.module';
 import { ItemsAggregationModule } from './items-aggregation/items-aggregation.module';
 import { PaymentModule } from './payment/payment.module';
 import { PaymentsAggregationModule } from './payments-aggregation/payments-aggregation.module';
+import { ResendEmailModule } from './resend-email/resend-email.module';
 import { ResetPasswordModule } from './reset-password/reset-password.module';
 import { TagModule } from './tag/tag.module';
 import { UserModule } from './user/user.module';
@@ -35,6 +36,7 @@ import { WorkspaceModule } from './workspace/workspace.module';
     UserModule,
     WorkspaceModule,
     ResetPasswordModule,
+    ResendEmailModule,
   ],
 })
 export class AppModule {}

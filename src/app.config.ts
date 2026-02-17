@@ -27,6 +27,7 @@ export default () => ({
       secret: process.env.CONFIRM_EMAIL_JWT_SECRET || 'TopSECRET',
     },
     linkUrl: process.env.CONFIRM_EMAIL_LINK_URL,
+    strategy: process.env.CONFIRM_EMAIL_STRATEGY || 'manual',
   },
   db: {
     logQuery: false,

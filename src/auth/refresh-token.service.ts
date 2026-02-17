@@ -3,6 +3,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { TokenService } from '../token/token.service';
 import { AuthService } from './auth.service';
 import { AuthOutDto } from './dto';
+import { InvalidRefreshTokenError } from './error/invalid-refresh-token.error';
+import { UnknownUserError } from './error/unknown-user.error';
 import { JwtPayload } from './interfaces';
 import { ACCESS_TOKEN_SERVICE, REFRESH_TOKEN_SERVICE } from './symbols';
 
@@ -21,14 +23,30 @@ export class RefreshTokenService {
     accessToken: string,
     refreshToken: string,
   ): Promise<AuthOutDto> {
-    const refreshTokenPayload =
-      await this.refreshTokenService.verifyToken(refreshToken);
+    if (!refreshToken) {
+      throw new InvalidRefreshTokenError();
+    }
+
+    let userId: number;
+
+    try {
+      const refreshTokenPayload =
+        await this.refreshTokenService.verifyToken(refreshToken);
+
+      userId = refreshTokenPayload.id;
+    } catch (_e) {
+      throw new InvalidRefreshTokenError();
+    }
 
     const user = await this.prisma.user.findUnique({
       where: {
-        id: refreshTokenPayload.id,
+        id: userId,
       },
     });
+
+    if (!user) {
+      throw new UnknownUserError();
+    }
 
     const newTokens = await this.authService.authenticateUser(user);
 
@@ -45,9 +63,15 @@ export class RefreshTokenService {
   }
 
   private async invalidateAccessToken(accessToken: string, userId: number) {
+    if (!accessToken) {
+      // no access token attached to request
+      // impossible to invalidate
+      return;
+    }
+
     const accessTokenPayload = this.accessTokenService.decodeToken(accessToken);
 
-    if (accessTokenPayload.id !== userId) {
+    if (accessTokenPayload?.id !== userId) {
       // access and refresh tokens belongs to different users
       // no need to invalidate access token
       return;

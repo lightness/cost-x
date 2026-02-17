@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { TokenService } from '../token/token.service';
+import { InvalidRefreshTokenError } from './error/invalid-refresh-token.error';
 import { JwtPayload } from './interfaces';
 import { ACCESS_TOKEN_SERVICE, REFRESH_TOKEN_SERVICE } from './symbols';
 
@@ -21,15 +22,33 @@ export class LogoutService {
   }
 
   private async invalidateRefreshToken(refreshToken: string): Promise<number> {
-    const refreshTokenPayload =
-      await this.refreshTokenService.verifyToken(refreshToken);
+    if (!refreshToken) {
+      throw new InvalidRefreshTokenError();
+    }
+
+    let userId: number;
+
+    try {
+      const refreshTokenPayload =
+        await this.refreshTokenService.verifyToken(refreshToken);
+
+      userId = refreshTokenPayload.id;
+    } catch (_e) {
+      throw new InvalidRefreshTokenError();
+    }
 
     await this.refreshTokenService.invalidateToken(refreshToken);
 
-    return refreshTokenPayload.id;
+    return userId;
   }
 
   private async invalidateAccessToken(accessToken: string, userId: number) {
+    if (!accessToken) {
+      // accessToken is not provided
+      // impossible to invalidate
+      return;
+    }
+
     const accessTokenPayload = this.accessTokenService.decodeToken(accessToken);
 
     if (accessTokenPayload.id !== userId) {

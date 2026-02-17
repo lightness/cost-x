@@ -1,77 +1,23 @@
-import { UseFilters, UseGuards, UseInterceptors } from '@nestjs/common';
-import {
-  Args,
-  Int,
-  Mutation,
-  Parent,
-  Query,
-  ResolveField,
-  Resolver,
-} from '@nestjs/graphql';
+import { UseGuards, UseInterceptors } from '@nestjs/common';
+import { Args, Int, Mutation, Resolver } from '@nestjs/graphql';
 import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
 import { AccessScope } from '../../access/interfaces';
-import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
 import { UserByIdPipe } from '../../common/pipe/user-by-id.pipe';
 import { GqlLoggingInterceptor } from '../../graphql/interceptor/gql-logging.interceptor';
-import { DbExceptionFilter } from '../../prisma/db.exception-filter';
-import { WorkspacesByUserIdLoader } from '../../workspace/dataloader/workspaces-by-user-id.loader';
-import { WorkspacesFilter } from '../../workspace/dto';
-import { Workspace } from '../../workspace/entity/workspace.entity';
 import { CreateUserInDto, UpdateUserInDto } from '../dto';
 import { UserRole } from '../entity/user-role.enum';
 import { User } from '../entity/user.entity';
 import { UserService } from '../user.service';
 
-@Resolver(() => User)
-@UseGuards(AuthGuard, AccessGuard)
+@Resolver()
 @UseInterceptors(GqlLoggingInterceptor)
-export class UserResolver {
-  constructor(
-    private userService: UserService,
-    private workspacesByUserIdLoader: WorkspacesByUserIdLoader,
-  ) {}
-
-  @ResolveField(() => [Workspace])
-  async workspaces(
-    @Parent() user: User,
-    @Args('workspacesFilter', { nullable: true }) filters: WorkspacesFilter,
-  ) {
-    const userWorkspaces = this.workspacesByUserIdLoader
-      .withOptions(filters)
-      .load(user.id);
-
-    return userWorkspaces;
-  }
-
-  @Query(() => [User])
-  @Access.allow([{ role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL }])
-  async users() {
-    return this.userService.list();
-  }
-
-  @Query(() => User)
-  @Access.allow([
-    {
-      role: UserRole.USER,
-      targetId: fromArg('id'),
-      targetScope: AccessScope.USER,
-    },
-    { role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL },
-  ])
-  async user(@Args('id', { type: () => Int }) id: number) {
-    return this.userService.getById(id);
-  }
-
-  @Query(() => User)
-  async me(@CurrentUser() currentUser: User) {
-    return currentUser;
-  }
+export class UserMutationResolver {
+  constructor(private userService: UserService) {}
 
   @Mutation(() => User)
-  @UseFilters(DbExceptionFilter)
   async createUser(
     @Args('dto', { type: () => CreateUserInDto }) dto: CreateUserInDto,
   ) {
@@ -79,7 +25,7 @@ export class UserResolver {
   }
 
   @Mutation(() => User)
-  @UseFilters(DbExceptionFilter)
+  @UseGuards(AuthGuard, AccessGuard)
   @Access.allow([
     {
       role: UserRole.USER,
@@ -96,6 +42,7 @@ export class UserResolver {
   }
 
   @Mutation(() => Boolean)
+  @UseGuards(AuthGuard, AccessGuard)
   @Access.allow([{ role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL }])
   async deleteUser(@Args('id', { type: () => Int }, UserByIdPipe) user: User) {
     await this.userService.delete(user);
@@ -104,12 +51,14 @@ export class UserResolver {
   }
 
   @Mutation(() => User)
+  @UseGuards(AuthGuard, AccessGuard)
   @Access.allow([{ role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL }])
   async banUser(@Args('id', { type: () => Int }, UserByIdPipe) user: User) {
     return this.userService.ban(user);
   }
 
   @Mutation(() => User)
+  @UseGuards(AuthGuard, AccessGuard)
   @Access.allow([{ role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL }])
   async unbanUser(@Args('id', { type: () => Int }, UserByIdPipe) user: User) {
     return this.userService.unban(user);

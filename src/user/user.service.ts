@@ -1,11 +1,11 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { v4 as uuid } from 'uuid';
 import { ConfirmEmailService } from '../confirm-email/confirm-email.service';
 import { BcryptService } from '../password/bcrypt.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserInDto, UpdateUserInDto } from './dto';
 import { UserStatus } from './entity/user-status.enum';
 import { User } from './entity/user.entity';
+import { UserAlreadyExistsError } from './error/user-already-exists.error';
 
 @Injectable()
 export class UserService {
@@ -16,17 +16,26 @@ export class UserService {
   ) {}
 
   async create(dto: CreateUserInDto): Promise<User> {
+    const email = dto.email.toLowerCase();
+
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (existingUser) {
+      throw new UserAlreadyExistsError();
+    }
+
     const user = await this.prisma.user.create({
       data: {
-        email: dto.email.toLowerCase(),
+        email,
         name: dto.name,
         password: await this.bcryptService.hashPassword(dto.password),
         status: UserStatus.EMAIL_NOT_VERIFIED,
-        tempCode: uuid(),
       },
     });
 
-    await this.confirmEmailService.sendConfirmEmail(user);
+    await this.confirmEmailService.runConfirmationProcess(user);
 
     return user;
   }
@@ -46,13 +55,12 @@ export class UserService {
         name: dto.name,
         password: await this.bcryptService.hashPassword(dto.password),
         status: isNewEmail ? UserStatus.EMAIL_NOT_VERIFIED : user.status,
-        tempCode: isNewEmail ? uuid() : user.tempCode,
       },
       where: { id },
     });
 
     if (isNewEmail) {
-      await this.confirmEmailService.sendConfirmEmail(updatedUser);
+      await this.confirmEmailService.runConfirmationProcess(updatedUser);
     }
 
     return updatedUser;
