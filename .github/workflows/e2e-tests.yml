@@ -62,7 +62,12 @@ jobs:
         run: npm ci
 
       - name: Run database migrations
-        run: npm run migration:run
+        run: npm run prisma:migration:up
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+
+      - name: Generate Prisma client
+        run: npm run prisma:client:generate
         env:
           DATABASE_URL: ${{ env.DATABASE_URL }}
 
