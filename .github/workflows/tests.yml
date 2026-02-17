@@ -1,7 +1,7 @@
 name: Tests
 on:
   push:
-    branches: [main, develop, feature/tests]
+    branches: [main, feature/*]
   pull_request:
     branches: [main]
 
@@ -52,10 +52,6 @@ jobs:
       - name: Load env vars
         run: |
           cat .env.test >> "$GITHUB_ENV"
-
-      - name: Verify env var
-        run: |
-          echo "Test: $REDIS_URL"
 
       - name: Run database migrations
         run: npm run prisma:migration:up
