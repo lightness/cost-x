@@ -1,60 +1,39 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
-import { MailService } from '../mail/mail.service';
-import { PrismaService } from '../prisma/prisma.service';
-import { TokenService } from '../token/token.service';
-import { UserStatus } from '../user/entity/user-status.enum';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { User } from '../user/entity/user.entity';
-import { JwtPayload } from './interfaces';
-import { CONFIRM_EMAIL_TOKEN_SERVICE } from './symbols';
+import { ConfirmEmailStrategy } from './confirm-email-strategy.enum';
+import { AutoConfirmEmailService } from './strategy/auto/auto-confirm-email.service';
+import { IConfirmEmailStrategy } from './strategy/interfaces';
+import { ManualConfirmEmailService } from './strategy/manual/manual-confirm-email.service';
 
 @Injectable()
 export class ConfirmEmailService {
   constructor(
-    @Inject(CONFIRM_EMAIL_TOKEN_SERVICE)
-    private tokenService: TokenService<JwtPayload>,
-    private prisma: PrismaService,
-    private mailService: MailService,
+    private configService: ConfigService,
+    private manualConfirmEmailService: ManualConfirmEmailService,
+    private autoConfirmEmailService: AutoConfirmEmailService,
   ) {}
 
-  async sendConfirmEmail(user: User) {
-    const { id, tempCode } = user;
-
-    const token = await this.tokenService.createToken({ id, tempCode });
-
-    return this.mailService.sendConfirmEmail(user, token);
+  private get strategy(): ConfirmEmailStrategy {
+    return this.configService.getOrThrow<ConfirmEmailStrategy>(
+      'confirmEmail.strategy',
+    );
   }
 
-  async confirmEmail(token: string) {
-    let tokenData: JwtPayload;
-
-    try {
-      tokenData = await this.tokenService.verifyToken(token);
-    } catch (_e) {
-      throw new BadRequestException(`Token is invalid`);
+  private get confirmEmailStrategy(): IConfirmEmailStrategy {
+    switch (this.strategy) {
+      case ConfirmEmailStrategy.MANUAL:
+        return this.manualConfirmEmailService;
+      case ConfirmEmailStrategy.AUTO:
+        return this.autoConfirmEmailService;
+      default:
+        throw new InternalServerErrorException(
+          `Unknown confirm email strategy is set: ${this.strategy}`,
+        );
     }
+  }
 
-    const user = await this.prisma.user.findUnique({
-      where: { id: tokenData.id },
-    });
-
-    if (
-      !user ||
-      user.tempCode !== tokenData.tempCode ||
-      user.status !== UserStatus.EMAIL_NOT_VERIFIED
-    ) {
-      throw new BadRequestException(`Token is invalid`);
-    }
-
-    await this.prisma.user.update({
-      data: {
-        status: UserStatus.ACTIVE,
-        tempCode: null,
-      },
-      where: {
-        id: user.id,
-      },
-    });
-
-    return { message: 'User activated' };
+  async runConfirmationProcess(user: User): Promise<User> {
+    return this.confirmEmailStrategy.initiateFlow(user);
   }
 }

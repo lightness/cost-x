@@ -8,6 +8,7 @@ import { ResetPasswordResolver } from './resolver/reset-password.resolver';
 import { RESET_PASSWORD_TOKEN_SERVICE } from './symbols';
 
 @Module({
+  exports: [ResetPasswordService],
   imports: [
     PrismaModule,
     MailModule,
