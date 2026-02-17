@@ -67,7 +67,7 @@ jobs:
 
       - name: Verify env var
         run: |
-          echo "$DATABASE_URL"
+          echo "Test: $REDIS_URL"
 
       - name: Run database migrations
         run: npm run prisma:migration:up
