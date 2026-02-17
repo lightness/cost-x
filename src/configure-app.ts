@@ -1,5 +1,8 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
+import { ValidationError } from './common/error/validation.error';
+import { DbExceptionInterceptor } from './prisma/error/db-exception.interceptor';
+import { ApplicationExceptionFilter } from './common/error/application.exception-filter';
 
 export const configureApp = (app: INestApplication<unknown>) => {
   const expressApp = app.getHttpAdapter().getInstance();
@@ -16,10 +19,14 @@ export const configureApp = (app: INestApplication<unknown>) => {
 
   app.useGlobalPipes(
     new ValidationPipe({
+      disableErrorMessages: false,
+      exceptionFactory(errors) {
+        return new ValidationError(errors);
+      },
       transform: true,
-      // exceptionFactory: (validationErrors: ValidationError[] = []) => {
-      //   return new BadRequestException(validationErrors);
-      // },
     }),
   );
+
+  app.useGlobalInterceptors(new DbExceptionInterceptor());
+  app.useGlobalFilters(new ApplicationExceptionFilter());
 };
