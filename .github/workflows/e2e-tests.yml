@@ -63,7 +63,11 @@ jobs:
 
       - name: Load env vars
         run: |
-          cat .env.test >> $GITHUB_ENV
+          cat .env.test >> "$GITHUB_ENV"
+
+      - name: Verify env var
+        run: |
+          echo "$DATABASE_URL"
 
       - name: Run database migrations
         run: npm run prisma:migration:up
