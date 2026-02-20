@@ -5,7 +5,9 @@ import { ConfirmEmailModule } from '../confirm-email/confirm-email.module';
 import { PasswordModule } from '../password/password.module';
 import { PrismaModule } from '../prisma/prisma.module';
 import { WorkspaceModule } from '../workspace/workspace.module';
-import { UserResolver } from './resolver/user.resolver';
+import { UserFieldResolver } from './resolver/user.field.resolver';
+import { UserMutationResolver } from './resolver/user.mutation.resolver';
+import { UserQueryResolver } from './resolver/user.query.resolver';
 import { UserService } from './user.service';
 
 @Module({
@@ -22,7 +24,9 @@ import { UserService } from './user.service';
     // services
     UserService,
     // resolvers
-    UserResolver,
+    UserMutationResolver,
+    UserQueryResolver,
+    UserFieldResolver,
   ],
 })
 export class UserModule {}
