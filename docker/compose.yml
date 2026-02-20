@@ -22,17 +22,9 @@ services:
       - "6380:6379"
     environment:
       REDIS_PASSWORD: 12345
-    # command: >
-    #   sh -c '
-    #     mkdir -p /usr/local/etc/redis &&
-    #     echo "user default off" >> /usr/local/etc/redis/users.acl &&
-    #     echo "user $${REDIS_USER} on >$${REDIS_PASSWORD} ~* +@all" >> /usr/local/etc/redis/users.acl &&
-    #     redis-server --requirepass $${REDIS_PASSWORD} --aclfile /usr/local/etc/redis/users.acl
-    #   '
 
 volumes:
   redis-data:
 
 networks:
   cost-x-network:
-

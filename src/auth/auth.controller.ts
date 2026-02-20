@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { CookieService } from './cookie.service';
@@ -18,12 +18,12 @@ export class AuthController {
   ) {}
 
   @Post('login')
+  @HttpCode(HttpStatus.OK)
   async authenticate(
     @Body() dto: AuthInDto,
     @Res({ passthrough: true }) res: Response,
   ): Promise<AuthOutDto> {
-    const { refreshToken, ...result } =
-      await this.authService.authenticate(dto);
+    const { refreshToken, ...result } = await this.authService.authenticate(dto);
 
     this.cookieService.setRefreshTokenInCookie(res, refreshToken);
 
@@ -31,6 +31,7 @@ export class AuthController {
   }
 
   @Post('refresh-token')
+  @HttpCode(HttpStatus.OK)
   async refreshToken(
     @Token() accessToken: string,
     @Req() request: Request,
@@ -47,6 +48,7 @@ export class AuthController {
   }
 
   @Post('logout')
+  @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard)
   async logout(
     @Req() request: Request,

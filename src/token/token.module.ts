@@ -1,15 +1,15 @@
 import { DynamicModule, Module } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { TokenService } from './token.service';
-import { CONFIG } from './symbols';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RedisModule } from '../redis/redis.module';
+import { CONFIG } from './symbols';
+import { TokenService } from './token.service';
 
 @Module({})
 export class TokenModule {
   static register(token: string | symbol, configPath: string): DynamicModule {
     return {
       exports: [token],
-      imports: [RedisModule],
+      imports: [RedisModule, ConfigModule],
       module: TokenModule,
       providers: [
         {

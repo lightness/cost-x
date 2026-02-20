@@ -4,5 +4,7 @@ dist/
 credentials.json
 
 .env
+.env.*
+!.env.test
 
 /generated/prisma

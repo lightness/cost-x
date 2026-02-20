@@ -15,7 +15,7 @@
     "enabled": true
   },
   "files": {
-    "includes": ["./src/**/*.ts"]
+    "includes": ["./src/**/*.ts", "./test/**/*.ts"]
   },
   "formatter": {
     "attributePosition": "auto",
@@ -24,7 +24,7 @@
     "indentStyle": "space",
     "indentWidth": 2,
     "lineEnding": "lf",
-    "lineWidth": 80
+    "lineWidth": 100
   },
   "javascript": {
     "formatter": {
