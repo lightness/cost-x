@@ -10,6 +10,16 @@ export enum ApplicationErrorCode {
   UNIQUE_CONSTRAINT_VIOLATION = 'unique_constraint_violation',
   UNKNOWN = 'unknown',
   VALIDATION = 'validation',
+  // contact
+  INVITEE_ALREADY_SEND_INVITE = 'invitee_already_send_invite',
+  INVITER_ALREADY_SEND_INVITE = 'inviter_already_send_invite',
+  INVITEE_BLOCKED_INVITER = 'invitee_blocked_inviter',
+  INVITER_BLOCKED_INVITEE = 'inviter_blocked_invitee',
+  CONTACT_ALREADY_EXISTS = 'contact_already_exists',
+  CONTACT_NOT_FOUND = 'contact_not_found',
+  UNEXPECTED_CONTACT_STATE = 'unexpected_contact_state',
+  INVITE_REJECTED = 'invite_rejected',
+  //
 }
 
 export class CodedApplicationError extends ApplicationError {

@@ -1,6 +1,7 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider        = "prisma-client"
+  output          = "../generated/prisma"
+  previewFeatures = ["partialIndexes"]
 }
 
 datasource db {
@@ -86,16 +87,24 @@ enum Currency {
 }
 
 model User {
-  id         Int         @id(map: "PK_user_id") @default(autoincrement())
-  createdAt  DateTime    @default(now()) @map("created_at") @db.Timestamp(6)
-  updatedAt  DateTime    @default(now()) @map("updated_at") @db.Timestamp(6)
-  email      String      @unique @db.VarChar(255)
-  password   String      @db.VarChar(72)
-  name       String      @db.VarChar(50)
-  role       UserRole    @default(USER)
-  status     UserStatus
-  tempCode   String?
-  workspaces Workspace[]
+  id                Int         @id(map: "PK_user_id") @default(autoincrement())
+  createdAt         DateTime    @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt         DateTime    @default(now()) @map("updated_at") @db.Timestamp(6)
+  email             String      @unique @db.VarChar(255)
+  password          String      @db.VarChar(72)
+  name              String      @db.VarChar(50)
+  role              UserRole    @default(USER)
+  status            UserStatus
+  tempCode          String?
+  workspaces        Workspace[]
+  inviters          Invite[]    @relation(name: "inviter")
+  invitees          Invite[]    @relation(name: "invitee")
+  sourceContacts    Contact[]   @relation(name: "sourceUser")
+  targetContacts    Contact[]   @relation(name: "targetUser")
+  removedContacts   Contact[]   @relation(name: "removedByUser")
+  sourceUserBlocks  UserBlock[] @relation(name: "blocker")
+  targetUserBlocks  UserBlock[] @relation(name: "blocked")
+  removedUserBlocks UserBlock[] @relation(name: "removedByUser")
 
   @@map("user")
 }
@@ -124,4 +133,60 @@ model Workspace {
   owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_workspace_owner_id_user_id")
 
   @@map("workspace")
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+model Invite {
+  id        Int          @id(map: "PK_invite_id") @default(autoincrement())
+  inviterId Int          @map("inviter_id")
+  inviteeId Int          @map("invitee_id")
+  status    InviteStatus
+  createdAt DateTime     @default(now()) @map("created_at") @db.Timestamp(6)
+  reactedAt DateTime?    @default(now()) @map("reacted_at") @db.Timestamp(6)
+
+  inviter  User      @relation(name: "inviter", fields: [inviterId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_invite_inviter_id_user_id")
+  invitee  User      @relation(name: "invitee", fields: [inviteeId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_invite_invitee_id_user_id")
+  contacts Contact[]
+
+  @@unique([inviterId, inviteeId], where: { reactedAt: null }, map: "UQ_invite_inviter_id_invitee_id")
+  @@map("invite")
+}
+
+model Contact {
+  id              Int       @id(map: "PK_contact_id") @default(autoincrement())
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
+  sourceUserId    Int       @map("source_user_id")
+  targetUserId    Int       @map("target_user_id")
+  inviteId        Int       @map("invite_id")
+  removedAt       DateTime? @map("removed_at")
+  removedByUserId Int?      @map("removed_by_user_id")
+
+  sourceUser    User   @relation(name: "sourceUser", fields: [sourceUserId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_contact_source_user_id_user_id")
+  targetUser    User   @relation(name: "targetUser", fields: [targetUserId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_contact_target_user_id_user_id")
+  removedByUser User?  @relation(name: "removedByUser", fields: [removedByUserId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_contact_removed_by_user_id_user_id")
+  invite        Invite @relation(fields: [inviteId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_contact_invite_id_invite_id")
+
+  @@unique([sourceUserId, targetUserId], where: { removedAt: null }, map: "UQ_contact_inviter_id_invitee_id")
+  @@map("contact")
+}
+
+model UserBlock {
+  id              Int       @id(map: "PK_block_id") @default(autoincrement())
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
+  blockerId       Int       @map("blocker_id")
+  blockedId       Int       @map("blocked_id")
+  removedAt       DateTime? @map("removed_at")
+  removedByUserId Int?      @map("removed_by_user_id")
+
+  blocker       User  @relation(name: "blocker", fields: [blockerId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_user_block_blocker_id_user_id")
+  blocked       User  @relation(name: "blocked", fields: [blockedId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_user_block_blocked_id_user_id")
+  removedByUser User? @relation(name: "removedByUser", fields: [removedByUserId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_user_block_removed_by_user_id_user_id")
+
+  @@unique([blockerId, blockedId], where: { removedAt: null }, map: "UQ_user_block_blocker_id_blocked_id")
+  @@map("user_block")
 }

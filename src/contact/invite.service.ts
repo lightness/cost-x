@@ -1,0 +1,80 @@
+import { Injectable } from '@nestjs/common';
+import { Prisma } from '../../generated/prisma/client';
+import { PrismaService } from '../prisma/prisma.service';
+import { ContactService } from './contact.service';
+import { InviteStatus } from './entity/invite-status.enum';
+import { Invite } from './entity/invite.entity';
+import { UserBlockService } from './user-block.service';
+
+@Injectable()
+export class InviteService {
+  constructor(
+    private prisma: PrismaService,
+    private contactService: ContactService,
+    private userBlockService: UserBlockService,
+  ) {}
+
+  async createInvite(
+    inviterUserId: number,
+    inviteeUserId: number,
+    tx?: Prisma.TransactionClient,
+  ): Promise<Invite> {
+    const client = tx || this.prisma;
+
+    return client.invite.create({
+      data: {
+        createdAt: new Date(),
+        invitee: {
+          connect: {
+            id: inviteeUserId,
+          },
+        },
+        inviter: {
+          connect: {
+            id: inviterUserId,
+          },
+        },
+        status: InviteStatus.PENDING,
+      },
+    });
+  }
+
+  async acceptInvite(inviteId: number, tx?: Prisma.TransactionClient): Promise<Invite> {
+    const client = tx || this.prisma;
+
+    const invite = await client.invite.update({
+      data: {
+        reactedAt: new Date(),
+        status: InviteStatus.ACCEPTED,
+      },
+      where: {
+        id: inviteId,
+      },
+    });
+
+    await this.contactService.createContactPair(invite.inviterId, invite.inviteeId, invite.id, tx);
+
+    return invite;
+  }
+
+  async rejectInvite(inviteId: number, tx?: Prisma.TransactionClient): Promise<Invite> {
+    const client = tx || this.prisma;
+
+    return client.invite.update({
+      data: {
+        reactedAt: new Date(),
+        status: InviteStatus.REJECTED,
+      },
+      where: {
+        id: inviteId,
+      },
+    });
+  }
+
+  async rejectInviteAndBlockUser(inviteId: number, tx?: Prisma.TransactionClient): Promise<Invite> {
+    const invite = await this.rejectInvite(inviteId, tx);
+    await this.userBlockService.blockUser(invite.inviterId, invite.inviteeId, tx);
+
+    return invite;
+  }
+}
