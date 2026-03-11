@@ -91,4 +91,22 @@ export class ContactService {
 
     return contact;
   }
+
+  async isContactExists(
+    sourceUserId: number,
+    targetUserId: number,
+    tx?: Prisma.TransactionClient,
+  ): Promise<boolean> {
+    const client = tx || this.prisma;
+
+    const count = await client.contact.count({
+      where: {
+        removedAt: null,
+        sourceUserId,
+        targetUserId,
+      },
+    });
+
+    return count > 0;
+  }
 }

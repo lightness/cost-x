@@ -77,4 +77,22 @@ export class InviteService {
 
     return invite;
   }
+
+  async isInviteExists(
+    inviterId: number,
+    inviteeId: number,
+    tx?: Prisma.TransactionClient,
+  ): Promise<boolean> {
+    const client = tx || this.prisma;
+
+    const count = await client.invite.count({
+      where: {
+        inviteeId,
+        inviterId,
+        reactedAt: null,
+      },
+    });
+
+    return count > 0;
+  }
 }

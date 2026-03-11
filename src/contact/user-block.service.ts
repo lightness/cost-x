@@ -48,4 +48,22 @@ export class UserBlockService {
       where: { id: userBlockId },
     });
   }
+
+  async isUserBlockExists(
+    blockedUserId: number,
+    blockerUserId: number,
+    tx?: Prisma.TransactionClient,
+  ): Promise<boolean> {
+    const client = tx || this.prisma;
+
+    const count = await client.userBlock.count({
+      where: {
+        blockedId: blockedUserId,
+        blockerId: blockerUserId,
+        removedAt: null,
+      },
+    });
+
+    return count > 0;
+  }
 }
