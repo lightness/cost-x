@@ -17,11 +17,9 @@ export class ContactService {
     sourceUserId: number,
     targetUserId: number,
     inviteId: number,
-    tx?: Prisma.TransactionClient,
+    tx: Prisma.TransactionClient = this.prisma,
   ): Promise<Contact> {
-    const client = tx || this.prisma;
-
-    return client.contact.create({
+    return tx.contact.create({
       data: {
         createdAt: new Date(),
         invite: {
@@ -47,7 +45,7 @@ export class ContactService {
     sourceUserId: number,
     targetUserId: number,
     inviteId: number,
-    tx?: Prisma.TransactionClient,
+    tx: Prisma.TransactionClient = this.prisma,
   ): Promise<[Contact, Contact]> {
     const directContact = await this.createContact(sourceUserId, targetUserId, inviteId, tx);
     const reverseContact = await this.createContact(targetUserId, sourceUserId, inviteId, tx);
@@ -58,11 +56,9 @@ export class ContactService {
   async removeContact(
     contactId: number,
     removedByUserId: number,
-    tx?: Prisma.TransactionClient,
+    tx: Prisma.TransactionClient = this.prisma,
   ): Promise<Contact> {
-    const client = tx || this.prisma;
-
-    return client.contact.update({
+    return tx.contact.update({
       data: {
         removedAt: new Date(),
         removedByUser: {
@@ -75,12 +71,29 @@ export class ContactService {
     });
   }
 
-  async removeContactAndBlockUser(
+  async removeContactPair(
     contactId: number,
     removedByUserId: number,
-    tx?: Prisma.TransactionClient,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<[Contact, Contact]> {
+    const directContact = await this.removeContact(contactId, removedByUserId, tx);
+    const existingReverseContact = await this.getReverseContact(directContact, tx);
+
+    if (!existingReverseContact) {
+      return [directContact, null];
+    }
+
+    const reverseContact = await this.removeContact(existingReverseContact.id, removedByUserId, tx);
+
+    return [directContact, reverseContact];
+  }
+
+  async removeContactPairAndBlockUser(
+    contactId: number,
+    removedByUserId: number,
+    tx: Prisma.TransactionClient = this.prisma,
   ): Promise<Contact> {
-    const contact = await this.removeContact(contactId, removedByUserId, tx);
+    const [contact] = await this.removeContactPair(contactId, removedByUserId, tx);
 
     const blockerUserId =
       contact.targetUserId === removedByUserId ? contact.targetUserId : contact.sourceUserId;
@@ -92,14 +105,27 @@ export class ContactService {
     return contact;
   }
 
+  async getReverseContact(
+    contact: Contact,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<Contact> {
+    return tx.contact.findUnique({
+      where: {
+        removedAt: null,
+        sourceUserId_targetUserId: {
+          sourceUserId: contact.targetUserId,
+          targetUserId: contact.sourceUserId,
+        },
+      },
+    });
+  }
+
   async isContactExists(
     sourceUserId: number,
     targetUserId: number,
-    tx?: Prisma.TransactionClient,
+    tx: Prisma.TransactionClient = this.prisma,
   ): Promise<boolean> {
-    const client = tx || this.prisma;
-
-    const count = await client.contact.count({
+    const count = await tx.contact.count({
       where: {
         removedAt: null,
         sourceUserId,

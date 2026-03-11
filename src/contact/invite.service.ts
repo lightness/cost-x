@@ -17,11 +17,9 @@ export class InviteService {
   async createInvite(
     inviterUserId: number,
     inviteeUserId: number,
-    tx?: Prisma.TransactionClient,
+    tx: Prisma.TransactionClient = this.prisma,
   ): Promise<Invite> {
-    const client = tx || this.prisma;
-
-    return client.invite.create({
+    return tx.invite.create({
       data: {
         createdAt: new Date(),
         invitee: {
@@ -39,10 +37,11 @@ export class InviteService {
     });
   }
 
-  async acceptInvite(inviteId: number, tx?: Prisma.TransactionClient): Promise<Invite> {
-    const client = tx || this.prisma;
-
-    const invite = await client.invite.update({
+  async acceptInvite(
+    inviteId: number,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<Invite> {
+    const invite = await tx.invite.update({
       data: {
         reactedAt: new Date(),
         status: InviteStatus.ACCEPTED,
@@ -57,10 +56,11 @@ export class InviteService {
     return invite;
   }
 
-  async rejectInvite(inviteId: number, tx?: Prisma.TransactionClient): Promise<Invite> {
-    const client = tx || this.prisma;
-
-    return client.invite.update({
+  async rejectInvite(
+    inviteId: number,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<Invite> {
+    return tx.invite.update({
       data: {
         reactedAt: new Date(),
         status: InviteStatus.REJECTED,
@@ -71,7 +71,10 @@ export class InviteService {
     });
   }
 
-  async rejectInviteAndBlockUser(inviteId: number, tx?: Prisma.TransactionClient): Promise<Invite> {
+  async rejectInviteAndBlockUser(
+    inviteId: number,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<Invite> {
     const invite = await this.rejectInvite(inviteId, tx);
     await this.userBlockService.blockUser(invite.inviterId, invite.inviteeId, tx);
 
@@ -81,11 +84,9 @@ export class InviteService {
   async isInviteExists(
     inviterId: number,
     inviteeId: number,
-    tx?: Prisma.TransactionClient,
+    tx: Prisma.TransactionClient = this.prisma,
   ): Promise<boolean> {
-    const client = tx || this.prisma;
-
-    const count = await client.invite.count({
+    const count = await tx.invite.count({
       where: {
         inviteeId,
         inviterId,
