@@ -12,6 +12,7 @@ export enum AccessScope {
   ITEM = 'item',
   TAG = 'tag',
   PAYMENT = 'payment',
+  INVITE = 'invite',
   GLOBAL = 'global',
 }
 
@@ -21,6 +22,7 @@ export interface Rule {
   targetScope: AccessScope;
   targetId?: GetId;
   role: UserRole | UserRole[];
+  metadata?: Record<string, unknown>;
 }
 
 export type RuleOperationAnd = { and: (RuleDef | RuleOperationOr)[] };

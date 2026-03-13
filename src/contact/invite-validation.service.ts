@@ -1,11 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '../../generated/prisma/client';
+import { InviteStatus, Prisma } from '../../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { ContactService } from './contact.service';
+import { Invite } from './entity/invite.entity';
 import {
   ContactAlreadyExistsError,
+  ImproperInviteStatusError,
   InviteeAlreadySendInviteError,
   InviteeBlockedInviterError,
+  InviteNotFoundError,
   InviterAlreadySendInviteError,
   InviterBlockedInviteeError,
 } from './error';
@@ -33,6 +36,39 @@ export class InviteValidationService {
     await this.validateInviteeIsNotBlocked(inviterUserId, inviteeUserId, tx);
   }
 
+  async validateAcceptInvite(inviteId: number, tx: Prisma.TransactionClient = this.prisma) {
+    const invite = await this.validateInviteExists(inviteId, tx);
+    await this.validateInviteIsInStatus(invite, InviteStatus.PENDING);
+
+    const { inviterId: inviterUserId, inviteeId: inviteeUserId } = invite;
+    await this.validateContactNotExists(inviterUserId, inviteeUserId, tx);
+    await this.validateInviterIsNotBlocked(inviterUserId, inviteeUserId, tx);
+    await this.validateInviteeIsNotBlocked(inviterUserId, inviteeUserId, tx);
+  }
+
+  async validateRejectInvite(inviteId: number, tx: Prisma.TransactionClient = this.prisma) {
+    const invite = await this.validateInviteExists(inviteId, tx);
+    await this.validateInviteIsInStatus(invite, InviteStatus.PENDING);
+
+    const { inviterId: inviterUserId, inviteeId: inviteeUserId } = invite;
+    await this.validateContactNotExists(inviterUserId, inviteeUserId, tx);
+    await this.validateInviterIsNotBlocked(inviterUserId, inviteeUserId, tx);
+    await this.validateInviteeIsNotBlocked(inviterUserId, inviteeUserId, tx);
+  }
+
+  async validateRejectInviteAndBlockUser(
+    inviteId: number,
+    tx: Prisma.TransactionClient = this.prisma,
+  ) {
+    const invite = await this.validateInviteExists(inviteId, tx);
+    await this.validateInviteIsInStatus(invite, InviteStatus.PENDING);
+
+    const { inviterId: inviterUserId, inviteeId: inviteeUserId } = invite;
+    await this.validateContactNotExists(inviterUserId, inviteeUserId, tx);
+    await this.validateInviterIsNotBlocked(inviterUserId, inviteeUserId, tx);
+    await this.validateInviteeIsNotBlocked(inviterUserId, inviteeUserId, tx);
+  }
+
   private async validateInviteNotExists(
     inviterUserId: number,
     inviteeUserId: number,
@@ -46,6 +82,25 @@ export class InviteValidationService {
 
     if (isInviteAlreadyExists) {
       throw new InviterAlreadySendInviteError();
+    }
+  }
+
+  private async validateInviteExists(
+    inviteId: number,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<Invite> {
+    const invite = await tx.invite.findUnique({ where: { id: inviteId } });
+
+    if (!invite) {
+      throw new InviteNotFoundError();
+    }
+
+    return invite;
+  }
+
+  private async validateInviteIsInStatus(invite: Invite, ...statuses: InviteStatus[]) {
+    if (!statuses.includes(invite.status)) {
+      throw new ImproperInviteStatusError(`Improper invite status: ${invite.status}`);
     }
   }
 

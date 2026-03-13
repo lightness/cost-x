@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { AccessModule } from './access/access.module';
 import config from './app.config';
 import { AuthModule } from './auth/auth.module';
+import { ContactModule } from './contact/contact.module';
 import { CurrencyRateModule } from './currency-rate/currency-rate.module';
 import { DataMigrationModule } from './data-migration/data-migration.module';
 import { GraphqlModule } from './graphql/graphql.module';
@@ -37,6 +38,7 @@ import { WorkspaceModule } from './workspace/workspace.module';
     WorkspaceModule,
     ResetPasswordModule,
     ResendEmailModule,
+    ContactModule,
   ],
 })
 export class AppModule {}

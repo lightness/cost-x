@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '../../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { ContactService } from './contact.service';
+import { InvitesFilter } from './dto/invite-filter.type';
 import { InviteStatus } from './entity/invite-status.enum';
 import { Invite } from './entity/invite.entity';
 import { UserBlockService } from './user-block.service';
@@ -95,5 +96,53 @@ export class InviteService {
     });
 
     return count > 0;
+  }
+
+  async listByInviteeUserId(
+    inviteeUserId: number,
+    filter: InvitesFilter,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<Invite[]> {
+    return this.listByInviteeUserIds([inviteeUserId], filter, tx);
+  }
+
+  async listByInviteeUserIds(
+    inviteeUserIds: number[],
+    filter: InvitesFilter,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<Invite[]> {
+    return tx.invite.findMany({
+      orderBy: {
+        createdAt: 'desc',
+      },
+      where: {
+        inviteeId: { in: inviteeUserIds },
+        ...filter,
+      },
+    });
+  }
+
+  async listByInviterUserId(
+    inviterUserId: number,
+    filter: InvitesFilter,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<Invite[]> {
+    return this.listByInviterUserIds([inviterUserId], filter, tx);
+  }
+
+  async listByInviterUserIds(
+    inviterUserIds: number[],
+    filter: InvitesFilter,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<Invite[]> {
+    return tx.invite.findMany({
+      orderBy: {
+        createdAt: 'desc',
+      },
+      where: {
+        inviterId: { in: inviterUserIds },
+        ...filter,
+      },
+    });
   }
 }

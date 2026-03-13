@@ -45,14 +45,6 @@ model ItemTag {
   @@map("item_tag")
 }
 
-model Migration {
-  id        Int    @id(map: "PK_migration_id") @default(autoincrement())
-  timestamp BigInt
-  name      String @db.VarChar
-
-  @@map("migration")
-}
-
 model Payment {
   id        Int      @id(map: "PK_payment_id") @default(autoincrement())
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(6)
@@ -147,7 +139,7 @@ model Invite {
   inviteeId Int          @map("invitee_id")
   status    InviteStatus
   createdAt DateTime     @default(now()) @map("created_at") @db.Timestamp(6)
-  reactedAt DateTime?    @default(now()) @map("reacted_at") @db.Timestamp(6)
+  reactedAt DateTime?    @map("reacted_at") @db.Timestamp(6)
 
   inviter  User      @relation(name: "inviter", fields: [inviterId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_invite_inviter_id_user_id")
   invitee  User      @relation(name: "invitee", fields: [inviteeId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_invite_invitee_id_user_id")
@@ -163,7 +155,7 @@ model Contact {
   sourceUserId    Int       @map("source_user_id")
   targetUserId    Int       @map("target_user_id")
   inviteId        Int       @map("invite_id")
-  removedAt       DateTime? @map("removed_at")
+  removedAt       DateTime? @map("removed_at") @db.Timestamp(6)
   removedByUserId Int?      @map("removed_by_user_id")
 
   sourceUser    User   @relation(name: "sourceUser", fields: [sourceUserId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_contact_source_user_id_user_id")
@@ -180,7 +172,7 @@ model UserBlock {
   createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
   blockerId       Int       @map("blocker_id")
   blockedId       Int       @map("blocked_id")
-  removedAt       DateTime? @map("removed_at")
+  removedAt       DateTime? @map("removed_at") @db.Timestamp(6)
   removedByUserId Int?      @map("removed_by_user_id")
 
   blocker       User  @relation(name: "blocker", fields: [blockerId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_user_block_blocker_id_user_id")

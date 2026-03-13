@@ -18,4 +18,10 @@ export class GroupService {
 
     return result;
   }
+
+  sortBy<T, K extends keyof T>(items: T[], keyName: K, orderedKeys: T[K][]): T[] {
+    const map = this.groupBy(items, keyName);
+
+    return orderedKeys.map((key) => map.get(key)?.[0] || null);
+  }
 }

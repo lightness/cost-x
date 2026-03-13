@@ -6,6 +6,7 @@ import { RuleEngineService } from './rule-engine.service';
 import {
   FormalAccessStrategy,
   GlobalAccessStrategy,
+  UserToInviteAccessStrategy,
   UserToItemAccessStrategy,
   UserToPaymentAccessStrategy,
   UserToTagAccessStrategy,
@@ -23,6 +24,7 @@ import { ACCESS_STRATEGIES } from './strategy/interface';
     // access strategies
     FormalAccessStrategy,
     GlobalAccessStrategy,
+    UserToInviteAccessStrategy,
     UserToItemAccessStrategy,
     UserToTagAccessStrategy,
     UserToPaymentAccessStrategy,
@@ -31,6 +33,7 @@ import { ACCESS_STRATEGIES } from './strategy/interface';
       inject: [
         FormalAccessStrategy,
         GlobalAccessStrategy,
+        UserToInviteAccessStrategy,
         UserToItemAccessStrategy,
         UserToTagAccessStrategy,
         UserToPaymentAccessStrategy,

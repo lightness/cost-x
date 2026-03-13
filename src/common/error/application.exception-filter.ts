@@ -1,16 +1,8 @@
-import {
-  ArgumentsHost,
-  Catch,
-  ExceptionFilter,
-  HttpStatus,
-} from '@nestjs/common';
+import { ArgumentsHost, Catch, ExceptionFilter, HttpStatus } from '@nestjs/common';
 import { Response } from 'express';
 import { GraphQLError } from 'graphql/error';
 import { ApplicationError } from './application.error';
-import {
-  ApplicationErrorCode,
-  CodedApplicationError,
-} from './coded-application.error';
+import { ApplicationErrorCode, CodedApplicationError } from './coded-application.error';
 import { DetailedApplicationError } from './detailed-application.error';
 
 interface IErrorPayload {
@@ -31,10 +23,7 @@ export class ApplicationExceptionFilter implements ExceptionFilter {
     }
   }
 
-  private catchAsGraphqlError(
-    exception: ApplicationError,
-    _host: ArgumentsHost,
-  ) {
+  private catchAsGraphqlError(exception: ApplicationError, _host: ArgumentsHost) {
     const payload = this.getPayloadByApplicationError(exception);
     const httpCode = this.getHttpCodeByApplicationError(exception);
 
@@ -44,10 +33,7 @@ export class ApplicationExceptionFilter implements ExceptionFilter {
           exception instanceof CodedApplicationError
             ? exception.code
             : ApplicationErrorCode.UNKNOWN,
-        details:
-          exception instanceof DetailedApplicationError
-            ? exception.details
-            : undefined,
+        details: exception instanceof DetailedApplicationError ? exception.details : undefined,
         error: payload.error,
         status: payload.status,
         statusCode: httpCode,
@@ -65,9 +51,7 @@ export class ApplicationExceptionFilter implements ExceptionFilter {
     response.status(httpCode).json(payload);
   }
 
-  private getPayloadByApplicationError(
-    exception: ApplicationError,
-  ): IErrorPayload {
+  private getPayloadByApplicationError(exception: ApplicationError): IErrorPayload {
     const payload: IErrorPayload = {
       error: exception.constructor.name,
       message: exception.message,
@@ -85,9 +69,7 @@ export class ApplicationExceptionFilter implements ExceptionFilter {
     return payload;
   }
 
-  private getHttpCodeByApplicationError(
-    exception: ApplicationError,
-  ): HttpStatus {
+  private getHttpCodeByApplicationError(exception: ApplicationError): HttpStatus {
     if (!(exception instanceof CodedApplicationError)) {
       return HttpStatus.BAD_REQUEST;
     }
@@ -102,6 +84,14 @@ export class ApplicationExceptionFilter implements ExceptionFilter {
       case ApplicationErrorCode.UNIQUE_CONSTRAINT_VIOLATION:
       case ApplicationErrorCode.USER_ALREADY_EXISTS:
       case ApplicationErrorCode.VALIDATION:
+      case ApplicationErrorCode.CONTACT_ALREADY_EXISTS:
+      case ApplicationErrorCode.CONTACT_NOT_FOUND:
+      case ApplicationErrorCode.INVITEE_ALREADY_SEND_INVITE:
+      case ApplicationErrorCode.INVITEE_BLOCKED_INVITER:
+      case ApplicationErrorCode.INVITER_ALREADY_SEND_INVITE:
+      case ApplicationErrorCode.INVITER_BLOCKED_INVITEE:
+      case ApplicationErrorCode.IMPROPER_INVITE_STATUS:
+      case ApplicationErrorCode.INVITE_NOT_FOUND:
         return HttpStatus.BAD_REQUEST;
       default:
         return HttpStatus.INTERNAL_SERVER_ERROR;

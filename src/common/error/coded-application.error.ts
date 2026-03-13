@@ -18,7 +18,8 @@ export enum ApplicationErrorCode {
   CONTACT_ALREADY_EXISTS = 'contact_already_exists',
   CONTACT_NOT_FOUND = 'contact_not_found',
   UNEXPECTED_CONTACT_STATE = 'unexpected_contact_state',
-  INVITE_REJECTED = 'invite_rejected',
+  IMPROPER_INVITE_STATUS = 'improper_invite_status',
+  INVITE_NOT_FOUND = 'invite_not_found',
   //
 }
 

@@ -36,10 +36,7 @@ export class AccessService {
     }
   }
 
-  private async isRuleMatch(
-    ruleDef: RuleDef,
-    ctx: GqlExecutionContext,
-  ): Promise<boolean> {
+  private async isRuleMatch(ruleDef: RuleDef, ctx: GqlExecutionContext): Promise<boolean> {
     if (Array.isArray(ruleDef)) {
       const subRuleResults = await Promise.all(
         ruleDef.map((subRuleDef) => this.isRuleMatch(subRuleDef, ctx)),
@@ -68,15 +65,10 @@ export class AccessService {
     }
 
     if (this.isRule(ruleDef)) {
-      return this.ruleEngineService.executeRule(
-        this.normalizeRule(ruleDef),
-        ctx,
-      );
+      return this.ruleEngineService.executeRule(this.normalizeRule(ruleDef), ctx);
     }
 
-    throw new InternalServerErrorException(
-      `Access rule is wrong: ${JSON.stringify(ruleDef)}`,
-    );
+    throw new InternalServerErrorException(`Access rule is wrong: ${JSON.stringify(ruleDef)}`);
   }
 
   private isRule(ruleDef: RuleDef): ruleDef is Rule {

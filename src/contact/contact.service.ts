@@ -135,4 +135,23 @@ export class ContactService {
 
     return count > 0;
   }
+
+  async listActiveByUserIds(
+    userIds: number[],
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<Contact[]> {
+    return tx.contact.findMany({
+      where: {
+        removedAt: null,
+        sourceUserId: { in: userIds },
+      },
+    });
+  }
+
+  async listActiveByUserId(
+    userId: number,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<Contact[]> {
+    return this.listActiveByUserIds([userId], tx);
+  }
 }

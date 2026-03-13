@@ -134,6 +134,9 @@ type User {
   status: UserStatus!
   role: UserRole!
   workspaces(workspacesFilter: WorkspacesFilter): [Workspace!]!
+  incomingInvites(invitesFilter: InvitesFilter): [Invite!]!
+  outgoingInvites(invitesFilter: InvitesFilter): [Invite!]!
+  contacts: [Contact!]!
 }
 
 enum UserStatus {
@@ -150,6 +153,40 @@ enum UserRole {
 input WorkspacesFilter {
   title: String
   defaultCurrency: Currency
+}
+
+input InvitesFilter {
+  status: InviteStatus
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+type Contact {
+  id: Int!
+  createdAt: DateIso!
+  sourceUserId: Int!
+  targetUserId: Int!
+  inviteId: Int!
+  removedAt: DateIso
+  removedByUserId: Int!
+  sourceUser: User!
+  targetUser: User!
+  invite: Invite!
+}
+
+type Invite {
+  id: Int!
+  inviterId: Int!
+  inviteeId: Int!
+  status: InviteStatus!
+  createdAt: DateIso!
+  reactedAt: DateIso
+  inviter: User!
+  invitee: User!
 }
 
 type ResendEmailOutDto {
@@ -191,6 +228,10 @@ type Mutation {
   createWorkspace(dto: WorkspaceInDto!): Workspace!
   updateWorkspace(id: Int!, dto: WorkspaceInDto!): Workspace!
   deleteWorkspace(id: Int!): Workspace!
+  createInvite(dto: CreateInviteInDto!): Invite!
+  acceptInvite(inviteId: Int!): Invite!
+  rejectInvite(inviteId: Int!): Invite!
+  rejectInviteAndBlockUser(inviteId: Int!): Invite!
   forgotPassword(dto: ForgotPasswordInDto!): Boolean!
   resetPassword(dto: ResetPasswordInDto!): Boolean!
   resendConfirmEmail(dto: ResendConfirmEmailInDto!): ResendEmailOutDto!
@@ -243,6 +284,11 @@ input UpdateUserInDto {
 input WorkspaceInDto {
   title: String!
   defaultCurrency: Currency!
+}
+
+input CreateInviteInDto {
+  inviterUserId: Int!
+  inviteeUserId: Int!
 }
 
 input ForgotPasswordInDto {

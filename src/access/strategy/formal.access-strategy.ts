@@ -1,14 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { Rule } from '../interfaces';
-import { AccessStrategy } from './interface';
 import { GlobalAccessStrategy } from './global.access-strategy';
+import { AccessStrategy } from './interface';
 
 @Injectable()
-export class FormalAccessStrategy
-  extends GlobalAccessStrategy
-  implements AccessStrategy
-{
+export class FormalAccessStrategy extends GlobalAccessStrategy implements AccessStrategy {
   isApplicable(rule: Rule): boolean {
     return rule.targetScope === rule.sourceScope;
   }
