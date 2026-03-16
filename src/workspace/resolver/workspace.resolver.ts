@@ -1,15 +1,11 @@
-import {
-  Args,
-  Int,
-  Mutation,
-  Parent,
-  ResolveField,
-  Resolver,
-} from '@nestjs/graphql';
+import { UseGuards } from '@nestjs/common';
+import { Args, Int, Mutation, Parent, ResolveField, Resolver } from '@nestjs/graphql';
 import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
+import { AccessGuard } from '../../access/guard/access.guard';
 import { AccessScope } from '../../access/interfaces';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
+import { AuthGuard } from '../../auth/guard/auth.guard';
 import { ItemsByWorkspaceIdLoader } from '../../item/dataloader/items-by-workspace-id.loader.service';
 import { ItemsFilter } from '../../item/dto';
 import Item from '../../item/entity/item.entity';
@@ -26,6 +22,7 @@ import { Workspace } from '../entity/workspace.entity';
 import { WorkspaceService } from '../workspace.service';
 
 @Resolver(() => Workspace)
+@UseGuards(AuthGuard, AccessGuard)
 export class WorkspaceResolver {
   constructor(
     private workspaceService: WorkspaceService,
@@ -52,9 +49,7 @@ export class WorkspaceResolver {
     @Parent() workspace: Workspace,
     @Args('tagsFilter', { nullable: true }) tagsFilter: TagsFilter,
   ) {
-    const tags = await this.tagsByWorkspaceIdLoader
-      .withOptions(tagsFilter)
-      .load(workspace.id);
+    const tags = await this.tagsByWorkspaceIdLoader.withOptions(tagsFilter).load(workspace.id);
 
     return tags;
   }
@@ -73,13 +68,8 @@ export class WorkspaceResolver {
   }
 
   @Mutation(() => Workspace)
-  @Access.allow([
-    { role: [UserRole.USER, UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
-  ])
-  async createWorkspace(
-    @Args('dto') dto: WorkspaceInDto,
-    @CurrentUser() currentUser: User,
-  ) {
+  @Access.allow([{ role: [UserRole.USER, UserRole.ADMIN], targetScope: AccessScope.GLOBAL }])
+  async createWorkspace(@Args('dto') dto: WorkspaceInDto, @CurrentUser() currentUser: User) {
     return this.workspaceService.create(dto, currentUser);
   }
 
