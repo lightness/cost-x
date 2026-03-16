@@ -1,7 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
 import { AccessModule } from './access/access.module';
-import config from './app.config';
 import { AuthModule } from './auth/auth.module';
 import { ContactModule } from './contact/contact.module';
 import { CurrencyRateModule } from './currency-rate/currency-rate.module';
@@ -21,7 +19,6 @@ import { WorkspaceModule } from './workspace/workspace.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true, load: [config] }),
     GraphqlModule,
     AuthModule,
     AccessModule,

@@ -5,5 +5,8 @@ module.exports = {
   testRegex: '.*\\.spec\\.ts$',
   transform: {
     '^.+\\.ts$': 'ts-jest',
-  }
+  },
+  transformIgnorePatterns: [
+    'node_modules/(?!google-spreadsheet/dist/index.cjs)',
+  ],
 };

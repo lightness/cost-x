@@ -19,17 +19,6 @@ export class UserFactoryService implements BaseFactoryService<User, UserCreateIn
     });
   }
 
-  createActive(overrides: Partial<UserCreateInput> = {}): Promise<User> {
-    return this.prisma.user.create({
-      data: {
-        ...this.generate(),
-        ...overrides,
-        status: UserStatus.ACTIVE,
-        tempCode: null,
-      },
-    });
-  }
-
   generate(): UserCreateInput {
     return {
       email: this.generateEmail(),
