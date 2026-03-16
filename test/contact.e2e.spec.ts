@@ -1,10 +1,12 @@
 import { NestApplication } from '@nestjs/core';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
+import { InviteStatus } from '../generated/prisma/enums';
 import { AuthService } from '../src/auth/auth.service';
 import { configureApp } from '../src/configure-app';
 import { ContactModule } from '../src/contact/contact.module';
 import { GraphqlModule } from '../src/graphql/graphql.module';
+import { PrismaService } from '../src/prisma/prisma.service';
 import { FactoryModule } from './factory/factory.module';
 import { UserFactoryService } from './factory/user-factory.service';
 import { TestConfigModule } from './test-config.module';
@@ -14,6 +16,7 @@ describe('Contact E2E', () => {
   let app: NestApplication;
   let userFactory: UserFactoryService;
   let authService: AuthService;
+  let prisma: PrismaService;
 
   beforeAll(async () => {
     moduleRef = await Test.createTestingModule({
@@ -26,6 +29,7 @@ describe('Contact E2E', () => {
 
     userFactory = moduleRef.get(UserFactoryService);
     authService = moduleRef.get(AuthService);
+    prisma = moduleRef.get(PrismaService);
   });
 
   afterAll(async () => {
@@ -38,10 +42,10 @@ describe('Contact E2E', () => {
       const invitee = await userFactory.createActive();
 
       const query = `
-        mutation CreateInvite ($dto: CreateInviteInDto!) {
-            createInvite(dto: $dto) {
-                id
-            }
+        mutation CreateInvite($dto: CreateInviteInDto!) {
+          createInvite(dto: $dto) {
+            id
+          }
         }
       `;
 
@@ -63,6 +67,17 @@ describe('Contact E2E', () => {
       expect(response.status).toBe(200);
       expect(response.body?.errors).toBeUndefined();
       expect(response.body?.data?.createInvite?.id).toEqual(expect.any(Number));
+
+      const invite = await prisma.invite.findUnique({
+        where: { id: response.body.data.createInvite.id },
+      });
+
+      expect(invite).toBeDefined();
+      expect(invite.id).toBe(response.body.data.createInvite.id);
+      expect(invite.inviteeId).toBe(invitee.id);
+      expect(invite.inviterId).toBe(inviter.id);
+      expect(invite.status).toBe(InviteStatus.PENDING);
+      expect(invite.reactedAt).toBeNull();
     });
 
     it('should not be possible to invite user, if pending invite exists', async () => {});
