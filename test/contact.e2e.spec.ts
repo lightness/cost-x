@@ -1,8 +1,10 @@
 import { NestApplication } from '@nestjs/core';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
+import { User } from '../generated/prisma/client';
 import { InviteStatus } from '../generated/prisma/enums';
 import { AuthService } from '../src/auth/auth.service';
+import { ApplicationErrorCode } from '../src/common/error/coded-application.error';
 import { configureApp } from '../src/configure-app';
 import { ContactModule } from '../src/contact/contact.module';
 import { GraphqlModule } from '../src/graphql/graphql.module';
@@ -76,20 +78,7 @@ describe('Contact E2E', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       // Assert
-      expect(response.status).toBe(200);
-      expect(response.body?.errors).toBeUndefined();
-      expect(response.body?.data?.createInvite?.id).toEqual(expect.any(Number));
-
-      const invite = await prisma.invite.findUnique({
-        where: { id: response.body.data.createInvite.id },
-      });
-
-      expect(invite).toBeDefined();
-      expect(invite.id).toBe(response.body.data.createInvite.id);
-      expect(invite.inviteeId).toBe(invitee.id);
-      expect(invite.inviterId).toBe(inviter.id);
-      expect(invite.status).toBe(InviteStatus.PENDING);
-      expect(invite.reactedAt).toBeNull();
+      expectInviteCreated(response, { invitee, inviter, status: InviteStatus.PENDING });
     });
 
     it('should not be possible to invite user, if pending invite exists', async () => {
@@ -126,10 +115,7 @@ describe('Contact E2E', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       // Assert
-      expect(response.status).toBe(200);
-      expect(response.body?.errors).toBeDefined();
-      expect(response.body?.errors?.[0]?.code).toBe('inviter_already_send_invite');
-      expect(response.body?.errors?.[0]?.status).toBe('BAD_REQUEST');
+      expectError(response, { code: ApplicationErrorCode.INVITER_ALREADY_SEND_INVITE });
     });
 
     it('should be possible to invite user, if non-pending invite exists', async () => {
@@ -166,20 +152,7 @@ describe('Contact E2E', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       // Assert
-      expect(response.status).toBe(200);
-      expect(response.body?.errors).toBeUndefined();
-      expect(response.body?.data?.createInvite?.id).toEqual(expect.any(Number));
-
-      const invite = await prisma.invite.findUnique({
-        where: { id: response.body.data.createInvite.id },
-      });
-
-      expect(invite).toBeDefined();
-      expect(invite.id).toBe(response.body.data.createInvite.id);
-      expect(invite.inviteeId).toBe(invitee.id);
-      expect(invite.inviterId).toBe(inviter.id);
-      expect(invite.status).toBe(InviteStatus.PENDING);
-      expect(invite.reactedAt).toBeNull();
+      expectInviteCreated(response, { invitee, inviter, status: InviteStatus.PENDING });
     });
 
     it('should not be possible to invite user, if pending invite exists (reverse)', async () => {
@@ -216,10 +189,7 @@ describe('Contact E2E', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       // Assert
-      expect(response.status).toBe(200);
-      expect(response.body?.errors).toBeDefined();
-      expect(response.body?.errors?.[0]?.code).toBe('invitee_already_send_invite');
-      expect(response.body?.errors?.[0]?.status).toBe('BAD_REQUEST');
+      expectError(response, { code: ApplicationErrorCode.INVITEE_ALREADY_SEND_INVITE });
     });
 
     it('should be possible to invite user, if non-pending invite exists (reverse)', async () => {
@@ -256,20 +226,7 @@ describe('Contact E2E', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       // Assert
-      expect(response.status).toBe(200);
-      expect(response.body?.errors).toBeUndefined();
-      expect(response.body?.data?.createInvite?.id).toEqual(expect.any(Number));
-
-      const invite = await prisma.invite.findUnique({
-        where: { id: response.body.data.createInvite.id },
-      });
-
-      expect(invite).toBeDefined();
-      expect(invite.id).toBe(response.body.data.createInvite.id);
-      expect(invite.inviteeId).toBe(invitee.id);
-      expect(invite.inviterId).toBe(inviter.id);
-      expect(invite.status).toBe(InviteStatus.PENDING);
-      expect(invite.reactedAt).toBeNull();
+      expectInviteCreated(response, { invitee, inviter, status: InviteStatus.PENDING });
     });
 
     it('should not be possible to invite user, if contact exists', async () => {
@@ -308,10 +265,7 @@ describe('Contact E2E', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       // Assert
-      expect(response.status).toBe(200);
-      expect(response.body?.errors).toBeDefined();
-      expect(response.body?.errors?.[0]?.code).toBe('contact_already_exists');
-      expect(response.body?.errors?.[0]?.status).toBe('BAD_REQUEST');
+      expectError(response, { code: ApplicationErrorCode.CONTACT_ALREADY_EXISTS });
     });
 
     it('should be possible to invite user, if removed contact exists', async () => {
@@ -350,20 +304,7 @@ describe('Contact E2E', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       // Assert
-      expect(response.status).toBe(200);
-      expect(response.body?.errors).toBeUndefined();
-      expect(response.body?.data?.createInvite?.id).toEqual(expect.any(Number));
-
-      const newInvite = await prisma.invite.findUnique({
-        where: { id: response.body.data.createInvite.id },
-      });
-
-      expect(newInvite).toBeDefined();
-      expect(newInvite.id).toBe(response.body.data.createInvite.id);
-      expect(newInvite.inviteeId).toBe(invitee.id);
-      expect(newInvite.inviterId).toBe(inviter.id);
-      expect(newInvite.status).toBe(InviteStatus.PENDING);
-      expect(newInvite.reactedAt).toBeNull();
+      expectInviteCreated(response, { invitee, inviter, status: InviteStatus.PENDING });
     });
 
     it('should not be possible to invite user, if invitee blocked inviter', async () => {
@@ -400,10 +341,7 @@ describe('Contact E2E', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       // Assert
-      expect(response.status).toBe(200);
-      expect(response.body?.errors).toBeDefined();
-      expect(response.body?.errors?.[0]?.code).toBe('invitee_blocked_inviter');
-      expect(response.body?.errors?.[0]?.status).toBe('BAD_REQUEST');
+      expectError(response, { code: ApplicationErrorCode.INVITEE_BLOCKED_INVITER });
     });
 
     it('should be possible to invite user, if invitee unblocked inviter', async () => {
@@ -440,20 +378,7 @@ describe('Contact E2E', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       // Assert
-      expect(response.status).toBe(200);
-      expect(response.body?.errors).toBeUndefined();
-      expect(response.body?.data?.createInvite?.id).toEqual(expect.any(Number));
-
-      const newInvite = await prisma.invite.findUnique({
-        where: { id: response.body.data.createInvite.id },
-      });
-
-      expect(newInvite).toBeDefined();
-      expect(newInvite.id).toBe(response.body.data.createInvite.id);
-      expect(newInvite.inviteeId).toBe(invitee.id);
-      expect(newInvite.inviterId).toBe(inviter.id);
-      expect(newInvite.status).toBe(InviteStatus.PENDING);
-      expect(newInvite.reactedAt).toBeNull();
+      expectInviteCreated(response, { invitee, inviter, status: InviteStatus.PENDING });
     });
 
     it('should not be possible to invite user, if inviter blocked invitee', async () => {
@@ -490,10 +415,7 @@ describe('Contact E2E', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       // Assert
-      expect(response.status).toBe(200);
-      expect(response.body?.errors).toBeDefined();
-      expect(response.body?.errors?.[0]?.code).toBe('inviter_blocked_invitee');
-      expect(response.body?.errors?.[0]?.status).toBe('BAD_REQUEST');
+      expectError(response, { code: ApplicationErrorCode.INVITER_BLOCKED_INVITEE });
     });
 
     it('should be possible to invite user, if inviter unblocked invitee', async () => {
@@ -530,21 +452,38 @@ describe('Contact E2E', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       // Assert
+      expectInviteCreated(response, { invitee, inviter, status: InviteStatus.PENDING });
+    });
+
+    async function expectInviteCreated(
+      response: any,
+      { invitee, inviter, status }: { invitee: User; inviter: User; status: InviteStatus },
+    ) {
       expect(response.status).toBe(200);
       expect(response.body?.errors).toBeUndefined();
       expect(response.body?.data?.createInvite?.id).toEqual(expect.any(Number));
 
-      const newInvite = await prisma.invite.findUnique({
+      const invite = await prisma.invite.findUnique({
         where: { id: response.body.data.createInvite.id },
       });
 
-      expect(newInvite).toBeDefined();
-      expect(newInvite.id).toBe(response.body.data.createInvite.id);
-      expect(newInvite.inviteeId).toBe(invitee.id);
-      expect(newInvite.inviterId).toBe(inviter.id);
-      expect(newInvite.status).toBe(InviteStatus.PENDING);
-      expect(newInvite.reactedAt).toBeNull();
-    });
+      expect(invite).toBeDefined();
+      expect(invite.id).toBe(response.body.data.createInvite.id);
+      expect(invite.inviteeId).toBe(invitee.id);
+      expect(invite.inviterId).toBe(inviter.id);
+      expect(invite.status).toBe(status);
+      expect(invite.reactedAt).toBeNull();
+    }
+
+    async function expectError(
+      response: any,
+      { code, status = 'BAD_REQUEST' }: { code: ApplicationErrorCode; status?: string },
+    ) {
+      expect(response.status).toBe(200);
+      expect(response.body?.errors).toBeDefined();
+      expect(response.body?.errors?.[0]?.code).toBe(code);
+      expect(response.body?.errors?.[0]?.status).toBe(status);
+    }
   });
 
   describe('accept invite', () => {
