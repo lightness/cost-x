@@ -189,37 +189,25 @@ type Invite {
   invitee: User!
 }
 
-type ResendEmailOutDto {
-  success: Boolean!
-}
-
 type Query {
-  tags(workspaceId: Int!, dto: TagsFilter): [Tag!]!
-  tag(id: Int!): Tag!
-  itemsAggregation(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): ItemsAggregation!
+  users: [User!]!
+  user(id: Int!): User!
+  me: User!
   item(id: Int!): Item!
   items(workspaceId: Int!, itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): [Item!]!
   currencyRate(fromCurrency: Currency!, toCurrency: Currency!, date: Date!): CurrencyRate!
   payment(id: Int!): Payment!
   payments(itemId: Int!, paymentsFilter: PaymentsFilter): [Payment!]!
-  users: [User!]!
-  user(id: Int!): User!
-  me: User!
+  tags(workspaceId: Int!, dto: TagsFilter): [Tag!]!
+  tag(id: Int!): Tag!
+  itemsAggregation(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): ItemsAggregation!
 }
 
 type Mutation {
-  createTag(workspaceId: Int!, dto: TagInDto!): Tag!
-  updateTag(id: Int!, dto: TagInDto!): Tag!
-  deleteTag(id: Int!): Boolean!
-  assignTag(dto: AssignTagInDto!): ItemTag!
-  unassignTag(dto: UnassignTagInDto!): Boolean!
-  createItem(workspaceId: Int!, dto: ItemInDto!): Item!
-  updateItem(id: Int!, dto: ItemInDto!): Item!
-  deleteItem(id: Int!): Boolean!
-  createPayment(itemId: Int!, dto: PaymentInDto!): Payment!
-  updatePayment(paymentId: Int!, dto: PaymentInDto!): Payment!
-  deletePayment(paymentId: Int!): Boolean!
-  mergeItems(dto: MergeItemsInDto!): Item!
+  createInvite(dto: CreateInviteInDto!): Invite!
+  acceptInvite(inviteId: Int!): Invite!
+  rejectInvite(inviteId: Int!): Invite!
+  rejectInviteAndBlockUser(inviteId: Int!): Invite!
   createUser(dto: CreateUserInDto!): User!
   updateUser(id: Int!, dto: UpdateUserInDto!): User!
   deleteUser(id: Int!): Boolean!
@@ -228,45 +216,22 @@ type Mutation {
   createWorkspace(dto: WorkspaceInDto!): Workspace!
   updateWorkspace(id: Int!, dto: WorkspaceInDto!): Workspace!
   deleteWorkspace(id: Int!): Workspace!
-  createInvite(dto: CreateInviteInDto!): Invite!
-  acceptInvite(inviteId: Int!): Invite!
-  rejectInvite(inviteId: Int!): Invite!
-  rejectInviteAndBlockUser(inviteId: Int!): Invite!
-  forgotPassword(dto: ForgotPasswordInDto!): Boolean!
-  resetPassword(dto: ResetPasswordInDto!): Boolean!
-  resendConfirmEmail(dto: ResendConfirmEmailInDto!): ResendEmailOutDto!
-  resendForgotPasswordEmail(dto: ForgotPasswordInDto!): ResendEmailOutDto!
+  createItem(workspaceId: Int!, dto: ItemInDto!): Item!
+  updateItem(id: Int!, dto: ItemInDto!): Item!
+  deleteItem(id: Int!): Boolean!
+  assignTag(dto: AssignTagInDto!): ItemTag!
+  unassignTag(dto: UnassignTagInDto!): Boolean!
+  createPayment(itemId: Int!, dto: PaymentInDto!): Payment!
+  updatePayment(paymentId: Int!, dto: PaymentInDto!): Payment!
+  deletePayment(paymentId: Int!): Boolean!
+  createTag(workspaceId: Int!, dto: TagInDto!): Tag!
+  updateTag(id: Int!, dto: TagInDto!): Tag!
+  deleteTag(id: Int!): Boolean!
 }
 
-input TagInDto {
-  title: String!
-  color: String
-}
-
-input AssignTagInDto {
-  tagId: Int!
-  itemId: Int!
-}
-
-input UnassignTagInDto {
-  tagId: Int!
-  itemId: Int!
-}
-
-input ItemInDto {
-  title: String!
-}
-
-input PaymentInDto {
-  title: String
-  cost: Decimal!
-  currency: Currency!
-  date: Date!
-}
-
-input MergeItemsInDto {
-  hostItemId: Int!
-  mergingItemId: Int!
+input CreateInviteInDto {
+  inviterUserId: Int!
+  inviteeUserId: Int!
 }
 
 input CreateUserInDto {
@@ -286,20 +251,28 @@ input WorkspaceInDto {
   defaultCurrency: Currency!
 }
 
-input CreateInviteInDto {
-  inviterUserId: Int!
-  inviteeUserId: Int!
+input ItemInDto {
+  title: String!
 }
 
-input ForgotPasswordInDto {
-  email: String!
+input AssignTagInDto {
+  tagId: Int!
+  itemId: Int!
 }
 
-input ResetPasswordInDto {
-  token: String!
-  password: String!
+input UnassignTagInDto {
+  tagId: Int!
+  itemId: Int!
 }
 
-input ResendConfirmEmailInDto {
-  userId: Int!
+input PaymentInDto {
+  title: String
+  cost: Decimal!
+  currency: Currency!
+  date: Date!
+}
+
+input TagInDto {
+  title: String!
+  color: String
 }

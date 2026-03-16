@@ -1,10 +1,10 @@
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
 import { configureApp } from './configure-app';
-import { ConfiguredAppModule } from './configured-app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(ConfiguredAppModule);
+  const app = await NestFactory.create(AppModule);
 
   configureApp(app);
 

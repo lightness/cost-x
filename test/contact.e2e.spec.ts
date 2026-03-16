@@ -1,21 +1,23 @@
 import { NestApplication } from '@nestjs/core';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
+import { AuthService } from '../src/auth/auth.service';
 import { configureApp } from '../src/configure-app';
 import { ContactModule } from '../src/contact/contact.module';
+import { GraphqlModule } from '../src/graphql/graphql.module';
 import { FactoryModule } from './factory/factory.module';
 import { UserFactoryService } from './factory/user-factory.service';
 import { TestConfigModule } from './test-config.module';
-import { AppModule } from '../src/app.module';
 
 describe('Contact E2E', () => {
   let moduleRef: TestingModule;
   let app: NestApplication;
   let userFactory: UserFactoryService;
+  let authService: AuthService;
 
   beforeAll(async () => {
     moduleRef = await Test.createTestingModule({
-      imports: [TestConfigModule, FactoryModule, AppModule],
+      imports: [TestConfigModule, FactoryModule, ContactModule, GraphqlModule],
     }).compile();
 
     app = moduleRef.createNestApplication();
@@ -23,6 +25,7 @@ describe('Contact E2E', () => {
     await app.init();
 
     userFactory = moduleRef.get(UserFactoryService);
+    authService = moduleRef.get(AuthService);
   });
 
   afterAll(async () => {
@@ -49,14 +52,17 @@ describe('Contact E2E', () => {
         },
       };
 
+      const { accessToken } = await authService.authenticateUser(inviter);
+
       const response = await request(app.getHttpServer())
         .post('/graphql')
         .send({ query, variables })
-        .set('Content-Type', 'application/json');
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.errors).toBeUndefined();
-      expect(response.body.data.id).toEqual(expect.any(Number));
+      expect(response.body?.errors).toBeUndefined();
+      expect(response.body?.data?.createInvite?.id).toEqual(expect.any(Number));
     });
 
     it('should not be possible to invite user, if pending invite exists', async () => {});
