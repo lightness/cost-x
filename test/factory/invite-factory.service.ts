@@ -1,47 +1,80 @@
 import { Injectable } from '@nestjs/common';
-import { v4 as uuid } from 'uuid';
-import { UserStatus } from '../../generated/prisma/enums';
-import { UserCreateInput } from '../../generated/prisma/models';
+import { Invite } from '../../generated/prisma/client';
+import { InviteStatus } from '../../generated/prisma/enums';
+import { InviteCreateInput, InviteCreateManyInput } from '../../generated/prisma/models';
 import { PrismaService } from '../../src/prisma/prisma.service';
-import { User } from '../../src/user/entity/user.entity';
-import { BaseFactoryService } from './base-factory.service';
+import { KindBasedFactoryService } from './base-factory.service';
+import { UserFactoryService } from './user-factory.service';
+
+export type InviteKind = 'pending' | 'accepted' | 'rejected';
 
 @Injectable()
-export class UserFactoryService implements BaseFactoryService<User, UserCreateInput> {
-  constructor(private prisma: PrismaService) {}
+export class InviteFactoryService
+  implements KindBasedFactoryService<InviteKind, Invite, InviteCreateManyInput, InviteCreateInput>
+{
+  constructor(
+    private prisma: PrismaService,
+    private userFactory: UserFactoryService,
+  ) {}
 
-  create(overrides: Partial<UserCreateInput> = {}): Promise<User> {
-    return this.prisma.user.create({
+  async create(
+    kind: InviteKind = 'pending',
+    overrides: Partial<InviteCreateManyInput> = {},
+  ): Promise<Invite> {
+    return this.prisma.invite.create({
       data: {
-        ...this.generate(),
-        ...overrides,
+        ...(await this.generate(kind, overrides)),
       },
     });
   }
 
-  generate(): UserCreateInput {
+  async generate(
+    kind: InviteKind = 'pending',
+    overrides: Partial<InviteCreateManyInput> = {},
+  ): Promise<InviteCreateInput> {
+    const { inviteeId, inviterId, ...restOverrides } = overrides;
+
     return {
-      email: this.generateEmail(),
-      name: this.generateName(),
-      password: this.generatePassword(),
-      status: UserStatus.EMAIL_NOT_VERIFIED,
-      tempCode: this.generateTempCode(),
+      invitee: {
+        connect: {
+          id: overrides?.inviteeId || (await this.generateInviteeId()),
+        },
+      },
+      inviter: {
+        connect: {
+          id: overrides.inviterId || (await this.generateInviterId()),
+        },
+      },
+      reactedAt: this.generateReactedAt(kind),
+      status: this.generateStatus(kind),
+      ...restOverrides,
     };
   }
 
-  generateEmail(): string {
-    return `user-${Date.now()}@example.com`;
+  async generateInviteeId(): Promise<number> {
+    return (await this.userFactory.create('active')).id;
   }
 
-  generateName(): string {
-    return `User${Date.now()}`;
+  async generateInviterId(): Promise<number> {
+    return (await this.userFactory.create('active')).id;
   }
 
-  generatePassword(): string {
-    return '12345';
+  generateReactedAt(kind: InviteKind): Date {
+    if (kind === 'pending') {
+      return null;
+    } else {
+      return new Date(); // TODO: add some random
+    }
   }
 
-  generateTempCode(): string {
-    return uuid();
+  generateStatus(kind: InviteKind): InviteStatus {
+    switch (kind) {
+      case 'pending':
+        return InviteStatus.PENDING;
+      case 'accepted':
+        return InviteStatus.ACCEPTED;
+      case 'rejected':
+        return InviteStatus.REJECTED;
+    }
   }
 }

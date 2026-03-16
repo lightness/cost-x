@@ -1,7 +1,6 @@
 import { NestApplication } from '@nestjs/core';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
-import { UserStatus } from '../generated/prisma/enums';
 import { AuthModule } from '../src/auth/auth.module';
 import { AuthInDto } from '../src/auth/dto';
 import { JwtPayload } from '../src/auth/interfaces';
@@ -43,10 +42,8 @@ describe('Auth E2E', () => {
 
     beforeAll(async () => {
       const password = userFactory.generatePassword();
-      const user = await userFactory.create({
+      const user = await userFactory.create('active', {
         password: await bcryptService.hashPassword(password),
-        status: UserStatus.ACTIVE,
-        tempCode: null,
       });
       authInDto = {
         email: user.email,
