@@ -22,8 +22,7 @@ export default () => ({
   confirmEmail: {
     jwt: {
       expiresIn: process.env.CONFIRM_EMAIL_JWT_EXPIRES_IN || '7d',
-      redisPrefix:
-        process.env.CONFIRM_EMAIL_JWT_REDIS_PREFIX || 'expired:confirm-email:',
+      redisPrefix: process.env.CONFIRM_EMAIL_JWT_REDIS_PREFIX || 'expired:confirm-email:',
       secret: process.env.CONFIRM_EMAIL_JWT_SECRET || 'TopSECRET',
     },
     linkUrl: process.env.CONFIRM_EMAIL_LINK_URL,
@@ -50,9 +49,7 @@ export default () => ({
   resetPassword: {
     jwt: {
       expiresIn: process.env.RESET_PASSWORD_JWT_EXPIRES_IN || '5min',
-      redisPrefix:
-        process.env.RESET_PASSWORD_JWT_REDIS_PREFIX ||
-        'expired:reset-password:',
+      redisPrefix: process.env.RESET_PASSWORD_JWT_REDIS_PREFIX || 'expired:reset-password:',
       secret: process.env.RESET_PASSWORD_JWT_SECRET || 'ResetPasswordTopSecret',
     },
     linkUrl: process.env.RESET_PASSWORD_LINK_URL,

@@ -47,9 +47,7 @@ export class PaymentService {
     this.consistencyService.paymentToItem.ensureIsBelonging(payment, item);
 
     if (payment.itemId !== item.id) {
-      throw new BadRequestException(
-        `Payment #${payment.id} does not belong to item #${item.id}`,
-      );
+      throw new BadRequestException(`Payment #${payment.id} does not belong to item #${item.id}`);
     }
 
     return payment;
@@ -59,7 +57,11 @@ export class PaymentService {
     return this.prisma.payment.create({
       data: {
         ...dto,
-        item: { connect: item },
+        item: {
+          connect: {
+            id: item.id,
+          },
+        },
       },
     });
   }
@@ -82,10 +84,7 @@ export class PaymentService {
     });
   }
 
-  async getItemPayments(
-    itemId: number,
-    filter: PaymentsFilter,
-  ): Promise<Payment[]> {
+  async getItemPayments(itemId: number, filter: PaymentsFilter): Promise<Payment[]> {
     const { dateFrom, dateTo } = filter || {};
 
     const payments = await this.prisma.payment.findMany({
@@ -101,16 +100,11 @@ export class PaymentService {
     return payments;
   }
 
-  filterPayments<T extends PaymentLike>(
-    payments: T[],
-    filters: PaymentsFilter,
-  ): T[] {
+  filterPayments<T extends PaymentLike>(payments: T[], filters: PaymentsFilter): T[] {
     const { dateFrom, dateTo } = filters || {};
 
     return payments.filter(({ date }) => {
-      return (
-        (dateFrom ? dateFrom <= date : true) && (dateTo ? dateTo > date : true)
-      );
+      return (dateFrom ? dateFrom <= date : true) && (dateTo ? dateTo > date : true);
     });
   }
 

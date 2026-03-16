@@ -9,10 +9,7 @@ import { Workspace } from './entity/workspace.entity';
 export class WorkspaceService {
   constructor(private prisma: PrismaService) {}
 
-  async listByOwnerIds(
-    ownerIds: number[],
-    filters: WorkspacesFilter,
-  ): Promise<Workspace[]> {
+  async listByOwnerIds(ownerIds: number[], filters: WorkspacesFilter): Promise<Workspace[]> {
     return this.prisma.workspace.findMany({
       where: this.getWhereClause(ownerIds, filters),
     });
@@ -23,7 +20,9 @@ export class WorkspaceService {
       data: {
         defaultCurrency: dto.defaultCurrency,
         owner: {
-          connect: currentUser,
+          connect: {
+            id: currentUser.id,
+          },
         },
         title: dto.title,
       },
@@ -49,18 +48,11 @@ export class WorkspaceService {
 
   // private
 
-  private getWhereClause(
-    ownerIds: number[],
-    filters: WorkspacesFilter,
-  ): WorkspaceWhereInput {
+  private getWhereClause(ownerIds: number[], filters: WorkspacesFilter): WorkspaceWhereInput {
     return {
-      defaultCurrency: filters.defaultCurrency
-        ? { equals: filters.defaultCurrency }
-        : undefined,
+      defaultCurrency: filters.defaultCurrency ? { equals: filters.defaultCurrency } : undefined,
       ownerId: { in: ownerIds },
-      title: filters.title
-        ? { contains: filters.title, mode: 'insensitive' }
-        : undefined,
+      title: filters.title ? { contains: filters.title, mode: 'insensitive' } : undefined,
     };
   }
 }
