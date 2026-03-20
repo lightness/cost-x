@@ -40,7 +40,7 @@ export class UserFactoryService
   }
 
   generateEmail(): string {
-    return `user-${Date.now()}@example.com`;
+    return `user-${Date.now()}-${process.hrtime()[1]}@example.com`;
   }
 
   generateName(): string {

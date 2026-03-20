@@ -52,11 +52,9 @@ export class UserBlockService {
   async isUserBlockExists(
     blockedUserId: number,
     blockerUserId: number,
-    tx?: Prisma.TransactionClient,
+    tx: Prisma.TransactionClient = this.prisma,
   ): Promise<boolean> {
-    const client = tx || this.prisma;
-
-    const count = await client.userBlock.count({
+    const count = await tx.userBlock.count({
       where: {
         blockedId: blockedUserId,
         blockerId: blockerUserId,
@@ -65,5 +63,16 @@ export class UserBlockService {
     });
 
     return count > 0;
+  }
+
+  async listByUserIds(userIds: number[]): Promise<UserBlock[]> {
+    const userBlocks = await this.prisma.userBlock.findMany({
+      include: {
+        blocker: true,
+      },
+      where: { blockerId: { in: userIds } },
+    });
+
+    return userBlocks;
   }
 }

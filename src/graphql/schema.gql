@@ -189,6 +189,17 @@ type Invite {
   invitee: User!
 }
 
+type UserBlock {
+  id: Int!
+  createdAt: DateIso!
+  blockerId: Int!
+  blockedId: Int!
+  removedAt: DateIso
+  removedByUserId: Int
+  blocker: User!
+  blocked: User!
+}
+
 type Query {
   users: [User!]!
   user(id: Int!): User!
@@ -208,6 +219,8 @@ type Mutation {
   acceptInvite(inviteId: Int!): Invite!
   rejectInvite(inviteId: Int!): Invite!
   rejectInviteAndBlockUser(inviteId: Int!): Invite!
+  deleteContact(contactId: Int!): Contact!
+  blockUser(dto: CreateUserBlockInDto!): UserBlock!
   createUser(dto: CreateUserInDto!): User!
   updateUser(id: Int!, dto: UpdateUserInDto!): User!
   deleteUser(id: Int!): Boolean!
@@ -232,6 +245,11 @@ type Mutation {
 input CreateInviteInDto {
   inviterUserId: Int!
   inviteeUserId: Int!
+}
+
+input CreateUserBlockInDto {
+  blockerId: Int!
+  blockedId: Int!
 }
 
 input CreateUserInDto {

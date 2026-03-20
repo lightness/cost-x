@@ -16,10 +16,13 @@ export enum ApplicationErrorCode {
   INVITEE_BLOCKED_INVITER = 'invitee_blocked_inviter',
   INVITER_BLOCKED_INVITEE = 'inviter_blocked_invitee',
   CONTACT_ALREADY_EXISTS = 'contact_already_exists',
+  CONTACT_ALREADY_REMOVED = 'contact_already_removed',
   CONTACT_NOT_FOUND = 'contact_not_found',
   UNEXPECTED_CONTACT_STATE = 'unexpected_contact_state',
   IMPROPER_INVITE_STATUS = 'improper_invite_status',
   INVITE_NOT_FOUND = 'invite_not_found',
+  SELF_BLOCK_FORBIDDEN = 'self_block_forbidden',
+  BLOCKED_USER_NOT_FOUND = 'blocked_user_not_found',
   //
 }
 

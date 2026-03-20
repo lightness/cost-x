@@ -1,14 +1,15 @@
 import { NestApplication } from '@nestjs/core';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
-import { Invite, User } from '../generated/prisma/client';
-import { InviteStatus } from '../generated/prisma/enums';
+import { Contact, Invite, User } from '../generated/prisma/client';
 import { AuthService } from '../src/auth/auth.service';
 import { ApplicationErrorCode } from '../src/common/error/coded-application.error';
 import { configureApp } from '../src/configure-app';
 import { ContactModule } from '../src/contact/contact.module';
+import { InviteStatus } from '../src/contact/entity/invite-status.enum';
 import { GraphqlModule } from '../src/graphql/graphql.module';
 import { PrismaService } from '../src/prisma/prisma.service';
+import { UserRole } from '../src/user/entity/user-role.enum';
 import { ContactFactoryService } from './factory/contact-factory.service';
 import { FactoryModule } from './factory/factory.module';
 import { InviteFactoryService } from './factory/invite-factory.service';
@@ -1453,9 +1454,262 @@ describe('Contact E2E', () => {
   });
 
   describe('delete contact', () => {
-    it('should be possible to delete contact', async () => {});
-    it(`should not be possible to delete someone else's contact`, async () => {});
-    it('should not be possible to delete deleted contact', async () => {});
+    it('should be possible to delete contact by source user', async () => {
+      // Assume
+      const inviter = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const invite = await inviteFactory.create('accepted', {
+        inviteeId: invitee.id,
+        inviterId: inviter.id,
+      });
+      const sourceUser = invitee;
+      const targetUser = inviter;
+      const [contact, reverseContact] = await contactFactory.createActivePair({
+        inviteId: invite.id,
+        sourceUserId: sourceUser.id,
+        targetUserId: targetUser.id,
+      });
+
+      // Act
+      const query = `
+        mutation DeleteContact ($contactId: Int!) {
+          deleteContact(contactId: $contactId) {
+            id
+          }
+        }
+      `;
+
+      const variables = {
+        contactId: contact.id,
+      };
+
+      const { accessToken } = await authService.authenticateUser(sourceUser);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query, variables })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseSuccess(response);
+      await expectContactIsRemoved(contact, { invite, sourceUser, targetUser });
+      await expectContactIsRemoved(reverseContact, {
+        invite,
+        sourceUser: targetUser,
+        targetUser: sourceUser,
+      });
+      await expectInviteAccepted(invite, { invitee, inviter });
+      await expectActiveContactPairNotExists(sourceUser, targetUser, { invite });
+      await expectNoActiveUserBlock(sourceUser, targetUser);
+      await expectNoActiveUserBlock(targetUser, sourceUser);
+    });
+
+    it('should be possible to delete contact by admin', async () => {
+      // Assume
+      const inviter = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const invite = await inviteFactory.create('accepted', {
+        inviteeId: invitee.id,
+        inviterId: inviter.id,
+      });
+      const sourceUser = invitee;
+      const targetUser = inviter;
+      const [contact, reverseContact] = await contactFactory.createActivePair({
+        inviteId: invite.id,
+        sourceUserId: sourceUser.id,
+        targetUserId: targetUser.id,
+      });
+      const admin = await userFactory.create('active', { role: UserRole.ADMIN });
+
+      // Act
+      const query = `
+        mutation DeleteContact ($contactId: Int!) {
+          deleteContact(contactId: $contactId) {
+            id
+          }
+        }
+      `;
+
+      const variables = {
+        contactId: contact.id,
+      };
+
+      const { accessToken } = await authService.authenticateUser(admin);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query, variables })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseSuccess(response);
+      await expectContactIsRemoved(contact, { invite, sourceUser, targetUser });
+      await expectContactIsRemoved(reverseContact, {
+        invite,
+        sourceUser: targetUser,
+        targetUser: sourceUser,
+      });
+      await expectInviteAccepted(invite, { invitee, inviter });
+      await expectActiveContactPairNotExists(sourceUser, targetUser, { invite });
+      await expectNoActiveUserBlock(sourceUser, targetUser);
+      await expectNoActiveUserBlock(targetUser, sourceUser);
+    });
+
+    it('should not be possible to delete contact by target user', async () => {
+      // Assume
+      const inviter = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const invite = await inviteFactory.create('accepted', {
+        inviteeId: invitee.id,
+        inviterId: inviter.id,
+      });
+      const sourceUser = invitee;
+      const targetUser = inviter;
+      const [contact, reverseContact] = await contactFactory.createActivePair({
+        inviteId: invite.id,
+        sourceUserId: sourceUser.id,
+        targetUserId: targetUser.id,
+      });
+
+      // Act
+      const query = `
+        mutation DeleteContact ($contactId: Int!) {
+          deleteContact(contactId: $contactId) {
+            id
+          }
+        }
+      `;
+
+      const variables = {
+        contactId: contact.id,
+      };
+
+      const { accessToken } = await authService.authenticateUser(targetUser);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query, variables })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseError(response, { code: 'FORBIDDEN', status: undefined });
+      await expectContactIsActive(contact, { invite, sourceUser, targetUser });
+      await expectContactIsActive(reverseContact, {
+        invite,
+        sourceUser: targetUser,
+        targetUser: sourceUser,
+      });
+      await expectInviteAccepted(invite, { invitee, inviter });
+      await expectNoActiveUserBlock(sourceUser, targetUser);
+      await expectNoActiveUserBlock(targetUser, sourceUser);
+    });
+
+    it(`should not be possible to delete contact by foreign user`, async () => {
+      // Assume
+      const inviter = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const invite = await inviteFactory.create('accepted', {
+        inviteeId: invitee.id,
+        inviterId: inviter.id,
+      });
+      const sourceUser = invitee;
+      const targetUser = inviter;
+      const [contact, reverseContact] = await contactFactory.createActivePair({
+        inviteId: invite.id,
+        sourceUserId: sourceUser.id,
+        targetUserId: targetUser.id,
+      });
+      const admin = await userFactory.create('active', { role: UserRole.USER });
+
+      // Act
+      const query = `
+        mutation DeleteContact ($contactId: Int!) {
+          deleteContact(contactId: $contactId) {
+            id
+          }
+        }
+      `;
+
+      const variables = {
+        contactId: contact.id,
+      };
+
+      const { accessToken } = await authService.authenticateUser(admin);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query, variables })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseError(response, { code: 'FORBIDDEN', status: undefined });
+      await expectContactIsActive(contact, { invite, sourceUser, targetUser });
+      await expectContactIsActive(reverseContact, {
+        invite,
+        sourceUser: targetUser,
+        targetUser: sourceUser,
+      });
+      await expectInviteAccepted(invite, { invitee, inviter });
+      await expectNoActiveUserBlock(sourceUser, targetUser);
+      await expectNoActiveUserBlock(targetUser, sourceUser);
+    });
+
+    it('should not be possible to delete deleted contact', async () => {
+      // Assume
+      const inviter = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const invite = await inviteFactory.create('accepted', {
+        inviteeId: invitee.id,
+        inviterId: inviter.id,
+      });
+      const sourceUser = invitee;
+      const targetUser = inviter;
+      const [contact, reverseContact] = await contactFactory.createRemovedPair({
+        inviteId: invite.id,
+        sourceUserId: sourceUser.id,
+        targetUserId: targetUser.id,
+      });
+
+      // Act
+      const query = `
+        mutation DeleteContact ($contactId: Int!) {
+          deleteContact(contactId: $contactId) {
+            id
+          }
+        }
+      `;
+
+      const variables = {
+        contactId: contact.id,
+      };
+
+      const { accessToken } = await authService.authenticateUser(sourceUser);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query, variables })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseError(response, {
+        code: ApplicationErrorCode.CONTACT_ALREADY_REMOVED,
+        status: 'BAD_REQUEST',
+      });
+      await expectContactIsRemoved(contact, { invite, sourceUser, targetUser });
+      await expectContactIsRemoved(reverseContact, {
+        invite,
+        sourceUser: targetUser,
+        targetUser: sourceUser,
+      });
+      await expectInviteAccepted(invite, { invitee, inviter });
+      await expectNoActiveUserBlock(sourceUser, targetUser);
+      await expectNoActiveUserBlock(targetUser, sourceUser);
+    });
   });
 
   describe('block user', () => {
@@ -1467,6 +1721,7 @@ describe('Contact E2E', () => {
   describe('unblock user', () => {
     it('should be possible to unblock blocked user', async () => {});
     it('should not be possible to unblock user, which was not blocked', async () => {});
+    it('should not be possible to unblock user, which was blocked by other user', async () => {});
   });
 
   function expectResponseSuccess(response: any) {
@@ -1604,5 +1859,39 @@ describe('Contact E2E', () => {
     });
 
     expect(userBlock).toBeNull();
+  }
+
+  async function expectContactIsActive(
+    contact: Contact,
+    { sourceUser, targetUser, invite }: { sourceUser: User; targetUser: User; invite: Invite },
+  ) {
+    const updatedContact = await prisma.contact.findUnique({
+      where: { id: contact.id },
+    });
+
+    expect(updatedContact).toBeDefined();
+    expect(updatedContact.id).toBe(contact.id);
+    expect(updatedContact.sourceUserId).toBe(sourceUser.id);
+    expect(updatedContact.targetUserId).toBe(targetUser.id);
+    expect(updatedContact.inviteId).toBe(invite.id);
+    expect(updatedContact.removedAt).toBeNull();
+    expect(updatedContact.removedByUserId).toBeNull();
+  }
+
+  async function expectContactIsRemoved(
+    contact: Contact,
+    { sourceUser, targetUser, invite }: { sourceUser: User; targetUser: User; invite: Invite },
+  ) {
+    const updatedContact = await prisma.contact.findUnique({
+      where: { id: contact.id },
+    });
+
+    expect(updatedContact).toBeDefined();
+    expect(updatedContact.id).toBe(contact.id);
+    expect(updatedContact.sourceUserId).toBe(sourceUser.id);
+    expect(updatedContact.targetUserId).toBe(targetUser.id);
+    expect(updatedContact.inviteId).toBe(invite.id);
+    expect(updatedContact.removedAt).toEqual(expect.any(Date));
+    expect(updatedContact.removedByUserId).not.toBeNull();
   }
 });

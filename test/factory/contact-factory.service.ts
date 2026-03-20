@@ -30,6 +30,32 @@ export class ContactFactoryService
     });
   }
 
+  async createActivePair(
+    overrides: Partial<ContactCreateManyInput> = {},
+  ): Promise<[Contact, Contact]> {
+    const contact1 = await this.create('active', overrides);
+    const contact2 = await this.create('active', {
+      ...overrides,
+      sourceUserId: contact1.targetUserId,
+      targetUserId: contact1.sourceUserId,
+    });
+
+    return [contact1, contact2];
+  }
+
+  async createRemovedPair(
+    overrides: Partial<ContactCreateManyInput> = {},
+  ): Promise<[Contact, Contact]> {
+    const contact1 = await this.create('removed-by-source-user', overrides);
+    const contact2 = await this.create('removed-by-target-user', {
+      ...overrides,
+      sourceUserId: contact1.targetUserId,
+      targetUserId: contact1.sourceUserId,
+    });
+
+    return [contact1, contact2];
+  }
+
   async generate(
     kind: ContactKind = 'active',
     overrides: Partial<ContactCreateManyInput> = {},

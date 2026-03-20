@@ -7,6 +7,7 @@ export enum AccessAction {
 }
 
 export enum AccessScope {
+  CONTACT = 'contact',
   USER = 'user',
   WORKSPACE = 'workspace',
   ITEM = 'item',
@@ -14,6 +15,7 @@ export enum AccessScope {
   PAYMENT = 'payment',
   INVITE = 'invite',
   GLOBAL = 'global',
+  USER_BLOCK = 'user-block',
 }
 
 export interface Rule {

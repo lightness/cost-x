@@ -1,4 +1,6 @@
+export * from './blocked-user-not-found.error';
 export * from './contact-already-exists.error';
+export * from './contact-already-removed.error';
 export * from './contact-not-found.error';
 export * from './improper-invite-status.error';
 export * from './invite-not-found.error';
@@ -6,4 +8,5 @@ export * from './invitee-already-send-invite.error';
 export * from './invitee-blocked-inviter.error';
 export * from './inviter-already-send-invite.error';
 export * from './inviter-blocked-invitee.error';
+export * from './self-block-forbidden.error';
 export * from './unexpected-contact-state.error';

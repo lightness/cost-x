@@ -85,6 +85,7 @@ export class ApplicationExceptionFilter implements ExceptionFilter {
       case ApplicationErrorCode.USER_ALREADY_EXISTS:
       case ApplicationErrorCode.VALIDATION:
       case ApplicationErrorCode.CONTACT_ALREADY_EXISTS:
+      case ApplicationErrorCode.CONTACT_ALREADY_REMOVED:
       case ApplicationErrorCode.CONTACT_NOT_FOUND:
       case ApplicationErrorCode.INVITEE_ALREADY_SEND_INVITE:
       case ApplicationErrorCode.INVITEE_BLOCKED_INVITER:
@@ -92,6 +93,8 @@ export class ApplicationExceptionFilter implements ExceptionFilter {
       case ApplicationErrorCode.INVITER_BLOCKED_INVITEE:
       case ApplicationErrorCode.IMPROPER_INVITE_STATUS:
       case ApplicationErrorCode.INVITE_NOT_FOUND:
+      case ApplicationErrorCode.SELF_BLOCK_FORBIDDEN:
+      case ApplicationErrorCode.BLOCKED_USER_NOT_FOUND:
         return HttpStatus.BAD_REQUEST;
       default:
         return HttpStatus.INTERNAL_SERVER_ERROR;

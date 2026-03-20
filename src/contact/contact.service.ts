@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { Contact } from '../../generated/prisma/browser';
 import { Prisma } from '../../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
-import { ContactValidationService } from './contact-validation.service';
 import { UserBlockService } from './user-block.service';
 
 @Injectable()
@@ -10,7 +9,6 @@ export class ContactService {
   constructor(
     private prisma: PrismaService,
     private userBlockService: UserBlockService,
-    private contactValidationService: ContactValidationService,
   ) {}
 
   async createContact(
