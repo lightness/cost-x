@@ -1,7 +1,7 @@
 import { NestApplication } from '@nestjs/core';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
-import { User } from '../generated/prisma/client';
+import { Invite, User } from '../generated/prisma/client';
 import { InviteStatus } from '../generated/prisma/enums';
 import { AuthService } from '../src/auth/auth.service';
 import { ApplicationErrorCode } from '../src/common/error/coded-application.error';
@@ -48,6 +48,8 @@ describe('Contact E2E', () => {
   });
 
   describe('invite', () => {
+    const getInviteId = (response) => response.body?.data?.createInvite?.id;
+
     it('should be possible to invite user', async () => {
       // Assume
       const inviter = await userFactory.create('active');
@@ -78,7 +80,8 @@ describe('Contact E2E', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       // Assert
-      expectInviteCreated(response, { invitee, inviter, status: InviteStatus.PENDING });
+      expectResponseSuccess(response);
+      await expectInvitePending(getInviteId(response), { invitee, inviter });
     });
 
     it('should not be possible to invite user, if pending invite exists', async () => {
@@ -115,7 +118,10 @@ describe('Contact E2E', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       // Assert
-      expectError(response, { code: ApplicationErrorCode.INVITER_ALREADY_SEND_INVITE });
+      expectResponseError(response, {
+        code: ApplicationErrorCode.INVITER_ALREADY_SEND_INVITE,
+        status: 'BAD_REQUEST',
+      });
     });
 
     it('should be possible to invite user, if non-pending invite exists', async () => {
@@ -152,7 +158,8 @@ describe('Contact E2E', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       // Assert
-      expectInviteCreated(response, { invitee, inviter, status: InviteStatus.PENDING });
+      expectResponseSuccess(response);
+      await expectInvitePending(getInviteId(response), { invitee, inviter });
     });
 
     it('should not be possible to invite user, if pending invite exists (reverse)', async () => {
@@ -189,7 +196,10 @@ describe('Contact E2E', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       // Assert
-      expectError(response, { code: ApplicationErrorCode.INVITEE_ALREADY_SEND_INVITE });
+      expectResponseError(response, {
+        code: ApplicationErrorCode.INVITEE_ALREADY_SEND_INVITE,
+        status: 'BAD_REQUEST',
+      });
     });
 
     it('should be possible to invite user, if non-pending invite exists (reverse)', async () => {
@@ -226,7 +236,8 @@ describe('Contact E2E', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       // Assert
-      expectInviteCreated(response, { invitee, inviter, status: InviteStatus.PENDING });
+      expectResponseSuccess(response);
+      await expectInvitePending(getInviteId(response), { invitee, inviter });
     });
 
     it('should not be possible to invite user, if contact exists', async () => {
@@ -265,7 +276,10 @@ describe('Contact E2E', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       // Assert
-      expectError(response, { code: ApplicationErrorCode.CONTACT_ALREADY_EXISTS });
+      expectResponseError(response, {
+        code: ApplicationErrorCode.CONTACT_ALREADY_EXISTS,
+        status: 'BAD_REQUEST',
+      });
     });
 
     it('should be possible to invite user, if removed contact exists', async () => {
@@ -304,7 +318,8 @@ describe('Contact E2E', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       // Assert
-      expectInviteCreated(response, { invitee, inviter, status: InviteStatus.PENDING });
+      expectResponseSuccess(response);
+      await expectInvitePending(getInviteId(response), { invitee, inviter });
     });
 
     it('should not be possible to invite user, if invitee blocked inviter', async () => {
@@ -341,7 +356,10 @@ describe('Contact E2E', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       // Assert
-      expectError(response, { code: ApplicationErrorCode.INVITEE_BLOCKED_INVITER });
+      expectResponseError(response, {
+        code: ApplicationErrorCode.INVITEE_BLOCKED_INVITER,
+        status: 'BAD_REQUEST',
+      });
     });
 
     it('should be possible to invite user, if invitee unblocked inviter', async () => {
@@ -378,7 +396,8 @@ describe('Contact E2E', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       // Assert
-      expectInviteCreated(response, { invitee, inviter, status: InviteStatus.PENDING });
+      expectResponseSuccess(response);
+      await expectInvitePending(getInviteId(response), { invitee, inviter });
     });
 
     it('should not be possible to invite user, if inviter blocked invitee', async () => {
@@ -415,7 +434,10 @@ describe('Contact E2E', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       // Assert
-      expectError(response, { code: ApplicationErrorCode.INVITER_BLOCKED_INVITEE });
+      expectResponseError(response, {
+        code: ApplicationErrorCode.INVITER_BLOCKED_INVITEE,
+        status: 'BAD_REQUEST',
+      });
     });
 
     it('should be possible to invite user, if inviter unblocked invitee', async () => {
@@ -452,73 +474,982 @@ describe('Contact E2E', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       // Assert
-      expectInviteCreated(response, { invitee, inviter, status: InviteStatus.PENDING });
+      expectResponseSuccess(response);
+      await expectInvitePending(getInviteId(response), { invitee, inviter });
     });
-
-    async function expectInviteCreated(
-      response: any,
-      { invitee, inviter, status }: { invitee: User; inviter: User; status: InviteStatus },
-    ) {
-      expect(response.status).toBe(200);
-      expect(response.body?.errors).toBeUndefined();
-      expect(response.body?.data?.createInvite?.id).toEqual(expect.any(Number));
-
-      const invite = await prisma.invite.findUnique({
-        where: { id: response.body.data.createInvite.id },
-      });
-
-      expect(invite).toBeDefined();
-      expect(invite.id).toBe(response.body.data.createInvite.id);
-      expect(invite.inviteeId).toBe(invitee.id);
-      expect(invite.inviterId).toBe(inviter.id);
-      expect(invite.status).toBe(status);
-      expect(invite.reactedAt).toBeNull();
-    }
-
-    async function expectError(
-      response: any,
-      { code, status = 'BAD_REQUEST' }: { code: ApplicationErrorCode; status?: string },
-    ) {
-      expect(response.status).toBe(200);
-      expect(response.body?.errors).toBeDefined();
-      expect(response.body?.errors?.[0]?.code).toBe(code);
-      expect(response.body?.errors?.[0]?.status).toBe(status);
-    }
   });
 
   describe('accept invite', () => {
-    it('should be possible for invitee to accept invite', async () => {});
-    it('should not be possible for inviter to accept invite', async () => {});
-    it('should not be possible to accept invite, if contact exists', async () => {});
-    it('should be possible to accept invite, if removed contact exists', async () => {});
-    it('should not be possible to invite user, if invitee blocked inviter', async () => {});
-    it('should be possible to invite user, if invitee unblocked inviter', async () => {});
-    it('should not be possible to invite user, if inviter blocked invitee', async () => {});
-    it('should be possible to invite user, if inviter unblocked invitee', async () => {});
-    it('should create contact pair on invite accept', async () => {});
+    it('should be possible for invitee to accept invite', async () => {
+      // Assume
+      const inviter = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const invite = await inviteFactory.create('pending', {
+        inviteeId: invitee.id,
+        inviterId: inviter.id,
+      });
+
+      // Act
+      const query = `
+        mutation AcceptInvite($inviteId: Int!) {
+          acceptInvite(inviteId: $inviteId) {
+            id
+          }
+        }
+      `;
+
+      const variables = {
+        inviteId: invite.id,
+      };
+
+      const { accessToken } = await authService.authenticateUser(invitee);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query, variables })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseSuccess(response);
+      await expectInviteAccepted(invite, { invitee, inviter });
+      await expectActiveContactPairExists(inviter, invitee, { invite });
+    });
+
+    it('should not be possible for inviter to accept invite', async () => {
+      // Assume
+      const inviter = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const invite = await inviteFactory.create('pending', {
+        inviteeId: invitee.id,
+        inviterId: inviter.id,
+      });
+
+      // Act
+      const query = `
+        mutation AcceptInvite($inviteId: Int!) {
+          acceptInvite(inviteId: $inviteId) {
+            id
+          }
+        }
+      `;
+
+      const variables = {
+        inviteId: invite.id,
+      };
+
+      const { accessToken } = await authService.authenticateUser(inviter);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query, variables })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseError(response, { code: 'FORBIDDEN', status: undefined });
+      await expectInvitePending(invite.id, { invitee, inviter });
+    });
+
+    it('should not be possible to accept invite, if contact exists', async () => {
+      // Assume
+      const inviter = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const invite = await inviteFactory.create('pending', {
+        inviteeId: invitee.id,
+        inviterId: inviter.id,
+      });
+      await contactFactory.create('active', {
+        sourceUserId: inviter.id,
+        targetUserId: invitee.id,
+      });
+
+      // Act
+      const query = `
+        mutation AcceptInvite($inviteId: Int!) {
+          acceptInvite(inviteId: $inviteId) {
+            id
+          }
+        }
+      `;
+
+      const variables = {
+        inviteId: invite.id,
+      };
+
+      const { accessToken } = await authService.authenticateUser(invitee);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query, variables })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseError(response, {
+        code: ApplicationErrorCode.CONTACT_ALREADY_EXISTS,
+        status: 'BAD_REQUEST',
+      });
+      await expectInvitePending(invite.id, { invitee, inviter });
+    });
+
+    it('should be possible to accept invite, if removed contact exists', async () => {
+      // Assume
+      const inviter = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const invite = await inviteFactory.create('pending', {
+        inviteeId: invitee.id,
+        inviterId: inviter.id,
+      });
+      await contactFactory.create('removed-by-source-user', {
+        sourceUserId: inviter.id,
+        targetUserId: invitee.id,
+      });
+
+      // Act
+      const query = `
+        mutation AcceptInvite($inviteId: Int!) {
+          acceptInvite(inviteId: $inviteId) {
+            id
+          }
+        }
+      `;
+
+      const variables = {
+        inviteId: invite.id,
+      };
+
+      const { accessToken } = await authService.authenticateUser(invitee);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query, variables })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseSuccess(response);
+      await expectInviteAccepted(invite, { invitee, inviter });
+      await expectActiveContactPairExists(inviter, invitee, { invite });
+    });
+
+    it('should not be possible to invite user, if invitee blocked inviter', async () => {
+      // Assume
+      const inviter = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const invite = await inviteFactory.create('pending', {
+        inviteeId: invitee.id,
+        inviterId: inviter.id,
+      });
+      await userBlockFactory.create('active', {
+        blockedId: inviter.id,
+        blockerId: invitee.id,
+      });
+
+      // Act
+      const query = `
+        mutation AcceptInvite($inviteId: Int!) {
+          acceptInvite(inviteId: $inviteId) {
+            id
+          }
+        }
+      `;
+
+      const variables = {
+        inviteId: invite.id,
+      };
+
+      const { accessToken } = await authService.authenticateUser(invitee);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query, variables })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseError(response, {
+        code: ApplicationErrorCode.INVITEE_BLOCKED_INVITER,
+        status: 'BAD_REQUEST',
+      });
+      await expectInvitePending(invite.id, { invitee, inviter });
+    });
+
+    it('should be possible to invite user, if invitee unblocked inviter', async () => {
+      // Assume
+      const inviter = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const invite = await inviteFactory.create('pending', {
+        inviteeId: invitee.id,
+        inviterId: inviter.id,
+      });
+      await userBlockFactory.create('removed', {
+        blockedId: inviter.id,
+        blockerId: invitee.id,
+      });
+
+      // Act
+      const query = `
+        mutation AcceptInvite($inviteId: Int!) {
+          acceptInvite(inviteId: $inviteId) {
+            id
+          }
+        }
+      `;
+
+      const variables = {
+        inviteId: invite.id,
+      };
+
+      const { accessToken } = await authService.authenticateUser(invitee);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query, variables })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseSuccess(response);
+      await expectInviteAccepted(invite, { invitee, inviter });
+      await expectActiveContactPairExists(inviter, invitee, { invite });
+    });
+
+    it('should not be possible to invite user, if inviter blocked invitee', async () => {
+      // Assume
+      const inviter = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const invite = await inviteFactory.create('pending', {
+        inviteeId: invitee.id,
+        inviterId: inviter.id,
+      });
+      await userBlockFactory.create('active', {
+        blockedId: invitee.id,
+        blockerId: inviter.id,
+      });
+
+      // Act
+      const query = `
+        mutation AcceptInvite($inviteId: Int!) {
+          acceptInvite(inviteId: $inviteId) {
+            id
+          }
+        }
+      `;
+
+      const variables = {
+        inviteId: invite.id,
+      };
+
+      const { accessToken } = await authService.authenticateUser(invitee);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query, variables })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseError(response, {
+        code: ApplicationErrorCode.INVITER_BLOCKED_INVITEE,
+        status: 'BAD_REQUEST',
+      });
+      await expectInvitePending(invite.id, { invitee, inviter });
+    });
+
+    it('should be possible to invite user, if inviter unblocked invitee', async () => {
+      // Assume
+      const inviter = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const invite = await inviteFactory.create('pending', {
+        inviteeId: invitee.id,
+        inviterId: inviter.id,
+      });
+      await userBlockFactory.create('removed', {
+        blockedId: invitee.id,
+        blockerId: inviter.id,
+      });
+
+      // Act
+      const query = `
+        mutation AcceptInvite($inviteId: Int!) {
+          acceptInvite(inviteId: $inviteId) {
+            id
+          }
+        }
+      `;
+
+      const variables = {
+        inviteId: invite.id,
+      };
+
+      const { accessToken } = await authService.authenticateUser(invitee);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query, variables })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseSuccess(response);
+      await expectInviteAccepted(invite, { invitee, inviter });
+      await expectActiveContactPairExists(inviter, invitee, { invite });
+    });
   });
 
   describe('reject invite', () => {
-    it('should be possible for invitee to reject invite', async () => {});
-    it('should not be possible for inviter to reject invite', async () => {});
-    it('should not be possible to reject invite, if contact exists', async () => {});
-    it('should be possible to reject invite, if removed contact exists', async () => {});
-    it('should not be possible to invite user, if invitee blocked inviter', async () => {});
-    it('should be possible to invite user, if invitee unblocked inviter', async () => {});
-    it('should not be possible to invite user, if inviter blocked invitee', async () => {});
-    it('should be possible to invite user, if inviter unblocked invitee', async () => {});
+    it('should be possible for invitee to reject invite', async () => {
+      // Assume
+      const inviter = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const invite = await inviteFactory.create('pending', {
+        inviteeId: invitee.id,
+        inviterId: inviter.id,
+      });
+
+      // Act
+      const query = `
+        mutation RejectInvite ($inviteId: Int!) {
+          rejectInvite(inviteId: $inviteId) {
+            id
+          }
+        }
+      `;
+
+      const variables = {
+        inviteId: invite.id,
+      };
+
+      const { accessToken } = await authService.authenticateUser(invitee);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query, variables })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseSuccess(response);
+      await expectInviteRejected(invite, { invitee, inviter });
+      await expectActiveContactPairNotExists(inviter, invitee, { invite });
+    });
+
+    it('should not be possible for inviter to reject invite', async () => {
+      // Assume
+      const inviter = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const invite = await inviteFactory.create('pending', {
+        inviteeId: invitee.id,
+        inviterId: inviter.id,
+      });
+
+      // Act
+      const query = `
+        mutation RejectInvite ($inviteId: Int!) {
+          rejectInvite(inviteId: $inviteId) {
+            id
+          }
+        }
+      `;
+
+      const variables = {
+        inviteId: invite.id,
+      };
+
+      const { accessToken } = await authService.authenticateUser(inviter);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query, variables })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseError(response, { code: 'FORBIDDEN', status: undefined });
+      await expectInvitePending(invite.id, { invitee, inviter });
+      await expectActiveContactPairNotExists(inviter, invitee, { invite });
+    });
+
+    it('should not be possible to reject invite, if contact exists', async () => {
+      // Assume
+      const inviter = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const invite = await inviteFactory.create('pending', {
+        inviteeId: invitee.id,
+        inviterId: inviter.id,
+      });
+      await contactFactory.create('active', {
+        sourceUserId: inviter.id,
+        targetUserId: invitee.id,
+      });
+
+      // Act
+      const query = `
+        mutation RejectInvite ($inviteId: Int!) {
+          rejectInvite(inviteId: $inviteId) {
+            id
+          }
+        }
+      `;
+
+      const variables = {
+        inviteId: invite.id,
+      };
+
+      const { accessToken } = await authService.authenticateUser(invitee);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query, variables })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseError(response, {
+        code: ApplicationErrorCode.CONTACT_ALREADY_EXISTS,
+        status: 'BAD_REQUEST',
+      });
+      await expectInvitePending(invite.id, { invitee, inviter });
+      await expectActiveContactPairNotExists(inviter, invitee, { invite });
+    });
+
+    it('should be possible to reject invite, if removed contact exists', async () => {
+      // Assume
+      const inviter = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const invite = await inviteFactory.create('pending', {
+        inviteeId: invitee.id,
+        inviterId: inviter.id,
+      });
+      await contactFactory.create('removed-by-source-user', {
+        sourceUserId: inviter.id,
+        targetUserId: invitee.id,
+      });
+
+      // Act
+      const query = `
+        mutation RejectInvite ($inviteId: Int!) {
+          rejectInvite(inviteId: $inviteId) {
+            id
+          }
+        }
+      `;
+
+      const variables = {
+        inviteId: invite.id,
+      };
+
+      const { accessToken } = await authService.authenticateUser(invitee);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query, variables })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseSuccess(response);
+      await expectInviteRejected(invite, { invitee, inviter });
+      await expectActiveContactPairNotExists(inviter, invitee, { invite });
+    });
+
+    it('should not be possible to invite user, if invitee blocked inviter', async () => {
+      // Assume
+      const inviter = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const invite = await inviteFactory.create('pending', {
+        inviteeId: invitee.id,
+        inviterId: inviter.id,
+      });
+      await userBlockFactory.create('active', {
+        blockedId: inviter.id,
+        blockerId: invitee.id,
+      });
+
+      // Act
+      const query = `
+        mutation RejectInvite ($inviteId: Int!) {
+          rejectInvite(inviteId: $inviteId) {
+            id
+          }
+        }
+      `;
+
+      const variables = {
+        inviteId: invite.id,
+      };
+
+      const { accessToken } = await authService.authenticateUser(invitee);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query, variables })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseError(response, {
+        code: ApplicationErrorCode.INVITEE_BLOCKED_INVITER,
+        status: 'BAD_REQUEST',
+      });
+      await expectInvitePending(invite.id, { invitee, inviter });
+      await expectActiveContactPairNotExists(inviter, invitee, { invite });
+    });
+
+    it('should be possible to invite user, if invitee unblocked inviter', async () => {
+      // Assume
+      const inviter = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const invite = await inviteFactory.create('pending', {
+        inviteeId: invitee.id,
+        inviterId: inviter.id,
+      });
+      await userBlockFactory.create('removed', {
+        blockedId: inviter.id,
+        blockerId: invitee.id,
+      });
+
+      // Act
+      const query = `
+        mutation RejectInvite ($inviteId: Int!) {
+          rejectInvite(inviteId: $inviteId) {
+            id
+          }
+        }
+      `;
+
+      const variables = {
+        inviteId: invite.id,
+      };
+
+      const { accessToken } = await authService.authenticateUser(invitee);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query, variables })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseSuccess(response);
+      await expectInviteRejected(invite, { invitee, inviter });
+      await expectActiveContactPairNotExists(inviter, invitee, { invite });
+    });
+
+    it('should not be possible to invite user, if inviter blocked invitee', async () => {
+      // Assume
+      const inviter = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const invite = await inviteFactory.create('pending', {
+        inviteeId: invitee.id,
+        inviterId: inviter.id,
+      });
+      await userBlockFactory.create('active', {
+        blockedId: invitee.id,
+        blockerId: inviter.id,
+      });
+
+      // Act
+      const query = `
+        mutation RejectInvite ($inviteId: Int!) {
+          rejectInvite(inviteId: $inviteId) {
+            id
+          }
+        }
+      `;
+
+      const variables = {
+        inviteId: invite.id,
+      };
+
+      const { accessToken } = await authService.authenticateUser(invitee);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query, variables })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseError(response, {
+        code: ApplicationErrorCode.INVITER_BLOCKED_INVITEE,
+        status: 'BAD_REQUEST',
+      });
+      await expectInvitePending(invite.id, { invitee, inviter });
+      await expectActiveContactPairNotExists(inviter, invitee, { invite });
+    });
+
+    it('should be possible to invite user, if inviter unblocked invitee', async () => {
+      // Assume
+      const inviter = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const invite = await inviteFactory.create('pending', {
+        inviteeId: invitee.id,
+        inviterId: inviter.id,
+      });
+      await userBlockFactory.create('removed', {
+        blockedId: invitee.id,
+        blockerId: inviter.id,
+      });
+
+      // Act
+      const query = `
+        mutation RejectInvite ($inviteId: Int!) {
+          rejectInvite(inviteId: $inviteId) {
+            id
+          }
+        }
+      `;
+
+      const variables = {
+        inviteId: invite.id,
+      };
+
+      const { accessToken } = await authService.authenticateUser(invitee);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query, variables })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseSuccess(response);
+      await expectInviteRejected(invite, { invitee, inviter });
+      await expectActiveContactPairNotExists(inviter, invitee, { invite });
+    });
   });
 
   describe('reject invite and block', () => {
-    it('should be possible for invitee to reject invite and block inviter', async () => {});
-    it('should not be possible for inviter to reject invite', async () => {});
-    it('should not be possible to reject invite, if contact exists', async () => {});
-    it('should be possible to reject invite, if removed contact exists', async () => {});
-    it('should not be possible to invite user, if invitee blocked inviter', async () => {});
-    it('should be possible to invite user, if invitee unblocked inviter', async () => {});
-    it('should not be possible to invite user, if inviter blocked invitee', async () => {});
-    it('should be possible to invite user, if inviter unblocked invitee', async () => {});
-    it('should block inviter for invitee', async () => {});
+    it('should be possible for invitee to reject invite and block inviter', async () => {
+      // Assume
+      const inviter = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const invite = await inviteFactory.create('pending', {
+        inviteeId: invitee.id,
+        inviterId: inviter.id,
+      });
+
+      // Act
+      const query = `
+        mutation RejectInviteAndBlock ($inviteId: Int!) {
+          rejectInviteAndBlockUser(inviteId: $inviteId) {
+            id
+          }
+        }
+      `;
+
+      const variables = {
+        inviteId: invite.id,
+      };
+
+      const { accessToken } = await authService.authenticateUser(invitee);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query, variables })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseSuccess(response);
+      await expectInviteRejected(invite, { invitee, inviter });
+      await expectActiveContactPairNotExists(inviter, invitee, { invite });
+      await expectActiveUserBlock(invitee, inviter);
+    });
+
+    it('should not be possible for inviter to reject invite', async () => {
+      // Assume
+      const inviter = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const invite = await inviteFactory.create('pending', {
+        inviteeId: invitee.id,
+        inviterId: inviter.id,
+      });
+
+      // Act
+      const query = `
+        mutation RejectInviteAndBlock ($inviteId: Int!) {
+          rejectInviteAndBlockUser(inviteId: $inviteId) {
+            id
+          }
+        }
+      `;
+
+      const variables = {
+        inviteId: invite.id,
+      };
+
+      const { accessToken } = await authService.authenticateUser(inviter);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query, variables })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseError(response, { code: 'FORBIDDEN', status: undefined });
+      await expectInvitePending(invite.id, { invitee, inviter });
+      await expectActiveContactPairNotExists(inviter, invitee, { invite });
+      await expectNoActiveUserBlock(invitee, inviter);
+    });
+
+    it('should not be possible to reject invite, if contact exists', async () => {
+      // Assume
+      const inviter = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const invite = await inviteFactory.create('pending', {
+        inviteeId: invitee.id,
+        inviterId: inviter.id,
+      });
+      await contactFactory.create('active', {
+        sourceUserId: inviter.id,
+        targetUserId: invitee.id,
+      });
+
+      // Act
+      const query = `
+        mutation RejectInviteAndBlock ($inviteId: Int!) {
+          rejectInviteAndBlockUser(inviteId: $inviteId) {
+            id
+          }
+        }
+      `;
+
+      const variables = {
+        inviteId: invite.id,
+      };
+
+      const { accessToken } = await authService.authenticateUser(invitee);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query, variables })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseError(response, {
+        code: ApplicationErrorCode.CONTACT_ALREADY_EXISTS,
+        status: 'BAD_REQUEST',
+      });
+      await expectInvitePending(invite.id, { invitee, inviter });
+      await expectActiveContactPairNotExists(inviter, invitee, { invite });
+      await expectNoActiveUserBlock(invitee, inviter);
+    });
+
+    it('should be possible to reject invite, if removed contact exists', async () => {
+      // Assume
+      const inviter = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const invite = await inviteFactory.create('pending', {
+        inviteeId: invitee.id,
+        inviterId: inviter.id,
+      });
+      await contactFactory.create('removed-by-source-user', {
+        sourceUserId: inviter.id,
+        targetUserId: invitee.id,
+      });
+
+      // Act
+      const query = `
+        mutation RejectInviteAndBlock ($inviteId: Int!) {
+          rejectInviteAndBlockUser(inviteId: $inviteId) {
+            id
+          }
+        }
+      `;
+
+      const variables = {
+        inviteId: invite.id,
+      };
+
+      const { accessToken } = await authService.authenticateUser(invitee);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query, variables })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseSuccess(response);
+      await expectInviteRejected(invite, { invitee, inviter });
+      await expectActiveContactPairNotExists(inviter, invitee, { invite });
+      await expectActiveUserBlock(invitee, inviter);
+    });
+
+    it('should not be possible to reject invite, if invitee blocked inviter', async () => {
+      // Assume
+      const inviter = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const invite = await inviteFactory.create('pending', {
+        inviteeId: invitee.id,
+        inviterId: inviter.id,
+      });
+      await userBlockFactory.create('active', {
+        blockedId: inviter.id,
+        blockerId: invitee.id,
+      });
+
+      // Act
+      const query = `
+        mutation RejectInviteAndBlock ($inviteId: Int!) {
+          rejectInviteAndBlockUser(inviteId: $inviteId) {
+            id
+          }
+        }
+      `;
+
+      const variables = {
+        inviteId: invite.id,
+      };
+
+      const { accessToken } = await authService.authenticateUser(invitee);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query, variables })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseError(response, {
+        code: ApplicationErrorCode.INVITEE_BLOCKED_INVITER,
+        status: 'BAD_REQUEST',
+      });
+      await expectInvitePending(invite.id, { invitee, inviter });
+      await expectActiveContactPairNotExists(inviter, invitee, { invite });
+      await expectActiveUserBlock(invitee, inviter); // remains same from "Assume" section
+    });
+
+    it('should be possible to invite user, if invitee unblocked inviter', async () => {
+      // Assume
+      const inviter = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const invite = await inviteFactory.create('pending', {
+        inviteeId: invitee.id,
+        inviterId: inviter.id,
+      });
+      await userBlockFactory.create('removed', {
+        blockedId: inviter.id,
+        blockerId: invitee.id,
+      });
+
+      // Act
+      const query = `
+        mutation RejectInviteAndBlock ($inviteId: Int!) {
+          rejectInviteAndBlockUser(inviteId: $inviteId) {
+            id
+          }
+        }
+      `;
+
+      const variables = {
+        inviteId: invite.id,
+      };
+
+      const { accessToken } = await authService.authenticateUser(invitee);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query, variables })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseSuccess(response);
+      await expectInviteRejected(invite, { invitee, inviter });
+      await expectActiveContactPairNotExists(inviter, invitee, { invite });
+      await expectActiveUserBlock(invitee, inviter);
+    });
+
+    it('should not be possible to invite user, if inviter blocked invitee', async () => {
+      // Assume
+      const inviter = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const invite = await inviteFactory.create('pending', {
+        inviteeId: invitee.id,
+        inviterId: inviter.id,
+      });
+      await userBlockFactory.create('active', {
+        blockedId: invitee.id,
+        blockerId: inviter.id,
+      });
+
+      // Act
+      const query = `
+        mutation RejectInviteAndBlock ($inviteId: Int!) {
+          rejectInviteAndBlockUser(inviteId: $inviteId) {
+            id
+          }
+        }
+      `;
+
+      const variables = {
+        inviteId: invite.id,
+      };
+
+      const { accessToken } = await authService.authenticateUser(invitee);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query, variables })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseError(response, {
+        code: ApplicationErrorCode.INVITER_BLOCKED_INVITEE,
+        status: 'BAD_REQUEST',
+      });
+      await expectInvitePending(invite.id, { invitee, inviter });
+      await expectActiveContactPairNotExists(inviter, invitee, { invite });
+      await expectNoActiveUserBlock(invitee, inviter);
+    });
+
+    it('should be possible to invite user, if inviter unblocked invitee', async () => {
+      // Assume
+      const inviter = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const invite = await inviteFactory.create('pending', {
+        inviteeId: invitee.id,
+        inviterId: inviter.id,
+      });
+      await userBlockFactory.create('removed', {
+        blockedId: invitee.id,
+        blockerId: inviter.id,
+      });
+
+      // Act
+      const query = `
+        mutation RejectInviteAndBlock ($inviteId: Int!) {
+          rejectInviteAndBlockUser(inviteId: $inviteId) {
+            id
+          }
+        }
+      `;
+
+      const variables = {
+        inviteId: invite.id,
+      };
+
+      const { accessToken } = await authService.authenticateUser(invitee);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query, variables })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseSuccess(response);
+      await expectInviteRejected(invite, { invitee, inviter });
+      await expectActiveContactPairNotExists(inviter, invitee, { invite });
+      await expectActiveUserBlock(invitee, inviter);
+    });
   });
 
   describe('delete contact', () => {
@@ -537,4 +1468,141 @@ describe('Contact E2E', () => {
     it('should be possible to unblock blocked user', async () => {});
     it('should not be possible to unblock user, which was not blocked', async () => {});
   });
+
+  function expectResponseSuccess(response: any) {
+    expect(response.status).toBe(200);
+    expect(response.body?.errors).toBeUndefined();
+    expect(response.body?.data).toBeDefined();
+  }
+
+  function expectResponseError(response, { code, status }: { code: string; status: string }) {
+    expect(response.status).toBe(200);
+    expect(response.body?.errors).toBeDefined();
+    expect(response.body?.errors?.[0]?.code).toBe(code);
+    expect(response.body?.errors?.[0]?.status).toBe(status);
+  }
+
+  async function expectInvitePending(inviteId: number, { inviter, invitee }) {
+    const invite = await prisma.invite.findUnique({
+      where: { id: inviteId },
+    });
+
+    expect(invite).toBeDefined();
+    expect(invite.id).toBe(inviteId);
+    expect(invite.inviteeId).toBe(invitee.id);
+    expect(invite.inviterId).toBe(inviter.id);
+    expect(invite.status).toBe(InviteStatus.PENDING);
+    expect(invite.reactedAt).toBeNull();
+  }
+
+  async function expectInviteAccepted(
+    invite: Invite,
+    { invitee, inviter }: { invitee: User; inviter: User },
+  ) {
+    const updatedInvite = await prisma.invite.findUnique({
+      where: { id: invite.id },
+    });
+
+    expect(updatedInvite).toBeDefined();
+    expect(updatedInvite.id).toBe(invite.id);
+    expect(updatedInvite.inviteeId).toBe(invitee.id);
+    expect(updatedInvite.inviterId).toBe(inviter.id);
+    expect(updatedInvite.status).toBe(InviteStatus.ACCEPTED);
+    expect(updatedInvite.reactedAt).toEqual(expect.any(Date));
+  }
+
+  async function expectInviteRejected(
+    invite: Invite,
+    { invitee, inviter }: { invitee: User; inviter: User },
+  ) {
+    const updatedInvite = await prisma.invite.findUnique({
+      where: { id: invite.id },
+    });
+
+    expect(updatedInvite).toBeDefined();
+    expect(updatedInvite.id).toBe(invite.id);
+    expect(updatedInvite.inviteeId).toBe(invitee.id);
+    expect(updatedInvite.inviterId).toBe(inviter.id);
+    expect(updatedInvite.status).toBe(InviteStatus.REJECTED);
+    expect(updatedInvite.reactedAt).toEqual(expect.any(Date));
+  }
+
+  async function expectActiveContactPairExists(
+    user1: User,
+    user2: User,
+    { invite }: { invite: Invite },
+  ) {
+    const contact1 = await prisma.contact.findFirst({
+      where: {
+        inviteId: invite.id,
+        removedAt: null,
+        sourceUserId: user1.id,
+        targetUserId: user2.id,
+      },
+    });
+
+    const contact2 = await prisma.contact.findFirst({
+      where: {
+        inviteId: invite.id,
+        removedAt: null,
+        sourceUserId: user2.id,
+        targetUserId: user1.id,
+      },
+    });
+
+    expect(contact1).toBeDefined();
+    expect(contact2).toBeDefined();
+  }
+
+  async function expectActiveContactPairNotExists(
+    user1: User,
+    user2: User,
+    { invite }: { invite: Invite },
+  ) {
+    const contact1 = await prisma.contact.findFirst({
+      where: {
+        inviteId: invite.id,
+        removedAt: null,
+        sourceUserId: user1.id,
+        targetUserId: user2.id,
+      },
+    });
+
+    const contact2 = await prisma.contact.findFirst({
+      where: {
+        inviteId: invite.id,
+        removedAt: null,
+        sourceUserId: user2.id,
+        targetUserId: user1.id,
+      },
+    });
+
+    expect(contact1).toBeNull();
+    expect(contact2).toBeNull();
+  }
+
+  async function expectActiveUserBlock(blocker: User, blocked: User) {
+    const userBlock = await prisma.userBlock.findFirst({
+      where: {
+        blockedId: blocked.id,
+        blockerId: blocker.id,
+        removedAt: null,
+      },
+    });
+
+    expect(userBlock).toBeDefined();
+    expect(userBlock.removedByUserId).toBeNull();
+  }
+
+  async function expectNoActiveUserBlock(blocker: User, blocked: User) {
+    const userBlock = await prisma.userBlock.findFirst({
+      where: {
+        blockedId: blocked.id,
+        blockerId: blocker.id,
+        removedAt: null,
+      },
+    });
+
+    expect(userBlock).toBeNull();
+  }
 });
