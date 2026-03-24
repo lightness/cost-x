@@ -13,6 +13,8 @@ import { CreateInviteInDto } from '../dto';
 import { Invite } from '../entity/invite.entity';
 import { InviteValidationService } from '../invite-validation.service';
 import { InviteService } from '../invite.service';
+import { CurrentUser } from '../../auth/decorator/current-user.decorator';
+import { User } from '../../user/entity/user.entity';
 
 @Resolver()
 @UseInterceptors(GqlLoggingInterceptor, TransactionInterceptor)
@@ -94,9 +96,10 @@ export class InviteMutationResolver {
   async rejectInviteAndBlockUser(
     @Args('inviteId', { type: () => Int }) inviteId: number,
     @Context('tx') tx: Prisma.TransactionClient,
+    @CurrentUser() currentUser: User,
   ) {
     await this.inviteValidationService.validateRejectInviteAndBlockUser(inviteId, tx);
 
-    return this.inviteService.rejectInviteAndBlockUser(inviteId, tx);
+    return this.inviteService.rejectInviteAndBlockUser(inviteId, currentUser.id, tx);
   }
 }

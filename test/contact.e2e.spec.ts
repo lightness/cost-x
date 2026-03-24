@@ -1713,15 +1713,477 @@ describe('Contact E2E', () => {
   });
 
   describe('block user', () => {
-    it('should be possible to block user', async () => {});
-    it('should not be possible to block self', async () => {});
-    it('should not be possible to block blocked user', async () => {});
+    it('should be possible to block user', async () => {
+      // Assume
+      const inviter = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const invite = await inviteFactory.create('accepted', {
+        inviteeId: invitee.id,
+        inviterId: inviter.id,
+      });
+      const sourceUser = invitee;
+      const targetUser = inviter;
+      const [contact, reverseContact] = await contactFactory.createActivePair({
+        inviteId: invite.id,
+        sourceUserId: sourceUser.id,
+        targetUserId: targetUser.id,
+      });
+
+      // Act
+      const query = `
+        mutation BlockUser ($dto: CreateUserBlockInDto!) {
+          blockUser(dto: $dto) {
+            id
+          }
+        }
+      `;
+
+      const variables = {
+        dto: {
+          blockedId: targetUser.id,
+          blockerId: sourceUser.id,
+        },
+      };
+
+      const { accessToken } = await authService.authenticateUser(sourceUser);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query, variables })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseSuccess(response);
+      await expectContactIsRemoved(contact, { invite, sourceUser, targetUser });
+      await expectContactIsRemoved(reverseContact, {
+        invite,
+        sourceUser: targetUser,
+        targetUser: sourceUser,
+      });
+      await expectInviteAccepted(invite, { invitee, inviter });
+      await expectActiveContactPairNotExists(sourceUser, targetUser, { invite });
+      await expectActiveUserBlock(sourceUser, targetUser);
+      await expectNoActiveUserBlock(targetUser, sourceUser);
+    });
+
+    it('should be possible to block user by admin user', async () => {
+      // Assume
+      const inviter = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const invite = await inviteFactory.create('accepted', {
+        inviteeId: invitee.id,
+        inviterId: inviter.id,
+      });
+      const sourceUser = invitee;
+      const targetUser = inviter;
+      const [contact, reverseContact] = await contactFactory.createActivePair({
+        inviteId: invite.id,
+        sourceUserId: sourceUser.id,
+        targetUserId: targetUser.id,
+      });
+      const admin = await userFactory.create('active', { role: UserRole.ADMIN });
+
+      // Act
+      const query = `
+        mutation BlockUser ($dto: CreateUserBlockInDto!) {
+          blockUser(dto: $dto) {
+            id
+          }
+        }
+      `;
+
+      const variables = {
+        dto: {
+          blockedId: targetUser.id,
+          blockerId: sourceUser.id,
+        },
+      };
+
+      const { accessToken } = await authService.authenticateUser(admin);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query, variables })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseSuccess(response);
+      await expectContactIsRemoved(contact, { invite, sourceUser, targetUser });
+      await expectContactIsRemoved(reverseContact, {
+        invite,
+        sourceUser: targetUser,
+        targetUser: sourceUser,
+      });
+      await expectInviteAccepted(invite, { invitee, inviter });
+      await expectActiveContactPairNotExists(sourceUser, targetUser, { invite });
+      await expectActiveUserBlock(sourceUser, targetUser);
+      await expectNoActiveUserBlock(targetUser, sourceUser);
+    });
+
+    it('should not be possible to block self', async () => {
+      // Assume
+      const inviter = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const invite = await inviteFactory.create('accepted', {
+        inviteeId: invitee.id,
+        inviterId: inviter.id,
+      });
+      const sourceUser = invitee;
+      const targetUser = inviter;
+      const [contact, reverseContact] = await contactFactory.createActivePair({
+        inviteId: invite.id,
+        sourceUserId: sourceUser.id,
+        targetUserId: targetUser.id,
+      });
+
+      // Act
+      const query = `
+        mutation BlockUser ($dto: CreateUserBlockInDto!) {
+          blockUser(dto: $dto) {
+            id
+          }
+        }
+      `;
+
+      const variables = {
+        dto: {
+          blockedId: sourceUser.id,
+          blockerId: sourceUser.id,
+        },
+      };
+
+      const { accessToken } = await authService.authenticateUser(sourceUser);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query, variables })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseError(response, {
+        code: ApplicationErrorCode.SELF_BLOCK_FORBIDDEN,
+        status: 'BAD_REQUEST',
+      });
+      await expectContactIsActive(contact, { invite, sourceUser, targetUser });
+      await expectContactIsActive(reverseContact, {
+        invite,
+        sourceUser: targetUser,
+        targetUser: sourceUser,
+      });
+      await expectInviteAccepted(invite, { invitee, inviter });
+      await expectActiveContactPairExists(sourceUser, targetUser, { invite });
+      await expectNoActiveUserBlock(sourceUser, sourceUser);
+      await expectNoActiveUserBlock(sourceUser, targetUser);
+      await expectNoActiveUserBlock(targetUser, sourceUser);
+    });
+
+    it('should not be possible to block blocked user', async () => {
+      // Assume
+      const inviter = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const invite = await inviteFactory.create('accepted', {
+        inviteeId: invitee.id,
+        inviterId: inviter.id,
+      });
+      const blocker = invitee;
+      const blocked = inviter;
+      await userBlockFactory.create('active', {
+        blockedId: blocked.id,
+        blockerId: blocker.id,
+      });
+
+      // Act
+      const query = `
+        mutation BlockUser ($dto: CreateUserBlockInDto!) {
+          blockUser(dto: $dto) {
+            id
+          }
+        }
+      `;
+
+      const variables = {
+        dto: {
+          blockedId: blocked.id,
+          blockerId: blocker.id,
+        },
+      };
+
+      const { accessToken } = await authService.authenticateUser(blocker);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query, variables })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseError(response, {
+        code: ApplicationErrorCode.USER_IS_ALREADY_BLOCKED,
+        status: 'BAD_REQUEST',
+      });
+      await expectInviteAccepted(invite, { invitee, inviter });
+      await expectNoActiveUserBlock(blocked, blocker);
+      await expectActiveUserBlock(blocker, blocked);
+    });
+
+    it('should be possible to block user again after unblocking', async () => {
+      // Assume
+      const inviter = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const invite = await inviteFactory.create('accepted', {
+        inviteeId: invitee.id,
+        inviterId: inviter.id,
+      });
+      const sourceUser = invitee;
+      const targetUser = inviter;
+      const [contact, reverseContact] = await contactFactory.createActivePair({
+        inviteId: invite.id,
+        sourceUserId: sourceUser.id,
+        targetUserId: targetUser.id,
+      });
+      await userBlockFactory.create('removed', {
+        blockedId: targetUser.id,
+        blockerId: sourceUser.id,
+      });
+
+      // Act
+      const query = `
+        mutation BlockUser ($dto: CreateUserBlockInDto!) {
+          blockUser(dto: $dto) {
+            id
+          }
+        }
+      `;
+
+      const variables = {
+        dto: {
+          blockedId: targetUser.id,
+          blockerId: sourceUser.id,
+        },
+      };
+
+      const { accessToken } = await authService.authenticateUser(sourceUser);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query, variables })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseSuccess(response);
+      await expectContactIsRemoved(contact, { invite, sourceUser, targetUser });
+      await expectContactIsRemoved(reverseContact, {
+        invite,
+        sourceUser: targetUser,
+        targetUser: sourceUser,
+      });
+      await expectInviteAccepted(invite, { invitee, inviter });
+      await expectActiveContactPairNotExists(sourceUser, targetUser, { invite });
+      await expectActiveUserBlock(sourceUser, targetUser);
+      await expectNoActiveUserBlock(targetUser, sourceUser);
+      await expectRemovedUserBlock(sourceUser, targetUser, { removedByUser: sourceUser });
+      await expectNoRemovedUserBlock(targetUser, sourceUser);
+    });
   });
 
   describe('unblock user', () => {
-    it('should be possible to unblock blocked user', async () => {});
-    it('should not be possible to unblock user, which was not blocked', async () => {});
-    it('should not be possible to unblock user, which was blocked by other user', async () => {});
+    it('should be possible to unblock blocked user by blocker user', async () => {
+      // Assume
+      const blocker = await userFactory.create('active');
+      const blocked = await userFactory.create('active');
+      await userBlockFactory.create('active', { blockedId: blocked.id, blockerId: blocker.id });
+
+      // Act
+      const query = `
+        mutation UnblockUser ($dto: RemoveUserBlockInDto!) {
+          unblockUser(dto: $dto) {
+            id
+          }
+        }
+      `;
+
+      const variables = {
+        dto: {
+          blockedId: blocked.id,
+          blockerId: blocker.id,
+        },
+      };
+
+      const { accessToken } = await authService.authenticateUser(blocker);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query, variables })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseSuccess(response);
+      await expectNoActiveUserBlock(blocker, blocked);
+      await expectNoActiveUserBlock(blocked, blocker);
+      await expectRemovedUserBlock(blocker, blocked, { removedByUser: blocker });
+      await expectNoRemovedUserBlock(blocked, blocker);
+    });
+
+    it('should be possible to unblock blocked user by admin user', async () => {
+      // Assume
+      const blocker = await userFactory.create('active');
+      const blocked = await userFactory.create('active');
+      await userBlockFactory.create('active', { blockedId: blocked.id, blockerId: blocker.id });
+      const admin = await userFactory.create('active', { role: UserRole.ADMIN });
+
+      // Act
+      const query = `
+        mutation UnblockUser ($dto: RemoveUserBlockInDto!) {
+          unblockUser(dto: $dto) {
+            id
+          }
+        }
+      `;
+
+      const variables = {
+        dto: {
+          blockedId: blocked.id,
+          blockerId: blocker.id,
+        },
+      };
+
+      const { accessToken } = await authService.authenticateUser(admin);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query, variables })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseSuccess(response);
+      await expectNoActiveUserBlock(blocker, blocked);
+      await expectNoActiveUserBlock(blocked, blocker);
+      await expectRemovedUserBlock(blocker, blocked, { removedByUser: admin });
+      await expectNoRemovedUserBlock(blocked, blocker);
+    });
+
+    it('should not be possible to unblock user by blocked user', async () => {
+      // Assume
+      const blocker = await userFactory.create('active');
+      const blocked = await userFactory.create('active');
+      await userBlockFactory.create('active', { blockedId: blocked.id, blockerId: blocker.id });
+
+      // Act
+      const query = `
+        mutation UnblockUser ($dto: RemoveUserBlockInDto!) {
+          unblockUser(dto: $dto) {
+            id
+          }
+        }
+      `;
+
+      const variables = {
+        dto: {
+          blockedId: blocked.id,
+          blockerId: blocker.id,
+        },
+      };
+
+      const { accessToken } = await authService.authenticateUser(blocked);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query, variables })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseError(response, { code: 'FORBIDDEN', status: undefined });
+      await expectActiveUserBlock(blocker, blocked);
+      await expectNoActiveUserBlock(blocked, blocker);
+      await expectNoRemovedUserBlock(blocker, blocked);
+      await expectNoRemovedUserBlock(blocked, blocker);
+    });
+
+    it('should not be possible to unblock user, which was not blocked', async () => {
+      // Assume
+      const blocker = await userFactory.create('active');
+      const blocked = await userFactory.create('active');
+
+      // Act
+      const query = `
+        mutation UnblockUser ($dto: RemoveUserBlockInDto!) {
+          unblockUser(dto: $dto) {
+            id
+          }
+        }
+      `;
+
+      const variables = {
+        dto: {
+          blockedId: blocked.id,
+          blockerId: blocker.id,
+        },
+      };
+
+      const { accessToken } = await authService.authenticateUser(blocker);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query, variables })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseError(response, {
+        code: ApplicationErrorCode.USER_IS_NOT_BLOCKED,
+        status: 'BAD_REQUEST',
+      });
+      await expectNoActiveUserBlock(blocker, blocked);
+      await expectNoActiveUserBlock(blocked, blocker);
+      await expectNoRemovedUserBlock(blocker, blocked);
+      await expectNoRemovedUserBlock(blocked, blocker);
+    });
+
+    it('should not be possible to unblock user, which was blocked by other user', async () => {
+      // Assume
+      const blocker = await userFactory.create('active');
+      const blocked = await userFactory.create('active');
+      await userBlockFactory.create('active', { blockedId: blocked.id, blockerId: blocker.id });
+      const nobody = await userFactory.create('active');
+
+      // Act
+      const query = `
+        mutation UnblockUser ($dto: RemoveUserBlockInDto!) {
+          unblockUser(dto: $dto) {
+            id
+          }
+        }
+      `;
+
+      const variables = {
+        dto: {
+          blockedId: blocked.id,
+          blockerId: blocker.id,
+        },
+      };
+
+      const { accessToken } = await authService.authenticateUser(nobody);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query, variables })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseError(response, { code: 'FORBIDDEN', status: undefined });
+      await expectActiveUserBlock(blocker, blocked);
+      await expectNoActiveUserBlock(blocked, blocker);
+      await expectNoRemovedUserBlock(blocker, blocked);
+      await expectNoRemovedUserBlock(blocked, blocker);
+    });
   });
 
   function expectResponseSuccess(response: any) {
@@ -1837,7 +2299,7 @@ describe('Contact E2E', () => {
   }
 
   async function expectActiveUserBlock(blocker: User, blocked: User) {
-    const userBlock = await prisma.userBlock.findFirst({
+    const userBlocks = await prisma.userBlock.findMany({
       where: {
         blockedId: blocked.id,
         blockerId: blocker.id,
@@ -1845,8 +2307,10 @@ describe('Contact E2E', () => {
       },
     });
 
-    expect(userBlock).toBeDefined();
-    expect(userBlock.removedByUserId).toBeNull();
+    expect(userBlocks).toBeDefined();
+    expect(userBlocks.length).toBe(1);
+    expect(userBlocks[0].removedByUserId).toBeNull();
+    expect(userBlocks[0].removedAt).toBeNull();
   }
 
   async function expectNoActiveUserBlock(blocker: User, blocked: User) {
@@ -1855,6 +2319,35 @@ describe('Contact E2E', () => {
         blockedId: blocked.id,
         blockerId: blocker.id,
         removedAt: null,
+      },
+    });
+
+    expect(userBlock).toBeNull();
+  }
+
+  async function expectRemovedUserBlock(
+    blocker: User,
+    blocked: User,
+    { removedByUser }: { removedByUser: User },
+  ) {
+    const userBlock = await prisma.userBlock.findFirst({
+      where: {
+        blockedId: blocked.id,
+        blockerId: blocker.id,
+        removedAt: { not: null },
+        removedByUserId: removedByUser.id,
+      },
+    });
+
+    expect(userBlock).toBeDefined();
+  }
+
+  async function expectNoRemovedUserBlock(blocker: User, blocked: User) {
+    const userBlock = await prisma.userBlock.findFirst({
+      where: {
+        blockedId: blocked.id,
+        blockerId: blocker.id,
+        removedAt: { not: null },
       },
     });
 

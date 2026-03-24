@@ -10,3 +10,5 @@ export * from './inviter-already-send-invite.error';
 export * from './inviter-blocked-invitee.error';
 export * from './self-block-forbidden.error';
 export * from './unexpected-contact-state.error';
+export * from './user-is-already-blocked.error';
+export * from './user-is-not-blocked.error';

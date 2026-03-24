@@ -74,10 +74,11 @@ export class InviteService {
 
   async rejectInviteAndBlockUser(
     inviteId: number,
+    currentUserId: number,
     tx: Prisma.TransactionClient = this.prisma,
   ): Promise<Invite> {
     const invite = await this.rejectInvite(inviteId, tx);
-    await this.userBlockService.blockUser(invite.inviterId, invite.inviteeId, tx);
+    await this.userBlockService.blockUser(invite.inviterId, invite.inviteeId, currentUserId, tx);
 
     return invite;
   }

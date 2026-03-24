@@ -23,6 +23,8 @@ export enum ApplicationErrorCode {
   INVITE_NOT_FOUND = 'invite_not_found',
   SELF_BLOCK_FORBIDDEN = 'self_block_forbidden',
   BLOCKED_USER_NOT_FOUND = 'blocked_user_not_found',
+  USER_IS_ALREADY_BLOCKED = 'user_is_already_blocked',
+  USER_IS_NOT_BLOCKED = 'user_is_not_blocked',
   //
 }
 

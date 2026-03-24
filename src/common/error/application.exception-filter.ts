@@ -95,6 +95,8 @@ export class ApplicationExceptionFilter implements ExceptionFilter {
       case ApplicationErrorCode.INVITE_NOT_FOUND:
       case ApplicationErrorCode.SELF_BLOCK_FORBIDDEN:
       case ApplicationErrorCode.BLOCKED_USER_NOT_FOUND:
+      case ApplicationErrorCode.USER_IS_NOT_BLOCKED:
+      case ApplicationErrorCode.USER_IS_ALREADY_BLOCKED:
         return HttpStatus.BAD_REQUEST;
       default:
         return HttpStatus.INTERNAL_SERVER_ERROR;

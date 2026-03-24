@@ -1,20 +1,23 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '../../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { ContactService } from './contact.service';
 import { UserBlock } from './entity/user-block.entity';
 
 @Injectable()
 export class UserBlockService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private contactService: ContactService,
+  ) {}
 
   async blockUser(
     blockedUserId: number,
     blockerUserId: number,
-    tx?: Prisma.TransactionClient,
+    currentUserId: number,
+    tx: Prisma.TransactionClient = this.prisma,
   ): Promise<UserBlock> {
-    const client = tx || this.prisma;
-
-    return client.userBlock.create({
+    const userBlock = await tx.userBlock.create({
       data: {
         blocked: {
           connect: {
@@ -26,26 +29,39 @@ export class UserBlockService {
             id: blockerUserId,
           },
         },
-        createdAt: new Date(),
       },
     });
+
+    await this.contactService.removeContactPairByUserIds(
+      blockedUserId,
+      blockerUserId,
+      currentUserId,
+      tx,
+    );
+
+    return userBlock;
   }
 
   async removeUserBlock(
-    userBlockId: number,
-    removedByUserId: number,
-    tx?: Prisma.TransactionClient,
+    blockedUserId: number,
+    blockerUserId: number,
+    currentUserId: number,
+    tx: Prisma.TransactionClient = this.prisma,
   ): Promise<UserBlock> {
-    const client = tx || this.prisma;
-
-    return client.userBlock.update({
+    return tx.userBlock.update({
       data: {
         removedAt: new Date(),
         removedByUser: {
-          connect: { id: removedByUserId },
+          connect: { id: currentUserId },
         },
       },
-      where: { id: userBlockId },
+      where: {
+        blockerId_blockedId: {
+          blockedId: blockedUserId,
+          blockerId: blockerUserId,
+        },
+        removedAt: null,
+      },
     });
   }
 

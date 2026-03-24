@@ -221,6 +221,7 @@ type Mutation {
   rejectInviteAndBlockUser(inviteId: Int!): Invite!
   deleteContact(contactId: Int!): Contact!
   blockUser(dto: CreateUserBlockInDto!): UserBlock!
+  unblockUser(dto: RemoveUserBlockInDto!): UserBlock!
   createUser(dto: CreateUserInDto!): User!
   updateUser(id: Int!, dto: UpdateUserInDto!): User!
   deleteUser(id: Int!): Boolean!
@@ -248,6 +249,11 @@ input CreateInviteInDto {
 }
 
 input CreateUserBlockInDto {
+  blockerId: Int!
+  blockedId: Int!
+}
+
+input RemoveUserBlockInDto {
   blockerId: Int!
   blockedId: Int!
 }

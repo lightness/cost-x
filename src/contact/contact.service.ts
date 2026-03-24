@@ -2,14 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { Contact } from '../../generated/prisma/browser';
 import { Prisma } from '../../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
-import { UserBlockService } from './user-block.service';
 
 @Injectable()
 export class ContactService {
-  constructor(
-    private prisma: PrismaService,
-    private userBlockService: UserBlockService,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   async createContact(
     sourceUserId: number,
@@ -69,6 +65,27 @@ export class ContactService {
     });
   }
 
+  async removeContactPairByUserIds(
+    sourceUserId: number,
+    targetUserId: number,
+    removedByUserId: number,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<Contact[]> {
+    return tx.contact.updateManyAndReturn({
+      data: {
+        removedAt: new Date(),
+        removedByUserId,
+      },
+      where: {
+        OR: [
+          { sourceUserId, targetUserId },
+          { sourceUserId: targetUserId, targetUserId: sourceUserId },
+        ],
+        removedAt: null,
+      },
+    });
+  }
+
   async removeContactPair(
     contactId: number,
     removedByUserId: number,
@@ -84,23 +101,6 @@ export class ContactService {
     const reverseContact = await this.removeContact(existingReverseContact.id, removedByUserId, tx);
 
     return [directContact, reverseContact];
-  }
-
-  async removeContactPairAndBlockUser(
-    contactId: number,
-    removedByUserId: number,
-    tx: Prisma.TransactionClient = this.prisma,
-  ): Promise<Contact> {
-    const [contact] = await this.removeContactPair(contactId, removedByUserId, tx);
-
-    const blockerUserId =
-      contact.targetUserId === removedByUserId ? contact.targetUserId : contact.sourceUserId;
-    const blockedUserId =
-      contact.sourceUserId === removedByUserId ? contact.sourceUserId : contact.targetUserId;
-
-    await this.userBlockService.blockUser(blockedUserId, blockerUserId, tx);
-
-    return contact;
   }
 
   async getReverseContact(

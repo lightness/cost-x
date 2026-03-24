@@ -11,9 +11,6 @@ export class ContactValidationService {
 
   async validateDeleteContact(contactId: number, tx: Prisma.TransactionClient = this.prisma) {
     const contact = await this.validateContactExists(contactId, tx);
-
-    console.log('###', contact);
-
     this.validateContactIsActive(contact);
   }
 
