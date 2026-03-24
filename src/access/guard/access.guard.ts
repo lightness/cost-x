@@ -1,16 +1,9 @@
-import {
-  CanActivate,
-  ExecutionContext,
-  ForbiddenException,
-  Injectable,
-} from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { AccessService } from '../access.service';
-import {
-  ACCESS_METADATA_KEY,
-  AccessMetadata,
-} from '../decorator/access.decorator';
+import { ACCESS_METADATA_KEY, AccessMetadata } from '../decorator/access.decorator';
+import { NoAccessError } from '../error/no-access.error';
 
 @Injectable()
 export class AccessGuard implements CanActivate {
@@ -24,10 +17,10 @@ export class AccessGuard implements CanActivate {
   }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const accessMetadata = this.reflector.getAllAndOverride<AccessMetadata>(
-      ACCESS_METADATA_KEY,
-      [context.getHandler(), context.getClass()],
-    );
+    const accessMetadata = this.reflector.getAllAndOverride<AccessMetadata>(ACCESS_METADATA_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
 
     // public access
     if (!accessMetadata) {
@@ -38,20 +31,16 @@ export class AccessGuard implements CanActivate {
     const req = ctx.getContext().req;
 
     if (!req.user) {
-      throw this.noAccessException;
+      throw new NoAccessError();
     }
 
     const { ruleDef, action } = accessMetadata;
     const hasAccess = await this.accessService.hasAccess(action, ruleDef, ctx);
 
     if (!hasAccess) {
-      throw this.noAccessException;
+      throw new NoAccessError();
     }
 
     return true;
-  }
-
-  private get noAccessException() {
-    return new ForbiddenException(`No access`);
   }
 }

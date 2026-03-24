@@ -1,3 +1,5 @@
+import { HttpStatus } from '@nestjs/common';
+import { HttpErrorCode } from '../decorator/http-error-code.decorator';
 import { ApplicationError } from './application.error';
 
 export enum ApplicationErrorCode {
@@ -7,9 +9,6 @@ export enum ApplicationErrorCode {
   INVALID_CREDENTIALS = 'invalid_credentials',
   INVALID_REFRESH_TOKEN = 'invalid_refresh_token',
   UNKNOWN_USER = 'unknown_user',
-  UNIQUE_CONSTRAINT_VIOLATION = 'unique_constraint_violation',
-  UNKNOWN = 'unknown',
-  VALIDATION = 'validation',
   // contact
   INVITEE_ALREADY_SEND_INVITE = 'invitee_already_send_invite',
   INVITER_ALREADY_SEND_INVITE = 'inviter_already_send_invite',
@@ -25,9 +24,15 @@ export enum ApplicationErrorCode {
   BLOCKED_USER_NOT_FOUND = 'blocked_user_not_found',
   USER_IS_ALREADY_BLOCKED = 'user_is_already_blocked',
   USER_IS_NOT_BLOCKED = 'user_is_not_blocked',
-  //
+  // common
+  UNIQUE_CONSTRAINT_VIOLATION = 'unique_constraint_violation',
+  UNKNOWN = 'unknown',
+  VALIDATION = 'validation',
+  // access
+  NO_ACCESS = 'no_access',
 }
 
+@HttpErrorCode(HttpStatus.INTERNAL_SERVER_ERROR)
 export class CodedApplicationError extends ApplicationError {
   public readonly code: ApplicationErrorCode;
 

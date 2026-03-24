@@ -548,7 +548,10 @@ describe('Contact E2E', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       // Assert
-      expectResponseError(response, { code: 'FORBIDDEN', status: undefined });
+      expectResponseError(response, {
+        code: ApplicationErrorCode.NO_ACCESS,
+        status: 'FORBIDDEN',
+      });
       await expectInvitePending(invite.id, { invitee, inviter });
     });
 
@@ -867,7 +870,10 @@ describe('Contact E2E', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       // Assert
-      expectResponseError(response, { code: 'FORBIDDEN', status: undefined });
+      expectResponseError(response, {
+        code: ApplicationErrorCode.NO_ACCESS,
+        status: 'FORBIDDEN',
+      });
       await expectInvitePending(invite.id, { invitee, inviter });
       await expectActiveContactPairNotExists(inviter, invitee, { invite });
     });
@@ -1191,7 +1197,10 @@ describe('Contact E2E', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       // Assert
-      expectResponseError(response, { code: 'FORBIDDEN', status: undefined });
+      expectResponseError(response, {
+        code: ApplicationErrorCode.NO_ACCESS,
+        status: 'FORBIDDEN',
+      });
       await expectInvitePending(invite.id, { invitee, inviter });
       await expectActiveContactPairNotExists(inviter, invitee, { invite });
       await expectNoActiveUserBlock(invitee, inviter);
@@ -1595,7 +1604,10 @@ describe('Contact E2E', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       // Assert
-      expectResponseError(response, { code: 'FORBIDDEN', status: undefined });
+      expectResponseError(response, {
+        code: ApplicationErrorCode.NO_ACCESS,
+        status: 'FORBIDDEN',
+      });
       await expectContactIsActive(contact, { invite, sourceUser, targetUser });
       await expectContactIsActive(reverseContact, {
         invite,
@@ -1646,7 +1658,10 @@ describe('Contact E2E', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       // Assert
-      expectResponseError(response, { code: 'FORBIDDEN', status: undefined });
+      expectResponseError(response, {
+        code: ApplicationErrorCode.NO_ACCESS,
+        status: 'FORBIDDEN',
+      });
       await expectContactIsActive(contact, { invite, sourceUser, targetUser });
       await expectContactIsActive(reverseContact, {
         invite,
@@ -2099,7 +2114,10 @@ describe('Contact E2E', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       // Assert
-      expectResponseError(response, { code: 'FORBIDDEN', status: undefined });
+      expectResponseError(response, {
+        code: ApplicationErrorCode.NO_ACCESS,
+        status: 'FORBIDDEN',
+      });
       await expectActiveUserBlock(blocker, blocked);
       await expectNoActiveUserBlock(blocked, blocker);
       await expectNoRemovedUserBlock(blocker, blocked);
@@ -2178,7 +2196,10 @@ describe('Contact E2E', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       // Assert
-      expectResponseError(response, { code: 'FORBIDDEN', status: undefined });
+      expectResponseError(response, {
+        code: ApplicationErrorCode.NO_ACCESS,
+        status: 'FORBIDDEN',
+      });
       await expectActiveUserBlock(blocker, blocked);
       await expectNoActiveUserBlock(blocked, blocker);
       await expectNoRemovedUserBlock(blocker, blocked);
