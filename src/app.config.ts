@@ -29,7 +29,7 @@ export default () => ({
     strategy: process.env.CONFIRM_EMAIL_STRATEGY || 'manual',
   },
   db: {
-    logQuery: false,
+    logQuery: true,
     url: process.env.DATABASE_URL,
   },
   graphql: {

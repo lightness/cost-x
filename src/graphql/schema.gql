@@ -134,6 +134,9 @@ type User {
   status: UserStatus!
   role: UserRole!
   workspaces(workspacesFilter: WorkspacesFilter): [Workspace!]!
+  incomingInvites(invitesFilter: InvitesFilter): [Invite!]!
+  outgoingInvites(invitesFilter: InvitesFilter): [Invite!]!
+  contacts: [Contact!]!
 }
 
 enum UserStatus {
@@ -152,37 +155,73 @@ input WorkspacesFilter {
   defaultCurrency: Currency
 }
 
-type ResendEmailOutDto {
-  success: Boolean!
+input InvitesFilter {
+  status: InviteStatus
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+type Contact {
+  id: Int!
+  createdAt: DateIso!
+  sourceUserId: Int!
+  targetUserId: Int!
+  inviteId: Int!
+  removedAt: DateIso
+  removedByUserId: Int!
+  sourceUser: User!
+  targetUser: User!
+  invite: Invite!
+}
+
+type Invite {
+  id: Int!
+  inviterId: Int!
+  inviteeId: Int!
+  status: InviteStatus!
+  createdAt: DateIso!
+  reactedAt: DateIso
+  inviter: User!
+  invitee: User!
+}
+
+type UserBlock {
+  id: Int!
+  createdAt: DateIso!
+  blockerId: Int!
+  blockedId: Int!
+  removedAt: DateIso
+  removedByUserId: Int
+  blocker: User!
+  blocked: User!
 }
 
 type Query {
-  tags(workspaceId: Int!, dto: TagsFilter): [Tag!]!
-  tag(id: Int!): Tag!
-  itemsAggregation(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): ItemsAggregation!
+  users: [User!]!
+  user(id: Int!): User!
+  me: User!
   item(id: Int!): Item!
   items(workspaceId: Int!, itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): [Item!]!
   currencyRate(fromCurrency: Currency!, toCurrency: Currency!, date: Date!): CurrencyRate!
   payment(id: Int!): Payment!
   payments(itemId: Int!, paymentsFilter: PaymentsFilter): [Payment!]!
-  users: [User!]!
-  user(id: Int!): User!
-  me: User!
+  tags(workspaceId: Int!, dto: TagsFilter): [Tag!]!
+  tag(id: Int!): Tag!
+  itemsAggregation(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): ItemsAggregation!
 }
 
 type Mutation {
-  createTag(workspaceId: Int!, dto: TagInDto!): Tag!
-  updateTag(id: Int!, dto: TagInDto!): Tag!
-  deleteTag(id: Int!): Boolean!
-  assignTag(dto: AssignTagInDto!): ItemTag!
-  unassignTag(dto: UnassignTagInDto!): Boolean!
-  createItem(workspaceId: Int!, dto: ItemInDto!): Item!
-  updateItem(id: Int!, dto: ItemInDto!): Item!
-  deleteItem(id: Int!): Boolean!
-  createPayment(itemId: Int!, dto: PaymentInDto!): Payment!
-  updatePayment(paymentId: Int!, dto: PaymentInDto!): Payment!
-  deletePayment(paymentId: Int!): Boolean!
-  mergeItems(dto: MergeItemsInDto!): Item!
+  createInvite(dto: CreateInviteInDto!): Invite!
+  acceptInvite(inviteId: Int!): Invite!
+  rejectInvite(inviteId: Int!): Invite!
+  rejectInviteAndBlockUser(inviteId: Int!): Invite!
+  deleteContact(contactId: Int!): Contact!
+  blockUser(dto: CreateUserBlockInDto!): UserBlock!
+  unblockUser(dto: RemoveUserBlockInDto!): UserBlock!
   createUser(dto: CreateUserInDto!): User!
   updateUser(id: Int!, dto: UpdateUserInDto!): User!
   deleteUser(id: Int!): Boolean!
@@ -191,41 +230,32 @@ type Mutation {
   createWorkspace(dto: WorkspaceInDto!): Workspace!
   updateWorkspace(id: Int!, dto: WorkspaceInDto!): Workspace!
   deleteWorkspace(id: Int!): Workspace!
-  forgotPassword(dto: ForgotPasswordInDto!): Boolean!
-  resetPassword(dto: ResetPasswordInDto!): Boolean!
-  resendConfirmEmail(dto: ResendConfirmEmailInDto!): ResendEmailOutDto!
-  resendForgotPasswordEmail(dto: ForgotPasswordInDto!): ResendEmailOutDto!
+  createItem(workspaceId: Int!, dto: ItemInDto!): Item!
+  updateItem(id: Int!, dto: ItemInDto!): Item!
+  deleteItem(id: Int!): Boolean!
+  assignTag(dto: AssignTagInDto!): ItemTag!
+  unassignTag(dto: UnassignTagInDto!): Boolean!
+  createPayment(itemId: Int!, dto: PaymentInDto!): Payment!
+  updatePayment(paymentId: Int!, dto: PaymentInDto!): Payment!
+  deletePayment(paymentId: Int!): Boolean!
+  createTag(workspaceId: Int!, dto: TagInDto!): Tag!
+  updateTag(id: Int!, dto: TagInDto!): Tag!
+  deleteTag(id: Int!): Boolean!
 }
 
-input TagInDto {
-  title: String!
-  color: String
+input CreateInviteInDto {
+  inviterUserId: Int!
+  inviteeUserId: Int!
 }
 
-input AssignTagInDto {
-  tagId: Int!
-  itemId: Int!
+input CreateUserBlockInDto {
+  blockerId: Int!
+  blockedId: Int!
 }
 
-input UnassignTagInDto {
-  tagId: Int!
-  itemId: Int!
-}
-
-input ItemInDto {
-  title: String!
-}
-
-input PaymentInDto {
-  title: String
-  cost: Decimal!
-  currency: Currency!
-  date: Date!
-}
-
-input MergeItemsInDto {
-  hostItemId: Int!
-  mergingItemId: Int!
+input RemoveUserBlockInDto {
+  blockerId: Int!
+  blockedId: Int!
 }
 
 input CreateUserInDto {
@@ -245,15 +275,28 @@ input WorkspaceInDto {
   defaultCurrency: Currency!
 }
 
-input ForgotPasswordInDto {
-  email: String!
+input ItemInDto {
+  title: String!
 }
 
-input ResetPasswordInDto {
-  token: String!
-  password: String!
+input AssignTagInDto {
+  tagId: Int!
+  itemId: Int!
 }
 
-input ResendConfirmEmailInDto {
-  userId: Int!
+input UnassignTagInDto {
+  tagId: Int!
+  itemId: Int!
+}
+
+input PaymentInDto {
+  title: String
+  cost: Decimal!
+  currency: Currency!
+  date: Date!
+}
+
+input TagInDto {
+  title: String!
+  color: String
 }

@@ -1,8 +1,4 @@
-import {
-  Inject,
-  Injectable,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import { Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CookieOptions, Request, Response } from 'express';
 import { TokenService } from '../token/token.service';
 import { JwtPayload } from './interfaces';
@@ -43,9 +39,7 @@ export class CookieService {
     const exp = this.refreshTokenService.getExp(token);
 
     if (!exp) {
-      throw new InternalServerErrorException(
-        `Expired at cannot be inferred from token`,
-      );
+      throw new InternalServerErrorException(`Expired at cannot be inferred from token`);
     }
 
     const expires = new Date(exp * 1000);
@@ -56,7 +50,7 @@ export class CookieService {
       path: this.refreshTokenPath,
     });
     // TODO: Remove after testing e2e
-    console.log('🍪✅', this.refreshCookieNameForRefreshToken);
+    // console.log('🍪✅', this.refreshCookieNameForRefreshToken);
 
     res.cookie(this.refreshCookieNameForLogout, token, {
       ...this.basicCookieOptions,
@@ -64,7 +58,7 @@ export class CookieService {
       path: this.logoutPath,
     });
     // TODO: Remove after testing e2e
-    console.log('🍪✅', this.refreshCookieNameForLogout);
+    // console.log('🍪✅', this.refreshCookieNameForLogout);
   }
 
   getRefreshTokenFromCookie(req: Request): string {

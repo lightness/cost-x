@@ -1,16 +1,9 @@
-import {
-  ArgumentsHost,
-  Catch,
-  ExceptionFilter,
-  HttpStatus,
-} from '@nestjs/common';
+import { ArgumentsHost, Catch, ExceptionFilter, HttpStatus } from '@nestjs/common';
 import { Response } from 'express';
 import { GraphQLError } from 'graphql/error';
+import { getHttpCodeFromError } from '../decorator/http-error-code.decorator';
 import { ApplicationError } from './application.error';
-import {
-  ApplicationErrorCode,
-  CodedApplicationError,
-} from './coded-application.error';
+import { ApplicationErrorCode, CodedApplicationError } from './coded-application.error';
 import { DetailedApplicationError } from './detailed-application.error';
 
 interface IErrorPayload {
@@ -31,10 +24,7 @@ export class ApplicationExceptionFilter implements ExceptionFilter {
     }
   }
 
-  private catchAsGraphqlError(
-    exception: ApplicationError,
-    _host: ArgumentsHost,
-  ) {
+  private catchAsGraphqlError(exception: ApplicationError, _host: ArgumentsHost) {
     const payload = this.getPayloadByApplicationError(exception);
     const httpCode = this.getHttpCodeByApplicationError(exception);
 
@@ -44,10 +34,7 @@ export class ApplicationExceptionFilter implements ExceptionFilter {
           exception instanceof CodedApplicationError
             ? exception.code
             : ApplicationErrorCode.UNKNOWN,
-        details:
-          exception instanceof DetailedApplicationError
-            ? exception.details
-            : undefined,
+        details: exception instanceof DetailedApplicationError ? exception.details : undefined,
         error: payload.error,
         status: payload.status,
         statusCode: httpCode,
@@ -65,9 +52,7 @@ export class ApplicationExceptionFilter implements ExceptionFilter {
     response.status(httpCode).json(payload);
   }
 
-  private getPayloadByApplicationError(
-    exception: ApplicationError,
-  ): IErrorPayload {
+  private getPayloadByApplicationError(exception: ApplicationError): IErrorPayload {
     const payload: IErrorPayload = {
       error: exception.constructor.name,
       message: exception.message,
@@ -85,26 +70,9 @@ export class ApplicationExceptionFilter implements ExceptionFilter {
     return payload;
   }
 
-  private getHttpCodeByApplicationError(
-    exception: ApplicationError,
-  ): HttpStatus {
-    if (!(exception instanceof CodedApplicationError)) {
-      return HttpStatus.BAD_REQUEST;
-    }
+  private getHttpCodeByApplicationError(exception: ApplicationError): HttpStatus {
+    const httpStatus = getHttpCodeFromError(exception);
 
-    switch (exception.code) {
-      case ApplicationErrorCode.EMAIL_IS_NOT_VERIFIED:
-      case ApplicationErrorCode.INVALID_CREDENTIALS:
-      case ApplicationErrorCode.INVALID_REFRESH_TOKEN:
-      case ApplicationErrorCode.UNKNOWN_USER:
-      case ApplicationErrorCode.USER_BANNED:
-        return HttpStatus.UNAUTHORIZED;
-      case ApplicationErrorCode.UNIQUE_CONSTRAINT_VIOLATION:
-      case ApplicationErrorCode.USER_ALREADY_EXISTS:
-      case ApplicationErrorCode.VALIDATION:
-        return HttpStatus.BAD_REQUEST;
-      default:
-        return HttpStatus.INTERNAL_SERVER_ERROR;
-    }
+    return httpStatus || HttpStatus.INTERNAL_SERVER_ERROR;
   }
 }

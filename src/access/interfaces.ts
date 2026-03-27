@@ -7,12 +7,15 @@ export enum AccessAction {
 }
 
 export enum AccessScope {
+  CONTACT = 'contact',
   USER = 'user',
   WORKSPACE = 'workspace',
   ITEM = 'item',
   TAG = 'tag',
   PAYMENT = 'payment',
+  INVITE = 'invite',
   GLOBAL = 'global',
+  USER_BLOCK = 'user-block',
 }
 
 export interface Rule {
@@ -21,6 +24,7 @@ export interface Rule {
   targetScope: AccessScope;
   targetId?: GetId;
   role: UserRole | UserRole[];
+  metadata?: Record<string, unknown>;
 }
 
 export type RuleOperationAnd = { and: (RuleDef | RuleOperationOr)[] };

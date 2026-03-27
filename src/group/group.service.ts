@@ -2,6 +2,21 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class GroupService {
+  mapBy<T, K extends keyof T>(items: T[], key: K): Map<T[K], T> {
+    const result = new Map<T[K], T>();
+
+    for (const item of items) {
+      const keyValue = item[key];
+      const existing = result.get(keyValue);
+
+      if (!existing) {
+        result.set(keyValue, item);
+      }
+    }
+
+    return result;
+  }
+
   groupBy<T, K extends keyof T>(items: T[], key: K): Map<T[K], T[]> {
     const result = new Map<T[K], T[]>();
 
@@ -17,5 +32,11 @@ export class GroupService {
     }
 
     return result;
+  }
+
+  sortBy<T, K extends keyof T>(items: T[], keyName: K, orderedKeys: T[K][]): T[] {
+    const map = this.groupBy(items, keyName);
+
+    return orderedKeys.map((key) => map.get(key)?.[0] || null);
   }
 }
