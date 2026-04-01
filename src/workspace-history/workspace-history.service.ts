@@ -1,0 +1,78 @@
+import { Injectable } from '@nestjs/common';
+import { JsonObject } from '@prisma/client/runtime/client';
+import { Prisma } from '../../generated/prisma/client';
+import Item from '../item/entity/item.entity';
+import { PrismaService } from '../prisma/prisma.service';
+import { WorkspaceHistoryAction } from './entity/workspace-history-action.enum';
+import { WorkspaceHistory } from './entity/workspace-history.entity';
+
+@Injectable()
+export class WorkspaceHistoryService {
+  constructor(private prisma: PrismaService) {}
+
+  async create(
+    data: Omit<WorkspaceHistory, 'id' | 'createdAt'>,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<WorkspaceHistory> {
+    const workspaceHistory = await tx.workspaceHistory.create({
+      data,
+    });
+
+    return workspaceHistory;
+  }
+
+  async createItemCreated(
+    workspaceId: number,
+    actorId: number,
+    item: Item,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<WorkspaceHistory> {
+    return this.create(
+      {
+        action: WorkspaceHistoryAction.ITEM_CREATED,
+        actorId,
+        newValue: item as unknown as JsonObject,
+        oldValue: null,
+        workspaceId,
+      },
+      tx,
+    );
+  }
+
+  async createItemUpdated(
+    workspaceId: number,
+    actorId: number,
+    oldItem: Item,
+    newItem: Item,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<WorkspaceHistory> {
+    return this.create(
+      {
+        action: WorkspaceHistoryAction.ITEM_UPDATED,
+        actorId,
+        newValue: newItem as unknown as JsonObject,
+        oldValue: oldItem as unknown as JsonObject,
+        workspaceId,
+      },
+      tx,
+    );
+  }
+
+  async createItemDeleted(
+    workspaceId: number,
+    actorId: number,
+    item: Item,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<WorkspaceHistory> {
+    return this.create(
+      {
+        action: WorkspaceHistoryAction.ITEM_DELETED,
+        actorId,
+        newValue: null,
+        oldValue: item as unknown as JsonObject,
+        workspaceId,
+      },
+      tx,
+    );
+  }
+}

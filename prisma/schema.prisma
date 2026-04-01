@@ -79,24 +79,25 @@ enum Currency {
 }
 
 model User {
-  id                Int         @id(map: "PK_user_id") @default(autoincrement())
-  createdAt         DateTime    @default(now()) @map("created_at") @db.Timestamp(6)
-  updatedAt         DateTime    @default(now()) @map("updated_at") @db.Timestamp(6)
-  email             String      @unique @db.VarChar(255)
-  password          String      @db.VarChar(72)
-  name              String      @db.VarChar(50)
-  role              UserRole    @default(USER)
-  status            UserStatus
-  tempCode          String?
-  workspaces        Workspace[]
-  inviters          Invite[]    @relation(name: "inviter")
-  invitees          Invite[]    @relation(name: "invitee")
-  sourceContacts    Contact[]   @relation(name: "sourceUser")
-  targetContacts    Contact[]   @relation(name: "targetUser")
-  removedContacts   Contact[]   @relation(name: "removedByUser")
-  sourceUserBlocks  UserBlock[] @relation(name: "blocker")
-  targetUserBlocks  UserBlock[] @relation(name: "blocked")
-  removedUserBlocks UserBlock[] @relation(name: "removedByUser")
+  id                      Int                @id(map: "PK_user_id") @default(autoincrement())
+  createdAt               DateTime           @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt               DateTime           @default(now()) @map("updated_at") @db.Timestamp(6)
+  email                   String             @unique @db.VarChar(255)
+  password                String             @db.VarChar(72)
+  name                    String             @db.VarChar(50)
+  role                    UserRole           @default(USER)
+  status                  UserStatus
+  tempCode                String?
+  workspaces              Workspace[]
+  inviters                Invite[]           @relation(name: "inviter")
+  invitees                Invite[]           @relation(name: "invitee")
+  sourceContacts          Contact[]          @relation(name: "sourceUser")
+  targetContacts          Contact[]          @relation(name: "targetUser")
+  removedContacts         Contact[]          @relation(name: "removedByUser")
+  sourceUserBlocks        UserBlock[]        @relation(name: "blocker")
+  targetUserBlocks        UserBlock[]        @relation(name: "blocked")
+  removedUserBlocks       UserBlock[]        @relation(name: "removedByUser")
+  workspaceHistoryEntries WorkspaceHistory[]
 
   @@map("user")
 }
@@ -113,14 +114,15 @@ enum UserRole {
 }
 
 model Workspace {
-  id              Int      @id(map: "PK_workspace_id") @default(autoincrement())
-  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamp(6)
-  updatedAt       DateTime @default(now()) @map("updated_at") @db.Timestamp(6)
-  title           String   @db.VarChar(255)
-  ownerId         Int      @map("owner_id")
-  defaultCurrency Currency @map("default_currency")
+  id              Int                @id(map: "PK_workspace_id") @default(autoincrement())
+  createdAt       DateTime           @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt       DateTime           @default(now()) @map("updated_at") @db.Timestamp(6)
+  title           String             @db.VarChar(255)
+  ownerId         Int                @map("owner_id")
+  defaultCurrency Currency           @map("default_currency")
   items           Item[]
   tags            Tag[]
+  historyEntries  WorkspaceHistory[]
 
   owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_workspace_owner_id_user_id")
 
@@ -181,4 +183,29 @@ model UserBlock {
 
   @@unique([blockerId, blockedId], where: { removedAt: null }, map: "UQ_user_block_blocker_id_blocked_id")
   @@map("user_block")
+}
+
+enum WorkspaceHistoryAction {
+  ITEM_CREATED
+  ITEM_UPDATED
+  ITEM_DELETED
+  PAYMENT_CREATED
+  PAYMENT_UPDATED
+  PAYMENT_DELETED
+  TAG_ADDED
+  TAG_REMOVED
+}
+
+model WorkspaceHistory {
+  id          Int                    @id(map: "PK_workspace_history_id") @default(autoincrement())
+  workspaceId Int                    @map("workspace_id")
+  workspace   Workspace              @relation(fields: [workspaceId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_workspace_history_workspace_id_workspace_id")
+  actorId     Int                    @map("actor_id")
+  actor       User                   @relation(fields: [actorId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_workspace_history_actor_id_user_id")
+  action      WorkspaceHistoryAction
+  oldValue    Json?                  @map("old_value")
+  newValue    Json?                  @map("new_value")
+  createdAt   DateTime               @default(now()) @map("created_at") @db.Timestamp(6)
+
+  @@map("workspace_history")
 }

@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { AccessModule } from './access/access.module';
 import config from './app.config';
 import { AuthModule } from './auth/auth.module';
@@ -17,11 +18,13 @@ import { ResendEmailModule } from './resend-email/resend-email.module';
 import { ResetPasswordModule } from './reset-password/reset-password.module';
 import { TagModule } from './tag/tag.module';
 import { UserModule } from './user/user.module';
+import { WorkspaceHistoryModule } from './workspace-history/workspace-history.module';
 import { WorkspaceModule } from './workspace/workspace.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, load: [config] }),
+    EventEmitterModule.forRoot(),
     GraphqlModule,
     AuthModule,
     AccessModule,
@@ -36,6 +39,7 @@ import { WorkspaceModule } from './workspace/workspace.module';
     ItemsAggregationModule,
     UserModule,
     WorkspaceModule,
+    WorkspaceHistoryModule,
     ResetPasswordModule,
     ResendEmailModule,
     ContactModule,

@@ -1,6 +1,7 @@
-import { UseGuards } from '@nestjs/common';
+import { UseGuards, UseInterceptors } from '@nestjs/common';
 import {
   Args,
+  Context,
   Int,
   Mutation,
   Parent,
@@ -8,11 +9,14 @@ import {
   ResolveField,
   Resolver,
 } from '@nestjs/graphql';
+import { Prisma } from '../../../generated/prisma/client';
 import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
 import { AccessScope } from '../../access/interfaces';
+import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
+import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
 import { TagsByItemIdLoader } from '../../item-tag/dataloader/tags-by-item-id.loader.service';
 import { PaymentsByItemIdLoader } from '../../payment/dataloader/payments-by-item-id.loader.service';
 import { PaymentsFilter } from '../../payment/dto';
@@ -22,6 +26,7 @@ import { PaymentsAggregation } from '../../payments-aggregation/entity/payments-
 import { PrismaService } from '../../prisma/prisma.service';
 import Tag from '../../tag/entity/tag.entity';
 import { UserRole } from '../../user/entity/user-role.enum';
+import { User } from '../../user/entity/user.entity';
 import { Workspace } from '../../workspace/entity/workspace.entity';
 import { ItemInDto, ItemsFilter } from '../dto';
 import Item from '../entity/item.entity';
@@ -29,6 +34,7 @@ import { ItemService } from '../item.service';
 
 @Resolver(() => Item)
 @UseGuards(AuthGuard, AccessGuard)
+@UseInterceptors(TransactionInterceptor)
 export class ItemResolver {
   constructor(
     private prisma: PrismaService,
@@ -43,13 +49,8 @@ export class ItemResolver {
     @Parent() item: Item,
     @Args('paymentsFilter', { nullable: true }) paymentsFilter: PaymentsFilter,
   ): Promise<Payment[]> {
-    const allPayments = await this.paymentsByItemIdLoader
-      .withOptions(paymentsFilter)
-      .load(item.id);
-    const payments = this.paymentService.filterPayments(
-      allPayments,
-      paymentsFilter,
-    );
+    const allPayments = await this.paymentsByItemIdLoader.withOptions(paymentsFilter).load(item.id);
+    const payments = this.paymentService.filterPayments(allPayments, paymentsFilter);
 
     return payments;
   }
@@ -104,11 +105,7 @@ export class ItemResolver {
     @Args('itemsFilter', { nullable: true }) itemsFilter: ItemsFilter,
     @Args('paymentsFilter', { nullable: true }) paymentsFilter: PaymentsFilter,
   ): Promise<Item[]> {
-    const items = await this.itemService.list(
-      [workspaceId],
-      itemsFilter,
-      paymentsFilter,
-    );
+    const items = await this.itemService.list([workspaceId], itemsFilter, paymentsFilter);
 
     return items;
   }
@@ -125,8 +122,10 @@ export class ItemResolver {
   async createItem(
     @Args('workspaceId', { type: () => Int }) workspaceId: number,
     @Args('dto', { type: () => ItemInDto }) dto: ItemInDto,
+    @CurrentUser() currentUser: User,
+    @Context('tx') tx: Prisma.TransactionClient,
   ) {
-    return this.itemService.create(workspaceId, dto);
+    return this.itemService.create(workspaceId, dto, currentUser, tx);
   }
 
   @Access.allow([
@@ -141,8 +140,10 @@ export class ItemResolver {
   async updateItem(
     @Args('id', { type: () => Int }) id: number,
     @Args('dto', { type: () => ItemInDto }) dto: ItemInDto,
+    @CurrentUser() currentUser: User,
+    @Context('tx') tx: Prisma.TransactionClient,
   ) {
-    return this.itemService.update(id, dto);
+    return this.itemService.update(id, dto, currentUser, tx);
   }
 
   @Access.allow([
@@ -154,8 +155,12 @@ export class ItemResolver {
     },
   ])
   @Mutation(() => Boolean)
-  async deleteItem(@Args('id', { type: () => Int }) id: number) {
-    await this.itemService.delete(id);
+  async deleteItem(
+    @Args('id', { type: () => Int }) id: number,
+    @CurrentUser() currentUser: User,
+    @Context('tx') tx: Prisma.TransactionClient,
+  ) {
+    await this.itemService.delete(id, currentUser, tx);
 
     return true;
   }

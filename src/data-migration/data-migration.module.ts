@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ItemTagModule } from '../item-tag/item-tag.module';
 import { ItemModule } from '../item/item.module';
 import { PaymentModule } from '../payment/payment.module';
+import { PrismaModule } from '../prisma/prisma.module';
 import { SpreadsheetModule } from '../spreadsheet/spreadsheet.module';
 import { TagModule } from '../tag/tag.module';
 import { UserModule } from '../user/user.module';
@@ -18,6 +19,7 @@ import { InquirerService } from './inquirer.service';
     PaymentModule,
     UserModule,
     WorkspaceModule,
+    PrismaModule,
   ],
   providers: [DataMigrationService, InquirerService],
 })

@@ -200,28 +200,42 @@ type UserBlock {
   blocked: User!
 }
 
+type ResendEmailOutDto {
+  success: Boolean!
+}
+
+"""
+The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar Json
+
 type Query {
-  users: [User!]!
-  user(id: Int!): User!
-  me: User!
+  tags(workspaceId: Int!, dto: TagsFilter): [Tag!]!
+  tag(id: Int!): Tag!
+  itemsAggregation(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): ItemsAggregation!
   item(id: Int!): Item!
   items(workspaceId: Int!, itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): [Item!]!
   currencyRate(fromCurrency: Currency!, toCurrency: Currency!, date: Date!): CurrencyRate!
   payment(id: Int!): Payment!
   payments(itemId: Int!, paymentsFilter: PaymentsFilter): [Payment!]!
-  tags(workspaceId: Int!, dto: TagsFilter): [Tag!]!
-  tag(id: Int!): Tag!
-  itemsAggregation(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): ItemsAggregation!
+  users: [User!]!
+  user(id: Int!): User!
+  me: User!
 }
 
 type Mutation {
-  createInvite(dto: CreateInviteInDto!): Invite!
-  acceptInvite(inviteId: Int!): Invite!
-  rejectInvite(inviteId: Int!): Invite!
-  rejectInviteAndBlockUser(inviteId: Int!): Invite!
-  deleteContact(contactId: Int!): Contact!
-  blockUser(dto: CreateUserBlockInDto!): UserBlock!
-  unblockUser(dto: RemoveUserBlockInDto!): UserBlock!
+  createTag(workspaceId: Int!, dto: TagInDto!): Tag!
+  updateTag(id: Int!, dto: TagInDto!): Tag!
+  deleteTag(id: Int!): Boolean!
+  assignTag(dto: AssignTagInDto!): ItemTag!
+  unassignTag(dto: UnassignTagInDto!): Boolean!
+  createItem(workspaceId: Int!, dto: ItemInDto!): Item!
+  updateItem(id: Int!, dto: ItemInDto!): Item!
+  deleteItem(id: Int!): Boolean!
+  createPayment(itemId: Int!, dto: PaymentInDto!): Payment!
+  updatePayment(paymentId: Int!, dto: PaymentInDto!): Payment!
+  deletePayment(paymentId: Int!): Boolean!
+  mergeItems(dto: MergeItemsInDto!): Item!
   createUser(dto: CreateUserInDto!): User!
   updateUser(id: Int!, dto: UpdateUserInDto!): User!
   deleteUser(id: Int!): Boolean!
@@ -230,32 +244,48 @@ type Mutation {
   createWorkspace(dto: WorkspaceInDto!): Workspace!
   updateWorkspace(id: Int!, dto: WorkspaceInDto!): Workspace!
   deleteWorkspace(id: Int!): Workspace!
-  createItem(workspaceId: Int!, dto: ItemInDto!): Item!
-  updateItem(id: Int!, dto: ItemInDto!): Item!
-  deleteItem(id: Int!): Boolean!
-  assignTag(dto: AssignTagInDto!): ItemTag!
-  unassignTag(dto: UnassignTagInDto!): Boolean!
-  createPayment(itemId: Int!, dto: PaymentInDto!): Payment!
-  updatePayment(paymentId: Int!, dto: PaymentInDto!): Payment!
-  deletePayment(paymentId: Int!): Boolean!
-  createTag(workspaceId: Int!, dto: TagInDto!): Tag!
-  updateTag(id: Int!, dto: TagInDto!): Tag!
-  deleteTag(id: Int!): Boolean!
+  createInvite(dto: CreateInviteInDto!): Invite!
+  acceptInvite(inviteId: Int!): Invite!
+  rejectInvite(inviteId: Int!): Invite!
+  rejectInviteAndBlockUser(inviteId: Int!): Invite!
+  deleteContact(contactId: Int!): Contact!
+  blockUser(dto: CreateUserBlockInDto!): UserBlock!
+  unblockUser(dto: RemoveUserBlockInDto!): UserBlock!
+  forgotPassword(dto: ForgotPasswordInDto!): Boolean!
+  resetPassword(dto: ResetPasswordInDto!): Boolean!
+  resendConfirmEmail(dto: ResendConfirmEmailInDto!): ResendEmailOutDto!
+  resendForgotPasswordEmail(dto: ForgotPasswordInDto!): ResendEmailOutDto!
 }
 
-input CreateInviteInDto {
-  inviterUserId: Int!
-  inviteeUserId: Int!
+input TagInDto {
+  title: String!
+  color: String
 }
 
-input CreateUserBlockInDto {
-  blockerId: Int!
-  blockedId: Int!
+input AssignTagInDto {
+  tagId: Int!
+  itemId: Int!
 }
 
-input RemoveUserBlockInDto {
-  blockerId: Int!
-  blockedId: Int!
+input UnassignTagInDto {
+  tagId: Int!
+  itemId: Int!
+}
+
+input ItemInDto {
+  title: String!
+}
+
+input PaymentInDto {
+  title: String
+  cost: Decimal!
+  currency: Currency!
+  date: Date!
+}
+
+input MergeItemsInDto {
+  hostItemId: Int!
+  mergingItemId: Int!
 }
 
 input CreateUserInDto {
@@ -275,28 +305,30 @@ input WorkspaceInDto {
   defaultCurrency: Currency!
 }
 
-input ItemInDto {
-  title: String!
+input CreateInviteInDto {
+  inviterUserId: Int!
+  inviteeUserId: Int!
 }
 
-input AssignTagInDto {
-  tagId: Int!
-  itemId: Int!
+input CreateUserBlockInDto {
+  blockerId: Int!
+  blockedId: Int!
 }
 
-input UnassignTagInDto {
-  tagId: Int!
-  itemId: Int!
+input RemoveUserBlockInDto {
+  blockerId: Int!
+  blockedId: Int!
 }
 
-input PaymentInDto {
-  title: String
-  cost: Decimal!
-  currency: Currency!
-  date: Date!
+input ForgotPasswordInDto {
+  email: String!
 }
 
-input TagInDto {
-  title: String!
-  color: String
+input ResetPasswordInDto {
+  token: String!
+  password: String!
+}
+
+input ResendConfirmEmailInDto {
+  userId: Int!
 }

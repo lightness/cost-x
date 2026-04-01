@@ -3,6 +3,7 @@ import { HttpErrorCode } from '../decorator/http-error-code.decorator';
 import { ApplicationError } from './application.error';
 
 export enum ApplicationErrorCode {
+  // auth
   EMAIL_IS_NOT_VERIFIED = 'email_is_not_verified',
   USER_BANNED = 'user_banned',
   USER_ALREADY_EXISTS = 'user_already_exists',
@@ -24,6 +25,8 @@ export enum ApplicationErrorCode {
   BLOCKED_USER_NOT_FOUND = 'blocked_user_not_found',
   USER_IS_ALREADY_BLOCKED = 'user_is_already_blocked',
   USER_IS_NOT_BLOCKED = 'user_is_not_blocked',
+  // item
+  ITEM_NOT_FOUND = 'item_not_found',
   // common
   UNIQUE_CONSTRAINT_VIOLATION = 'unique_constraint_violation',
   UNKNOWN = 'unknown',
