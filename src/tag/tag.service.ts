@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
+import { Prisma } from '../../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { TagInDto, TagsFilter } from './dto';
 import Tag from './entity/tag.entity';
@@ -31,45 +32,49 @@ export class TagService {
     return tags;
   }
 
-  async create(workspaceId: number, dto: TagInDto): Promise<Tag> {
-    const tag = await this.prisma.tag.create({
+  async create(
+    workspaceId: number,
+    dto: TagInDto,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<Tag> {
+    return tx.tag.create({
       data: {
         ...dto,
         workspaceId,
       },
     });
-
-    return tag;
   }
 
-  async update(id: number, dto: TagInDto): Promise<Tag> {
-    return this.prisma.$transaction(async (tx) => {
-      // TODO: Select for update
-      const tag = await tx.tag.findUnique({
-        where: { id },
-      });
-
-      if (!tag) {
-        throw new BadRequestException(`Tag #${id} does not exist`);
-      }
-
-      return this.prisma.tag.update({
-        data: {
-          color: dto.color,
-          title: dto.title,
-        },
-        where: { id },
-      });
+  async update(
+    id: number,
+    dto: TagInDto,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<Tag> {
+    // TODO: Select for update
+    const tag = await tx.tag.findUnique({
+      where: { id },
     });
-  }
-
-  async delete(id: number): Promise<void> {
-    const tag = await this.prisma.tag.findUnique({ where: { id } });
 
     if (!tag) {
       throw new BadRequestException(`Tag #${id} does not exist`);
     }
 
-    await this.prisma.tag.delete({ where: { id } });
+    return tx.tag.update({
+      data: {
+        color: dto.color,
+        title: dto.title,
+      },
+      where: { id },
+    });
+  }
+
+  async delete(id: number, tx: Prisma.TransactionClient = this.prisma): Promise<void> {
+    const tag = await tx.tag.findUnique({ where: { id } });
+
+    if (!tag) {
+      throw new BadRequestException(`Tag #${id} does not exist`);
+    }
+
+    await tx.tag.delete({ where: { id } });
   }
 }

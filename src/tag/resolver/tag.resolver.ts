@@ -1,6 +1,7 @@
 import { UseGuards, UseInterceptors } from '@nestjs/common';
 import {
   Args,
+  Context,
   Int,
   Mutation,
   Parent,
@@ -8,11 +9,13 @@ import {
   ResolveField,
   Resolver,
 } from '@nestjs/graphql';
+import { Prisma } from '../../../generated/prisma/client';
 import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
 import { AccessScope } from '../../access/interfaces';
 import { AuthGuard } from '../../auth/guard/auth.guard';
+import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
 import { GqlLoggingInterceptor } from '../../graphql/interceptor/gql-logging.interceptor';
 import { ItemsByTagIdLoader } from '../../item-tag/dataloader/items-by-tag-id.loader.service';
 import { ItemsFilter } from '../../item/dto';
@@ -28,7 +31,7 @@ import { TagService } from '../tag.service';
 
 @Resolver(() => Tag)
 @UseGuards(AuthGuard, AccessGuard)
-@UseInterceptors(GqlLoggingInterceptor)
+@UseInterceptors(GqlLoggingInterceptor, TransactionInterceptor)
 export class TagResolver {
   constructor(
     private prisma: PrismaService,
@@ -107,8 +110,9 @@ export class TagResolver {
   async createTag(
     @Args('workspaceId', { type: () => Int }) workspaceId: number,
     @Args('dto', { type: () => TagInDto }) dto: TagInDto,
+    @Context('tx') tx: Prisma.TransactionClient,
   ) {
-    return this.tagService.create(workspaceId, dto);
+    return this.tagService.create(workspaceId, dto, tx);
   }
 
   @Mutation(() => Tag)
@@ -123,8 +127,9 @@ export class TagResolver {
   async updateTag(
     @Args('id', { type: () => Int }) id: number,
     @Args('dto', { type: () => TagInDto }) dto: TagInDto,
+    @Context('tx') tx: Prisma.TransactionClient,
   ) {
-    return this.tagService.update(id, dto);
+    return this.tagService.update(id, dto, tx);
   }
 
   @Mutation(() => Boolean)
@@ -136,8 +141,11 @@ export class TagResolver {
     },
     { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
   ])
-  async deleteTag(@Args('id', { type: () => Int }) id: number) {
-    await this.tagService.delete(id);
+  async deleteTag(
+    @Args('id', { type: () => Int }) id: number,
+    @Context('tx') tx: Prisma.TransactionClient,
+  ) {
+    await this.tagService.delete(id, tx);
 
     return true;
   }

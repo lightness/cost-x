@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
+import { Prisma } from '../../generated/prisma/client';
 import { ConfirmEmailService } from '../confirm-email/confirm-email.service';
 import { BcryptService } from '../password/bcrypt.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -15,10 +16,10 @@ export class UserService {
     private confirmEmailService: ConfirmEmailService,
   ) {}
 
-  async create(dto: CreateUserInDto): Promise<User> {
+  async create(dto: CreateUserInDto, tx: Prisma.TransactionClient = this.prisma): Promise<User> {
     const email = dto.email.toLowerCase();
 
-    const existingUser = await this.prisma.user.findUnique({
+    const existingUser = await tx.user.findUnique({
       where: { email },
     });
 
@@ -26,7 +27,7 @@ export class UserService {
       throw new UserAlreadyExistsError();
     }
 
-    const user = await this.prisma.user.create({
+    const user = await tx.user.create({
       data: {
         email,
         name: dto.name,
@@ -40,8 +41,12 @@ export class UserService {
     return user;
   }
 
-  async update(id: number, dto: UpdateUserInDto): Promise<User> {
-    const user = await this.prisma.user.findUnique({ where: { id } });
+  async update(
+    id: number,
+    dto: UpdateUserInDto,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<User> {
+    const user = await tx.user.findUnique({ where: { id } });
 
     if (!user) {
       throw new BadRequestException(`User #${id} not exists`);
@@ -49,7 +54,7 @@ export class UserService {
 
     const isNewEmail = Boolean(dto.email) && user.email !== dto.email;
 
-    const updatedUser = await this.prisma.user.update({
+    const updatedUser = await tx.user.update({
       data: {
         email: dto.email.toLowerCase(),
         name: dto.name,
@@ -66,16 +71,16 @@ export class UserService {
     return updatedUser;
   }
 
-  async delete(user: User) {
-    return this.prisma.user.delete({ where: user });
+  async delete(user: User, tx: Prisma.TransactionClient = this.prisma) {
+    return tx.user.delete({ where: user });
   }
 
-  async ban(user: User) {
+  async ban(user: User, tx: Prisma.TransactionClient = this.prisma) {
     if (user.status === UserStatus.BANNED) {
       throw new BadRequestException(`User is already banned`);
     }
 
-    return this.prisma.user.update({
+    return tx.user.update({
       data: {
         status: UserStatus.BANNED,
       },
@@ -85,12 +90,12 @@ export class UserService {
     });
   }
 
-  async unban(user: User) {
+  async unban(user: User, tx: Prisma.TransactionClient = this.prisma) {
     if (user.status !== UserStatus.BANNED) {
       throw new BadRequestException(`User is not banned`);
     }
 
-    return this.prisma.user.update({
+    return tx.user.update({
       data: {
         status: UserStatus.ACTIVE,
       },

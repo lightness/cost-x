@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '../../generated/prisma/client';
 import { ConsistencyService } from '../consistency/consistency.service';
 import Item from '../item/entity/item.entity';
 import { PrismaService } from '../prisma/prisma.service';
@@ -10,34 +11,36 @@ export class ItemMergeService {
     private consistencyService: ConsistencyService,
   ) {}
 
-  async merge(hostItem: Item, mergingItem: Item) {
+  async merge(
+    hostItem: Item,
+    mergingItem: Item,
+    tx: Prisma.TransactionClient = this.prisma,
+  ) {
     await this.consistencyService.itemsToSameWorkspace.ensureIsBelonging(
       hostItem,
       mergingItem,
     );
 
-    return await this.prisma.$transaction(async (tx) => {
-      const mergingPayments = await tx.payment.findMany({
-        where: { itemId: mergingItem.id },
-      });
-
-      await tx.payment.createMany({
-        data: mergingPayments.map(({ id, ...payment }) => ({
-          ...payment,
-          itemId: hostItem.id,
-          title: payment.title || mergingItem.title,
-        })),
-      });
-
-      await tx.itemTag.deleteMany({
-        where: { itemId: mergingItem.id },
-      });
-
-      await tx.item.delete({
-        where: { id: mergingItem.id },
-      });
-
-      return tx.item.findUnique({ where: { id: hostItem.id } });
+    const mergingPayments = await tx.payment.findMany({
+      where: { itemId: mergingItem.id },
     });
+
+    await tx.payment.createMany({
+      data: mergingPayments.map(({ id, ...payment }) => ({
+        ...payment,
+        itemId: hostItem.id,
+        title: payment.title || mergingItem.title,
+      })),
+    });
+
+    await tx.itemTag.deleteMany({
+      where: { itemId: mergingItem.id },
+    });
+
+    await tx.item.delete({
+      where: { id: mergingItem.id },
+    });
+
+    return tx.item.findUnique({ where: { id: hostItem.id } });
   }
 }

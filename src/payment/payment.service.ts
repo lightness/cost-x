@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { cmp } from 'type-comparator';
+import { Prisma } from '../../generated/prisma/client';
 import { ConsistencyService } from '../consistency/consistency.service';
 import { PaymentLike } from '../item-cost/interfaces';
 import Item from '../item/entity/item.entity';
@@ -53,8 +54,12 @@ export class PaymentService {
     return payment;
   }
 
-  async createPayment(item: Item, dto: PaymentInDto): Promise<Payment> {
-    return this.prisma.payment.create({
+  async createPayment(
+    item: Item,
+    dto: PaymentInDto,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<Payment> {
+    return tx.payment.create({
       data: {
         ...dto,
         item: {
@@ -66,8 +71,12 @@ export class PaymentService {
     });
   }
 
-  async updatePayment(payment: Payment, dto: PaymentInDto): Promise<Payment> {
-    return this.prisma.payment.update({
+  async updatePayment(
+    payment: Payment,
+    dto: PaymentInDto,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<Payment> {
+    return tx.payment.update({
       data: {
         cost: dto.cost,
         currency: dto.currency,
@@ -78,8 +87,8 @@ export class PaymentService {
     });
   }
 
-  async deletePayment(payment: Payment) {
-    await this.prisma.payment.delete({
+  async deletePayment(payment: Payment, tx: Prisma.TransactionClient = this.prisma) {
+    await tx.payment.delete({
       where: { id: payment.id },
     });
   }

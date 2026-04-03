@@ -1,11 +1,13 @@
-import { UseGuards } from '@nestjs/common';
-import { Args, Int, Mutation, Parent, ResolveField, Resolver } from '@nestjs/graphql';
+import { UseGuards, UseInterceptors } from '@nestjs/common';
+import { Args, Context, Int, Mutation, Parent, ResolveField, Resolver } from '@nestjs/graphql';
+import { Prisma } from '../../../generated/prisma/client';
 import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
 import { AccessScope } from '../../access/interfaces';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
+import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
 import { ItemsByWorkspaceIdLoader } from '../../item/dataloader/items-by-workspace-id.loader.service';
 import { ItemsFilter } from '../../item/dto';
 import Item from '../../item/entity/item.entity';
@@ -25,6 +27,7 @@ import { WorkspaceService } from '../workspace.service';
 
 @Resolver(() => Workspace)
 @UseGuards(AuthGuard, AccessGuard)
+@UseInterceptors(TransactionInterceptor)
 export class WorkspaceResolver {
   constructor(
     private workspaceService: WorkspaceService,
@@ -77,8 +80,12 @@ export class WorkspaceResolver {
 
   @Mutation(() => Workspace)
   @Access.allow([{ role: [UserRole.USER, UserRole.ADMIN], targetScope: AccessScope.GLOBAL }])
-  async createWorkspace(@Args('dto') dto: WorkspaceInDto, @CurrentUser() currentUser: User) {
-    return this.workspaceService.create(dto, currentUser);
+  async createWorkspace(
+    @Args('dto') dto: WorkspaceInDto,
+    @CurrentUser() currentUser: User,
+    @Context('tx') tx: Prisma.TransactionClient,
+  ) {
+    return this.workspaceService.create(dto, currentUser, tx);
   }
 
   @Mutation(() => Workspace)
@@ -93,8 +100,9 @@ export class WorkspaceResolver {
   async updateWorkspace(
     @Args('id', { type: () => Int }) id: number,
     @Args('dto') dto: WorkspaceInDto,
+    @Context('tx') tx: Prisma.TransactionClient,
   ) {
-    return this.workspaceService.update(id, dto);
+    return this.workspaceService.update(id, dto, tx);
   }
 
   @Mutation(() => Workspace)
@@ -106,7 +114,10 @@ export class WorkspaceResolver {
     },
     { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
   ])
-  async deleteWorkspace(@Args('id', { type: () => Int }) id: number) {
-    return this.workspaceService.delete(id);
+  async deleteWorkspace(
+    @Args('id', { type: () => Int }) id: number,
+    @Context('tx') tx: Prisma.TransactionClient,
+  ) {
+    return this.workspaceService.delete(id, tx);
   }
 }

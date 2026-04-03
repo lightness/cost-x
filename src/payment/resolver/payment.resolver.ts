@@ -1,6 +1,7 @@
-import { NotFoundException, UseGuards } from '@nestjs/common';
+import { NotFoundException, UseGuards, UseInterceptors } from '@nestjs/common';
 import {
   Args,
+  Context,
   Int,
   Mutation,
   Parent,
@@ -8,11 +9,13 @@ import {
   ResolveField,
   Resolver,
 } from '@nestjs/graphql';
+import { Prisma } from '../../../generated/prisma/client';
 import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
 import { AccessScope } from '../../access/interfaces';
 import { AuthGuard } from '../../auth/guard/auth.guard';
+import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
 import { ItemByIdPipe } from '../../common/pipe/item-by-id.pipe';
 import { PaymentByIdPipe } from '../../common/pipe/payment-by-id.pipe';
 import Item from '../../item/entity/item.entity';
@@ -24,6 +27,7 @@ import { PaymentService } from '../payment.service';
 
 @Resolver(() => Payment)
 @UseGuards(AuthGuard, AccessGuard)
+@UseInterceptors(TransactionInterceptor)
 export class PaymentResolver {
   constructor(
     private prisma: PrismaService,
@@ -92,8 +96,9 @@ export class PaymentResolver {
   async createPayment(
     @Args('itemId', { type: () => Int }, ItemByIdPipe) item: Item,
     @Args('dto') dto: PaymentInDto,
+    @Context('tx') tx: Prisma.TransactionClient,
   ) {
-    return this.paymentService.createPayment(item, dto);
+    return this.paymentService.createPayment(item, dto, tx);
   }
 
   @Mutation(() => Payment)
@@ -108,8 +113,9 @@ export class PaymentResolver {
   async updatePayment(
     @Args('paymentId', { type: () => Int }, PaymentByIdPipe) payment: Payment,
     @Args('dto') dto: PaymentInDto,
+    @Context('tx') tx: Prisma.TransactionClient,
   ) {
-    return this.paymentService.updatePayment(payment, dto);
+    return this.paymentService.updatePayment(payment, dto, tx);
   }
 
   @Mutation(() => Boolean)
@@ -123,7 +129,8 @@ export class PaymentResolver {
   ])
   async deletePayment(
     @Args('paymentId', { type: () => Int }, PaymentByIdPipe) payment: Payment,
+    @Context('tx') tx: Prisma.TransactionClient,
   ) {
-    await this.paymentService.deletePayment(payment);
+    await this.paymentService.deletePayment(payment, tx);
   }
 }

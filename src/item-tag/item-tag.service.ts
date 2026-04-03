@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
+import { Prisma } from '../../generated/prisma/client';
 import { ItemTagWhereInput } from '../../generated/prisma/models';
 import { ConsistencyService } from '../consistency/consistency.service';
 import { ItemsFilter } from '../item/dto';
@@ -30,14 +31,17 @@ export class ItemTagService {
     return itemTags;
   }
 
-  // TODO: make transactional
-  async assignTag(item: Item, tag: Tag): Promise<ItemTag> {
+  async assignTag(
+    item: Item,
+    tag: Tag,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<ItemTag> {
     await this.consistencyService.itemAndTagToSameWorkspace.ensureIsBelonging(
       item,
       tag,
     );
 
-    const itemTag = await this.prisma.itemTag.findUnique({
+    const itemTag = await tx.itemTag.findUnique({
       where: {
         itemId_tagId: {
           itemId: item.id,
@@ -52,7 +56,7 @@ export class ItemTagService {
       );
     }
 
-    return this.prisma.itemTag.create({
+    return tx.itemTag.create({
       data: {
         item: { connect: { id: item.id } },
         tag: { connect: { id: tag.id } },
@@ -60,14 +64,17 @@ export class ItemTagService {
     });
   }
 
-  // TODO: make transactional
-  async unassignTag(item: Item, tag: Tag): Promise<void> {
+  async unassignTag(
+    item: Item,
+    tag: Tag,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<void> {
     await this.consistencyService.itemAndTagToSameWorkspace.ensureIsBelonging(
       item,
       tag,
     );
 
-    const itemTag = await this.prisma.itemTag.findUnique({
+    const itemTag = await tx.itemTag.findUnique({
       where: {
         itemId_tagId: {
           itemId: item.id,
@@ -82,7 +89,7 @@ export class ItemTagService {
       );
     }
 
-    await this.prisma.itemTag.delete({
+    await tx.itemTag.delete({
       where: {
         itemId_tagId: {
           itemId: item.id,
