@@ -1,14 +1,5 @@
-import { NotFoundException, UseGuards, UseInterceptors } from '@nestjs/common';
-import {
-  Args,
-  Context,
-  Int,
-  Mutation,
-  Parent,
-  Query,
-  ResolveField,
-  Resolver,
-} from '@nestjs/graphql';
+import { UseGuards, UseInterceptors } from '@nestjs/common';
+import { Args, Context, Int, Mutation, Resolver } from '@nestjs/graphql';
 import { Prisma } from '../../../generated/prisma/client';
 import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
@@ -19,70 +10,16 @@ import { TransactionInterceptor } from '../../common/interceptor/transaction.int
 import { ItemByIdPipe } from '../../common/pipe/item-by-id.pipe';
 import { PaymentByIdPipe } from '../../common/pipe/payment-by-id.pipe';
 import Item from '../../item/entity/item.entity';
-import { PrismaService } from '../../prisma/prisma.service';
 import { UserRole } from '../../user/entity/user-role.enum';
-import { PaymentInDto, PaymentsFilter } from '../dto';
+import { PaymentInDto } from '../dto';
 import Payment from '../entity/payment.entity';
 import { PaymentService } from '../payment.service';
 
-@Resolver(() => Payment)
+@Resolver()
 @UseGuards(AuthGuard, AccessGuard)
 @UseInterceptors(TransactionInterceptor)
-export class PaymentResolver {
-  constructor(
-    private prisma: PrismaService,
-    private paymentService: PaymentService,
-  ) {}
-
-  @ResolveField(() => Item)
-  async item(@Parent() payment: Payment) {
-    const { itemId } = payment;
-
-    const item = await this.prisma.item.findFirst({ where: { id: itemId } });
-
-    if (!item) {
-      throw new NotFoundException(`Item with ID ${itemId} not found`);
-    }
-
-    return item;
-  }
-
-  @Query(() => Payment)
-  @Access.allow([
-    { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
-    {
-      role: [UserRole.USER],
-      targetId: fromArg('id'),
-      targetScope: AccessScope.PAYMENT,
-    },
-  ])
-  async payment(@Args('id', { type: () => Int }) id: number) {
-    const payment = await this.prisma.payment.findUnique({ where: { id } });
-
-    if (!payment) {
-      throw new NotFoundException(id);
-    }
-
-    return payment;
-  }
-
-  @Query(() => [Payment])
-  @Access.allow([
-    { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
-    {
-      role: [UserRole.USER],
-      targetId: fromArg('itemId'),
-      targetScope: AccessScope.ITEM,
-    },
-  ])
-  async payments(
-    @Args('itemId', { type: () => Int }) itemId: number,
-    @Args('paymentsFilter', { nullable: true }) filter: PaymentsFilter,
-  ) {
-    const payments = await this.paymentService.getItemPayments(itemId, filter);
-
-    return { data: payments };
-  }
+export class PaymentMutationResolver {
+  constructor(private paymentService: PaymentService) {}
 
   @Mutation(() => Payment)
   @Access.allow([

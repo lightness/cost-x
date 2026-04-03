@@ -7,7 +7,8 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { ItemsByTagIdLoader } from './dataloader/items-by-tag-id.loader.service';
 import { TagsByItemIdLoader } from './dataloader/tags-by-item-id.loader.service';
 import { ItemTagService } from './item-tag.service';
-import { ItemTagResolver } from './resolver/item-tag.resolver';
+import { ItemTagFieldResolver } from './resolver/item-tag.field.resolver';
+import { ItemTagMutationResolver } from './resolver/item-tag.mutation.resolver';
 
 @Module({
   exports: [ItemTagService, ItemsByTagIdLoader, TagsByItemIdLoader],
@@ -23,8 +24,9 @@ import { ItemTagResolver } from './resolver/item-tag.resolver';
     // dataloaders
     ItemsByTagIdLoader,
     TagsByItemIdLoader,
-    // resolver
-    ItemTagResolver,
+    // resolvers
+    ItemTagFieldResolver,
+    ItemTagMutationResolver,
   ],
 })
 export class ItemTagModule {}

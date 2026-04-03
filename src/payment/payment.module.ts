@@ -7,7 +7,9 @@ import { ItemCostModule } from '../item-cost/default-currency-cost.module';
 import { PrismaModule } from '../prisma/prisma.module';
 import { PaymentsByItemIdLoader } from './dataloader/payments-by-item-id.loader.service';
 import { PaymentService } from './payment.service';
-import { PaymentResolver } from './resolver/payment.resolver';
+import { PaymentFieldResolver } from './resolver/payment.field.resolver';
+import { PaymentMutationResolver } from './resolver/payment.mutation.resolver';
+import { PaymentQueryResolver } from './resolver/payment.query.resolver';
 
 @Module({
   exports: [PaymentService, PaymentsByItemIdLoader],
@@ -24,7 +26,9 @@ import { PaymentResolver } from './resolver/payment.resolver';
     // dataloaders
     PaymentsByItemIdLoader,
     // resolvers
-    PaymentResolver,
+    PaymentFieldResolver,
+    PaymentQueryResolver,
+    PaymentMutationResolver,
   ],
 })
 export class PaymentModule {}

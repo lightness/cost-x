@@ -10,7 +10,7 @@ import { ItemMergeService } from '../item-merge.service';
 
 @Resolver()
 @UseInterceptors(TransactionInterceptor)
-export class ItemMergeResolver {
+export class ItemMergeMutationResolver {
   constructor(private itemMergeService: ItemMergeService) {}
 
   @Mutation(() => Item)

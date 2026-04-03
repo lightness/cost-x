@@ -1,12 +1,5 @@
 import { UseGuards, UseInterceptors } from '@nestjs/common';
-import {
-  Args,
-  Context,
-  Mutation,
-  Parent,
-  ResolveField,
-  Resolver,
-} from '@nestjs/graphql';
+import { Args, Context, Mutation, Resolver } from '@nestjs/graphql';
 import { Prisma } from '../../../generated/prisma/client';
 import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
@@ -18,31 +11,17 @@ import { ItemByIdPipe } from '../../common/pipe/item-by-id.pipe';
 import { TagByIdPipe } from '../../common/pipe/tag-by-id.pipe';
 import { DeepArgs } from '../../graphql/decorator/deep-args.decorator';
 import Item from '../../item/entity/item.entity';
-import { PrismaService } from '../../prisma/prisma.service';
 import Tag from '../../tag/entity/tag.entity';
 import { UserRole } from '../../user/entity/user-role.enum';
 import { AssignTagInDto, UnassignTagInDto } from '../dto';
 import ItemTag from '../entity/item-tag.entity';
 import { ItemTagService } from '../item-tag.service';
 
-@Resolver(() => ItemTag)
+@Resolver()
 @UseGuards(AuthGuard, AccessGuard)
 @UseInterceptors(TransactionInterceptor)
-export class ItemTagResolver {
-  constructor(
-    private prisma: PrismaService,
-    private itemTagService: ItemTagService,
-  ) {}
-
-  @ResolveField(() => Item)
-  async item(@Parent() itemTag: ItemTag) {
-    return this.prisma.item.findUnique({ where: { id: itemTag.itemId } });
-  }
-
-  @ResolveField(() => Tag)
-  async tag(@Parent() itemTag: ItemTag) {
-    return this.prisma.tag.findUnique({ where: { id: itemTag.tagId } });
-  }
+export class ItemTagMutationResolver {
+  constructor(private itemTagService: ItemTagService) {}
 
   @Mutation(() => ItemTag)
   @Access.allow([
