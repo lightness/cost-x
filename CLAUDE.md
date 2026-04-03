@@ -101,3 +101,13 @@ npx jest test/contact.e2e.spec.ts --verbose
 ## Code Style
 
 Biome is the linter/formatter. Config in `biome.json`: 2-space indent, single quotes, 100-char line width.
+
+### Vertical Spacing Rules
+
+**Control flow statements** (`if`, `switch`, `for`, `while`, `do...while`) must have an empty line before and after them — **except**:
+- No empty line before if it's the first statement in the block
+- No empty line after if it's the last statement in the block
+
+**`return` and `break`** require an empty line before them when they are not the only statement in their block.
+
+**Blocks never start or end with an empty line** — the line immediately after `{` and immediately before `}` must not be blank.
