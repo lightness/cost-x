@@ -31,6 +31,7 @@ enum UserRole {
 }
 
 input WorkspacesFilter {
+  id: Int
   title: String
   defaultCurrency: Currency
 }
