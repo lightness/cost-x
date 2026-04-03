@@ -9,6 +9,7 @@ import { WorkspaceService } from './workspace.service';
 import { GroupModule } from '../group/group.module';
 import { TagModule } from '../tag/tag.module';
 import { ItemsAggregationModule } from '../items-aggregation/items-aggregation.module';
+import { WorkspaceHistoryModule } from '../workspace-history/workspace-history.module';
 
 @Module({
   exports: [WorkspaceService, WorkspacesByUserIdLoader],
@@ -20,6 +21,7 @@ import { ItemsAggregationModule } from '../items-aggregation/items-aggregation.m
     TagModule,
     ItemsAggregationModule,
     GroupModule,
+    WorkspaceHistoryModule,
   ],
   providers: [
     WorkspaceService,

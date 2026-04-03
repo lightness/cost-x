@@ -10,6 +10,18 @@ import { WorkspaceHistory } from './entity/workspace-history.entity';
 export class WorkspaceHistoryService {
   constructor(private prisma: PrismaService) {}
 
+  async listByWorkspaceId(
+    workspaceId: number,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<WorkspaceHistory[]> {
+    const workspaceHistoryEntries = await tx.workspaceHistory.findMany({
+      orderBy: { createdAt: 'desc' },
+      where: { workspaceId },
+    });
+
+    return workspaceHistoryEntries;
+  }
+
   async create(
     data: Omit<WorkspaceHistory, 'id' | 'createdAt'>,
     tx: Prisma.TransactionClient = this.prisma,

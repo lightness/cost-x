@@ -17,6 +17,8 @@ import { TagsFilter } from '../../tag/dto';
 import Tag from '../../tag/entity/tag.entity';
 import { UserRole } from '../../user/entity/user-role.enum';
 import { User } from '../../user/entity/user.entity';
+import { WorkspaceHistory } from '../../workspace-history/entity/workspace-history.entity';
+import { WorkspaceHistoryService } from '../../workspace-history/workspace-history.service';
 import { WorkspaceInDto } from '../dto';
 import { Workspace } from '../entity/workspace.entity';
 import { WorkspaceService } from '../workspace.service';
@@ -29,6 +31,7 @@ export class WorkspaceResolver {
     private itemsByWorkspaceLoader: ItemsByWorkspaceIdLoader,
     private tagsByWorkspaceIdLoader: TagsByWorkspaceIdLoader,
     private itemsAggregationsByWorkspaceIdLoader: ItemsAggregationsByWorkspaceIdLoader,
+    private workspaceHistoryService: WorkspaceHistoryService,
   ) {}
 
   @ResolveField(() => [Item])
@@ -65,6 +68,11 @@ export class WorkspaceResolver {
       .load(workspace.id);
 
     return itemsAggregation;
+  }
+
+  @ResolveField(() => [WorkspaceHistory])
+  async history(@Parent() workspace: Workspace) {
+    return this.workspaceHistoryService.listByWorkspaceId(workspace.id);
   }
 
   @Mutation(() => Workspace)

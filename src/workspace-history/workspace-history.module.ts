@@ -4,6 +4,7 @@ import { WorkspaceHistoryEventListenerService } from './workspace-history-event-
 import { WorkspaceHistoryService } from './workspace-history.service';
 
 @Module({
+  exports: [WorkspaceHistoryService],
   imports: [PrismaModule],
   providers: [WorkspaceHistoryService, WorkspaceHistoryEventListenerService],
 })

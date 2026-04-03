@@ -23,9 +23,9 @@ export class WorkspaceHistory implements PrismaWorkspaceHistory {
   @Field(() => WorkspaceHistoryAction)
   action: WorkspaceHistoryAction;
 
-  @Field(() => JsonScalar)
+  @Field(() => JsonScalar, { nullable: true })
   oldValue: JsonValue | null;
 
-  @Field(() => JsonScalar)
+  @Field(() => JsonScalar, { nullable: true })
   newValue: JsonValue | null;
 }
