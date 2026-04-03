@@ -51,6 +51,7 @@ export class WorkspaceService {
   private getWhereClause(ownerIds: number[], filters: WorkspacesFilter): WorkspaceWhereInput {
     return {
       defaultCurrency: filters.defaultCurrency ? { equals: filters.defaultCurrency } : undefined,
+      id: filters.id ? { equals: filters.id } : undefined,
       ownerId: { in: ownerIds },
       title: filters.title ? { contains: filters.title, mode: 'insensitive' } : undefined,
     };
