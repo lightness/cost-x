@@ -25,9 +25,9 @@ import { DateIsoScalar, DateScalar, DecimalScalar, JsonScalar } from './scalar';
         Date: DateScalar,
         DateIso: DateIsoScalar,
         Decimal: DecimalScalar,
+        Json: JsonScalar,
       },
     }),
   ],
-  providers: [JsonScalar],
 })
 export class GraphqlModule {}

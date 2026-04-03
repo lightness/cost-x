@@ -80,6 +80,7 @@ type Workspace {
   items(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): [Item!]!
   tags(tagsFilter: TagsFilter): [Tag!]!
   itemsAggregation(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): ItemsAggregation!
+  history: [WorkspaceHistory!]!
 }
 
 input ItemsFilter {
@@ -165,6 +166,33 @@ enum InviteStatus {
   REJECTED
 }
 
+type WorkspaceHistory {
+  id: Int!
+  createdAt: DateIso!
+  workspaceId: Int!
+  actorId: Int!
+  action: WorkspaceHistoryAction!
+  oldValue: Json
+  newValue: Json
+  actor: User!
+}
+
+enum WorkspaceHistoryAction {
+  ITEM_CREATED
+  ITEM_UPDATED
+  ITEM_DELETED
+  PAYMENT_CREATED
+  PAYMENT_UPDATED
+  PAYMENT_DELETED
+  TAG_ADDED
+  TAG_REMOVED
+}
+
+"""
+The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar Json
+
 type Contact {
   id: Int!
   createdAt: DateIso!
@@ -203,11 +231,6 @@ type UserBlock {
 type ResendEmailOutDto {
   success: Boolean!
 }
-
-"""
-The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
-"""
-scalar Json
 
 type Query {
   tags(workspaceId: Int!, dto: TagsFilter): [Tag!]!
