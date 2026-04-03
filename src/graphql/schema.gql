@@ -2,6 +2,90 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type User {
+  id: Int!
+  createdAt: DateIso!
+  updatedAt: DateIso!
+  name: String!
+  email: String!
+  status: UserStatus!
+  role: UserRole!
+  workspaces(workspacesFilter: WorkspacesFilter): [Workspace!]!
+  incomingInvites(invitesFilter: InvitesFilter): [Invite!]!
+  outgoingInvites(invitesFilter: InvitesFilter): [Invite!]!
+  contacts: [Contact!]!
+}
+
+"""Date custom scalar type in ISO format"""
+scalar DateIso
+
+enum UserStatus {
+  ACTIVE
+  EMAIL_NOT_VERIFIED
+  BANNED
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+input WorkspacesFilter {
+  title: String
+  defaultCurrency: Currency
+}
+
+enum Currency {
+  BYN
+  USD
+  EUR
+}
+
+input InvitesFilter {
+  status: InviteStatus
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+type Contact {
+  id: Int!
+  createdAt: DateIso!
+  sourceUserId: Int!
+  targetUserId: Int!
+  inviteId: Int!
+  removedAt: DateIso
+  removedByUserId: Int!
+  sourceUser: User!
+  targetUser: User!
+  invite: Invite!
+}
+
+type Invite {
+  id: Int!
+  inviterId: Int!
+  inviteeId: Int!
+  status: InviteStatus!
+  createdAt: DateIso!
+  reactedAt: DateIso
+  inviter: User!
+  invitee: User!
+}
+
+type UserBlock {
+  id: Int!
+  createdAt: DateIso!
+  blockerId: Int!
+  blockedId: Int!
+  removedAt: DateIso
+  removedByUserId: Int
+  blocker: User!
+  blocked: User!
+}
+
 type CurrencyRate {
   id: Int!
   createdAt: DateIso!
@@ -9,15 +93,6 @@ type CurrencyRate {
   toCurrency: Currency!
   date: Date!
   rate: Decimal!
-}
-
-"""Date custom scalar type in ISO format"""
-scalar DateIso
-
-enum Currency {
-  BYN
-  USD
-  EUR
 }
 
 """Date custom scalar type in YYYY-MM-DD format"""
@@ -126,46 +201,6 @@ type ItemTag {
   tagId: Int!
 }
 
-type User {
-  id: Int!
-  createdAt: DateIso!
-  updatedAt: DateIso!
-  name: String!
-  email: String!
-  status: UserStatus!
-  role: UserRole!
-  workspaces(workspacesFilter: WorkspacesFilter): [Workspace!]!
-  incomingInvites(invitesFilter: InvitesFilter): [Invite!]!
-  outgoingInvites(invitesFilter: InvitesFilter): [Invite!]!
-  contacts: [Contact!]!
-}
-
-enum UserStatus {
-  ACTIVE
-  EMAIL_NOT_VERIFIED
-  BANNED
-}
-
-enum UserRole {
-  USER
-  ADMIN
-}
-
-input WorkspacesFilter {
-  title: String
-  defaultCurrency: Currency
-}
-
-input InvitesFilter {
-  status: InviteStatus
-}
-
-enum InviteStatus {
-  PENDING
-  ACCEPTED
-  REJECTED
-}
-
 type WorkspaceHistory {
   id: Int!
   createdAt: DateIso!
@@ -192,41 +227,6 @@ enum WorkspaceHistoryAction {
 The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
 """
 scalar Json
-
-type Contact {
-  id: Int!
-  createdAt: DateIso!
-  sourceUserId: Int!
-  targetUserId: Int!
-  inviteId: Int!
-  removedAt: DateIso
-  removedByUserId: Int!
-  sourceUser: User!
-  targetUser: User!
-  invite: Invite!
-}
-
-type Invite {
-  id: Int!
-  inviterId: Int!
-  inviteeId: Int!
-  status: InviteStatus!
-  createdAt: DateIso!
-  reactedAt: DateIso
-  inviter: User!
-  invitee: User!
-}
-
-type UserBlock {
-  id: Int!
-  createdAt: DateIso!
-  blockerId: Int!
-  blockedId: Int!
-  removedAt: DateIso
-  removedByUserId: Int
-  blocker: User!
-  blocked: User!
-}
 
 type ResendEmailOutDto {
   success: Boolean!

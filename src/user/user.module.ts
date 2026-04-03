@@ -1,4 +1,4 @@
-import { forwardRef, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { AccessModule } from '../access/access.module';
 import { AuthModule } from '../auth/auth.module';
 import { ConfirmEmailModule } from '../confirm-email/confirm-email.module';
@@ -7,14 +7,14 @@ import { GroupModule } from '../group/group.module';
 import { PasswordModule } from '../password/password.module';
 import { PrismaModule } from '../prisma/prisma.module';
 import { WorkspaceModule } from '../workspace/workspace.module';
-import { UserByUserIdLoader } from './dataloader/user-by-user-id.loader';
 import { UserFieldResolver } from './resolver/user.field.resolver';
 import { UserMutationResolver } from './resolver/user.mutation.resolver';
 import { UserQueryResolver } from './resolver/user.query.resolver';
+import { UserLoaderModule } from './user-loader.module';
 import { UserService } from './user.service';
 
 @Module({
-  exports: [UserService, UserByUserIdLoader],
+  exports: [UserService],
   imports: [
     PrismaModule,
     PasswordModule,
@@ -22,8 +22,9 @@ import { UserService } from './user.service';
     AccessModule,
     ConfirmEmailModule,
     WorkspaceModule,
-    forwardRef(() => ContactModule),
+    ContactModule,
     GroupModule,
+    UserLoaderModule,
   ],
   providers: [
     // services
@@ -32,8 +33,6 @@ import { UserService } from './user.service';
     UserMutationResolver,
     UserQueryResolver,
     UserFieldResolver,
-    // loaders
-    UserByUserIdLoader,
   ],
 })
 export class UserModule {}
