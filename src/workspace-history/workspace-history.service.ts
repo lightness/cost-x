@@ -89,6 +89,25 @@ export class WorkspaceHistoryService {
     );
   }
 
+  async createPaymentUpdated(
+    workspaceId: number,
+    actorId: number,
+    oldPayment: Payment,
+    newPayment: Payment,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<WorkspaceHistory> {
+    return this.create(
+      {
+        action: WorkspaceHistoryAction.PAYMENT_UPDATED,
+        actorId,
+        newValue: newPayment as unknown as JsonObject,
+        oldValue: oldPayment as unknown as JsonObject,
+        workspaceId,
+      },
+      tx,
+    );
+  }
+
   async createPaymentCreated(
     workspaceId: number,
     actorId: number,

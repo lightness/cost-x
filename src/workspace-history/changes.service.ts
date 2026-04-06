@@ -1,25 +1,59 @@
 import { Injectable } from '@nestjs/common';
+import Item from '../item/entity/item.entity';
+import Payment from '../payment/entity/payment.entity';
+import { WorkspaceHistoryAction } from './entity/workspace-history-action.enum';
+import { WorkspaceHistory } from './entity/workspace-history.entity';
 
 @Injectable()
 export class ChangesService {
-  getDiff<O extends Record<string, unknown>, N extends Record<string, unknown>>(
+  getDiffByWorkspaceHistory(workspaceHistory: WorkspaceHistory) {
+    switch (workspaceHistory.action) {
+      case WorkspaceHistoryAction.ITEM_CREATED:
+      case WorkspaceHistoryAction.ITEM_UPDATED:
+      case WorkspaceHistoryAction.ITEM_DELETED:
+        return this.getItemDiff(
+          workspaceHistory.oldValue as unknown as Item,
+          workspaceHistory.newValue as unknown as Item,
+        );
+      case WorkspaceHistoryAction.PAYMENT_CREATED:
+      case WorkspaceHistoryAction.PAYMENT_UPDATED:
+      case WorkspaceHistoryAction.PAYMENT_DELETED:
+        return this.getPaymentDiff(
+          workspaceHistory.oldValue as unknown as Payment,
+          workspaceHistory.newValue as unknown as Payment,
+        );
+      case WorkspaceHistoryAction.TAG_ADDED:
+      case WorkspaceHistoryAction.TAG_REMOVED:
+      default:
+        throw new Error(`Unsupported workspace history action: ${workspaceHistory.action}`);
+    }
+  }
+
+  getDiff<O, N>(
     oldObject: O,
     newObject: N,
     whitelistedKeys?: (keyof O & keyof N)[],
   ): Record<string, { oldValue: unknown; newValue: unknown }> {
     const diff: Record<string, { oldValue: unknown; newValue: unknown }> = {};
-
-    const allKeys = new Set([...Object.keys(oldObject), ...Object.keys(newObject)]);
+    const allKeys = new Set([...Object.keys(oldObject || {}), ...Object.keys(newObject || {})]);
 
     for (const key of allKeys) {
-      const oldVal = oldObject[key];
-      const newVal = newObject[key];
+      const oldVal = oldObject ? oldObject[key] : null;
+      const newVal = newObject ? newObject[key] : null;
 
-      if (oldVal !== newVal && (!whitelistedKeys || whitelistedKeys.includes(key))) {
+      if (oldVal !== newVal && (!whitelistedKeys || (whitelistedKeys as string[]).includes(key))) {
         diff[key] = { newValue: newVal, oldValue: oldVal };
       }
     }
 
     return diff;
+  }
+
+  getItemDiff(oldItem: Item, newItem: Item) {
+    return this.getDiff(oldItem, newItem, ['title']);
+  }
+
+  getPaymentDiff(oldPayment: Payment, newPayment: Payment) {
+    return this.getDiff(oldPayment, newPayment, ['title', 'cost', 'currency', 'date']);
   }
 }

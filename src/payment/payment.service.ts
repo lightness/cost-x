@@ -87,9 +87,10 @@ export class PaymentService {
   async updatePayment(
     payment: Payment,
     dto: PaymentInDto,
+    currentUser: User,
     tx: Prisma.TransactionClient = this.prisma,
   ): Promise<Payment> {
-    return tx.payment.update({
+    const updatedPayment = await tx.payment.update({
       data: {
         cost: dto.cost,
         currency: dto.currency,
@@ -98,6 +99,18 @@ export class PaymentService {
       },
       where: { id: payment.id },
     });
+
+    const item = await tx.item.findUniqueOrThrow({ where: { id: payment.itemId } });
+
+    await this.eventEmitter.emitAsync('payment.updated', {
+      actorId: currentUser.id,
+      newPayment: updatedPayment,
+      oldPayment: payment,
+      tx,
+      workspaceId: item.workspaceId,
+    });
+
+    return updatedPayment;
   }
 
   async deletePayment(payment: Payment, tx: Prisma.TransactionClient = this.prisma) {

@@ -30,11 +30,7 @@ export class WorkspaceHistoryFieldResolver {
   async changes(
     @Parent() workspaceHistory: WorkspaceHistory,
   ): Promise<Record<string, { oldValue: unknown; newValue: unknown }>> {
-    const changes = this.changesService.getDiff(
-      (workspaceHistory.oldValue as Record<string, unknown>) ?? {},
-      (workspaceHistory.newValue as Record<string, unknown>) ?? {},
-      ['title'],
-    );
+    const changes = this.changesService.getDiffByWorkspaceHistory(workspaceHistory);
 
     return changes;
   }

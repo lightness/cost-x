@@ -17,11 +17,11 @@ export class WorkspaceHistoryMessageService {
       case WorkspaceHistoryAction.ITEM_DELETED:
         return `${actorName} deleted item #${this.extractId(oldValue)} '${this.extractTitle(oldValue)}'`;
       case WorkspaceHistoryAction.PAYMENT_CREATED:
-        return `${actorName} recorded a payment`;
+        return `${actorName} recorded a payment #${this.extractId(newValue)} '${this.extractTitle(newValue)}'`;
       case WorkspaceHistoryAction.PAYMENT_UPDATED:
-        return `${actorName} updated a payment`;
+        return `${actorName} updated a payment #${this.extractId(oldValue)} '${this.extractTitle(oldValue)}'`;
       case WorkspaceHistoryAction.PAYMENT_DELETED:
-        return `${actorName} deleted a payment`;
+        return `${actorName} deleted a payment #${this.extractId(oldValue)} '${this.extractTitle(oldValue)}'`;
       case WorkspaceHistoryAction.TAG_ADDED:
         return `${actorName} added a tag`;
       case WorkspaceHistoryAction.TAG_REMOVED:
