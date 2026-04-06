@@ -35,6 +35,12 @@ export class WorkspaceHistoryMessageService {
         return `${actorName} assigned a tag #${this.extractTagId(newValue)} '${await this.extractTagTitle(newValue)}' to item #${this.extractItemId(newValue)} '${await this.extractItemTitle(newValue)}'`;
       case WorkspaceHistoryAction.ITEM_TAG_UNASSIGNED:
         return `${actorName} unassigned a tag #${this.extractTagId(oldValue)} '${await this.extractTagTitle(oldValue)}' from item #${this.extractItemId(oldValue)} '${await this.extractItemTitle(oldValue)}'`;
+      case WorkspaceHistoryAction.WORKSPACE_CREATED:
+        return `${actorName} created workspace #${this.extractId(newValue)} '${this.extractTitle(newValue)}'`;
+      case WorkspaceHistoryAction.WORKSPACE_UPDATED:
+        return `${actorName} updated workspace #${this.extractId(oldValue)} '${this.extractTitle(oldValue)}'`;
+      case WorkspaceHistoryAction.WORKSPACE_DELETED:
+        return `${actorName} deleted workspace #${this.extractId(oldValue)} '${this.extractTitle(oldValue)}'`;
     }
   }
 

@@ -4,6 +4,7 @@ import { Prisma } from '../../generated/prisma/client';
 import ItemTag from '../item-tag/entity/item-tag.entity';
 import Item from '../item/entity/item.entity';
 import Payment from '../payment/entity/payment.entity';
+import { Workspace } from '../workspace/entity/workspace.entity';
 import { PrismaService } from '../prisma/prisma.service';
 import { WorkspaceHistoryFilter } from './dto/workspace-history-filter.type';
 import { WorkspaceHistoryAction } from './entity/workspace-history-action.enum';
@@ -178,6 +179,58 @@ export class WorkspaceHistoryService {
         newValue: null,
         oldValue: itemTag as unknown as JsonObject,
         workspaceId,
+      },
+      tx,
+    );
+  }
+
+  async createWorkspaceCreated(
+    actorId: number,
+    workspace: Workspace,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<WorkspaceHistory> {
+    return this.create(
+      {
+        action: WorkspaceHistoryAction.WORKSPACE_CREATED,
+        actorId,
+        newValue: workspace as unknown as JsonObject,
+        oldValue: null,
+        workspaceId: workspace.id,
+      },
+      tx,
+    );
+  }
+
+  async createWorkspaceUpdated(
+    actorId: number,
+    oldWorkspace: Workspace,
+    newWorkspace: Workspace,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<WorkspaceHistory> {
+    return this.create(
+      {
+        action: WorkspaceHistoryAction.WORKSPACE_UPDATED,
+        actorId,
+        newValue: newWorkspace as unknown as JsonObject,
+        oldValue: oldWorkspace as unknown as JsonObject,
+        workspaceId: newWorkspace.id,
+      },
+      tx,
+    );
+  }
+
+  async createWorkspaceDeleted(
+    actorId: number,
+    workspace: Workspace,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<WorkspaceHistory> {
+    return this.create(
+      {
+        action: WorkspaceHistoryAction.WORKSPACE_DELETED,
+        actorId,
+        newValue: null,
+        oldValue: workspace as unknown as JsonObject,
+        workspaceId: workspace.id,
       },
       tx,
     );

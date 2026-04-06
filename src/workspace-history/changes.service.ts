@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import ItemTag from '../item-tag/entity/item-tag.entity';
 import Item from '../item/entity/item.entity';
 import Payment from '../payment/entity/payment.entity';
+import { Workspace } from '../workspace/entity/workspace.entity';
 import { WorkspaceHistoryAction } from './entity/workspace-history-action.enum';
 import { WorkspaceHistory } from './entity/workspace-history.entity';
 
@@ -28,6 +29,13 @@ export class ChangesService {
         return this.getItemTagDiff(
           workspaceHistory.oldValue as unknown as ItemTag,
           workspaceHistory.newValue as unknown as ItemTag,
+        );
+      case WorkspaceHistoryAction.WORKSPACE_CREATED:
+      case WorkspaceHistoryAction.WORKSPACE_UPDATED:
+      case WorkspaceHistoryAction.WORKSPACE_DELETED:
+        return this.getWorkspaceDiff(
+          workspaceHistory.oldValue as unknown as Workspace,
+          workspaceHistory.newValue as unknown as Workspace,
         );
       default:
         throw new Error(`Unsupported workspace history action: ${workspaceHistory.action}`);
@@ -64,5 +72,9 @@ export class ChangesService {
 
   getItemTagDiff(oldItemTag: ItemTag, newItemTag: ItemTag) {
     return this.getDiff(oldItemTag, newItemTag, ['itemId', 'tagId']);
+  }
+
+  getWorkspaceDiff(oldWorkspace: Workspace, newWorkspace: Workspace) {
+    return this.getDiff(oldWorkspace, newWorkspace, ['title', 'defaultCurrency']);
   }
 }

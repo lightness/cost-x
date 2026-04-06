@@ -197,6 +197,9 @@ enum WorkspaceHistoryAction {
   TAG_CREATED
   TAG_UPDATED
   TAG_DELETED
+  WORKSPACE_CREATED
+  WORKSPACE_UPDATED
+  WORKSPACE_DELETED
 }
 
 model WorkspaceHistory {

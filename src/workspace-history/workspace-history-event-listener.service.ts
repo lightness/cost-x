@@ -10,6 +10,9 @@ import {
   OnPaymentUpdatedEvent,
   OnTagAddedEvent,
   OnTagRemovedEvent,
+  OnWorkspaceCreatedEvent,
+  OnWorkspaceDeletedEvent,
+  OnWorkspaceUpdatedEvent,
 } from './dto';
 import { WorkspaceHistoryEvent } from './entity/workspace-history-event.enum';
 import { WorkspaceHistoryService } from './workspace-history.service';
@@ -101,5 +104,25 @@ export class WorkspaceHistoryEventListenerService {
       dto.itemTag,
       tx,
     );
+  }
+
+  @OnEvent(WorkspaceHistoryEvent.WORKSPACE_CREATED)
+  async onWorkspaceCreated({ tx = this.prisma, ...dto }: OnWorkspaceCreatedEvent) {
+    return this.workspaceHistoryService.createWorkspaceCreated(dto.actorId, dto.workspace, tx);
+  }
+
+  @OnEvent(WorkspaceHistoryEvent.WORKSPACE_UPDATED)
+  async onWorkspaceUpdated({ tx = this.prisma, ...dto }: OnWorkspaceUpdatedEvent) {
+    return this.workspaceHistoryService.createWorkspaceUpdated(
+      dto.actorId,
+      dto.oldWorkspace,
+      dto.newWorkspace,
+      tx,
+    );
+  }
+
+  @OnEvent(WorkspaceHistoryEvent.WORKSPACE_DELETED)
+  async onWorkspaceDeleted({ tx = this.prisma, ...dto }: OnWorkspaceDeletedEvent) {
+    return this.workspaceHistoryService.createWorkspaceDeleted(dto.actorId, dto.workspace, tx);
   }
 }

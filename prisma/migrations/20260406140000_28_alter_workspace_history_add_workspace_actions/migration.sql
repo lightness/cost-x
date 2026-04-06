@@ -1,0 +1,6 @@
+-- AlterEnum
+BEGIN;
+ALTER TYPE "WorkspaceHistoryAction" ADD VALUE 'WORKSPACE_CREATED';
+ALTER TYPE "WorkspaceHistoryAction" ADD VALUE 'WORKSPACE_UPDATED';
+ALTER TYPE "WorkspaceHistoryAction" ADD VALUE 'WORKSPACE_DELETED';
+COMMIT;

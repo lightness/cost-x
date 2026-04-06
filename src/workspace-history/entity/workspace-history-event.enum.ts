@@ -10,4 +10,7 @@ export enum WorkspaceHistoryEvent {
   TAG_DELETED = 'tag.deleted',
   ITEM_TAG_ASSIGNED = 'item_tag.assigned',
   ITEM_TAG_UNASSIGNED = 'item_tag.unassigned',
+  WORKSPACE_CREATED = 'workspace.created',
+  WORKSPACE_UPDATED = 'workspace.updated',
+  WORKSPACE_DELETED = 'workspace.deleted',
 }

@@ -42,9 +42,10 @@ export class WorkspaceMutationResolver {
   async updateWorkspace(
     @Args('id', { type: () => Int }) id: number,
     @Args('dto') dto: WorkspaceInDto,
+    @CurrentUser() currentUser: User,
     @Context('tx') tx: Prisma.TransactionClient,
   ) {
-    return this.workspaceService.update(id, dto, tx);
+    return this.workspaceService.update(id, dto, currentUser, tx);
   }
 
   @Mutation(() => Workspace)
@@ -58,8 +59,9 @@ export class WorkspaceMutationResolver {
   ])
   async deleteWorkspace(
     @Args('id', { type: () => Int }) id: number,
+    @CurrentUser() currentUser: User,
     @Context('tx') tx: Prisma.TransactionClient,
   ) {
-    return this.workspaceService.delete(id, tx);
+    return this.workspaceService.delete(id, currentUser, tx);
   }
 }

@@ -6,4 +6,7 @@ export * from './on-payment-updated.event';
 export * from './on-payment-deleted.event';
 export * from './on-tag-added.event';
 export * from './on-tag-removed.event';
+export * from './on-workspace-created.event';
+export * from './on-workspace-updated.event';
+export * from './on-workspace-deleted.event';
 export * from './workspace-history-filter.type';
