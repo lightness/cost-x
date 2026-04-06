@@ -1,14 +1,9 @@
-import {
-  type CanActivate,
-  type ExecutionContext,
-  Inject,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { type CanActivate, type ExecutionContext, Inject, Injectable } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { Request } from 'express';
 import { PrismaService } from '../../prisma/prisma.service';
 import { TokenService } from '../../token/token.service';
+import { UserNotAuthorizedError } from '../error/user-not-authorized.error';
 import { JwtPayload } from '../interfaces';
 import { ACCESS_TOKEN_SERVICE } from '../symbols';
 
@@ -42,7 +37,7 @@ export class AuthGuard implements CanActivate {
       });
 
       if (!user) {
-        throw new UnauthorizedException(`Not authorized`);
+        throw new UserNotAuthorizedError();
       }
 
       req.token = token;
@@ -50,7 +45,7 @@ export class AuthGuard implements CanActivate {
 
       return true;
     } catch (_e) {
-      throw new UnauthorizedException(`Not authorized`);
+      throw new UserNotAuthorizedError();
     }
   }
 
