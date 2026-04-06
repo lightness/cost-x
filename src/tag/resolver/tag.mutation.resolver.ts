@@ -5,10 +5,12 @@ import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
 import { AccessScope } from '../../access/interfaces';
+import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
 import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
 import { GqlLoggingInterceptor } from '../../graphql/interceptor/gql-logging.interceptor';
 import { UserRole } from '../../user/entity/user-role.enum';
+import User from '../../user/entity/user.entity';
 import { TagInDto } from '../dto';
 import Tag from '../entity/tag.entity';
 import { TagService } from '../tag.service';
@@ -31,9 +33,10 @@ export class TagMutationResolver {
   async createTag(
     @Args('workspaceId', { type: () => Int }) workspaceId: number,
     @Args('dto', { type: () => TagInDto }) dto: TagInDto,
+    @CurrentUser() currentUser: User,
     @Context('tx') tx: Prisma.TransactionClient,
   ) {
-    return this.tagService.create(workspaceId, dto, tx);
+    return this.tagService.create(workspaceId, dto, currentUser, tx);
   }
 
   @Mutation(() => Tag)
@@ -48,9 +51,10 @@ export class TagMutationResolver {
   async updateTag(
     @Args('id', { type: () => Int }) id: number,
     @Args('dto', { type: () => TagInDto }) dto: TagInDto,
+    @CurrentUser() currentUser: User,
     @Context('tx') tx: Prisma.TransactionClient,
   ) {
-    return this.tagService.update(id, dto, tx);
+    return this.tagService.update(id, dto, currentUser, tx);
   }
 
   @Mutation(() => Boolean)
@@ -64,9 +68,10 @@ export class TagMutationResolver {
   ])
   async deleteTag(
     @Args('id', { type: () => Int }) id: number,
+    @CurrentUser() currentUser: User,
     @Context('tx') tx: Prisma.TransactionClient,
   ) {
-    await this.tagService.delete(id, tx);
+    await this.tagService.delete(id, currentUser, tx);
 
     return true;
   }

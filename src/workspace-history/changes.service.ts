@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import ItemTag from '../item-tag/entity/item-tag.entity';
 import Item from '../item/entity/item.entity';
 import Payment from '../payment/entity/payment.entity';
+import Tag from '../tag/entity/tag.entity';
 import { Workspace } from '../workspace/entity/workspace.entity';
 import { WorkspaceHistoryAction } from './entity/workspace-history-action.enum';
 import { WorkspaceHistory } from './entity/workspace-history.entity';
@@ -29,6 +30,13 @@ export class ChangesService {
         return this.getItemTagDiff(
           workspaceHistory.oldValue as unknown as ItemTag,
           workspaceHistory.newValue as unknown as ItemTag,
+        );
+      case WorkspaceHistoryAction.TAG_CREATED:
+      case WorkspaceHistoryAction.TAG_UPDATED:
+      case WorkspaceHistoryAction.TAG_DELETED:
+        return this.getTagDiff(
+          workspaceHistory.oldValue as unknown as Tag,
+          workspaceHistory.newValue as unknown as Tag,
         );
       case WorkspaceHistoryAction.WORKSPACE_CREATED:
       case WorkspaceHistoryAction.WORKSPACE_UPDATED:
@@ -72,6 +80,10 @@ export class ChangesService {
 
   getItemTagDiff(oldItemTag: ItemTag, newItemTag: ItemTag) {
     return this.getDiff(oldItemTag, newItemTag, ['itemId', 'tagId']);
+  }
+
+  getTagDiff(oldTag: Tag, newTag: Tag) {
+    return this.getDiff(oldTag, newTag, ['title', 'color']);
   }
 
   getWorkspaceDiff(oldWorkspace: Workspace, newWorkspace: Workspace) {

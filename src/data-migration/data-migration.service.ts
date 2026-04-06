@@ -67,6 +67,7 @@ export class DataMigrationService {
             {
               title: cleanTitle,
             },
+            user,
             tx,
           );
 

@@ -10,6 +10,9 @@ import {
   OnPaymentUpdatedEvent,
   OnTagAddedEvent,
   OnTagRemovedEvent,
+  OnTagCreatedEvent,
+  OnTagDeletedEvent,
+  OnTagUpdatedEvent,
   OnWorkspaceCreatedEvent,
   OnWorkspaceDeletedEvent,
   OnWorkspaceUpdatedEvent,
@@ -104,6 +107,27 @@ export class WorkspaceHistoryEventListenerService {
       dto.itemTag,
       tx,
     );
+  }
+
+  @OnEvent(WorkspaceHistoryEvent.TAG_CREATED)
+  async onTagCreated({ tx = this.prisma, ...dto }: OnTagCreatedEvent) {
+    return this.workspaceHistoryService.createTagCreated(dto.workspaceId, dto.actorId, dto.tag, tx);
+  }
+
+  @OnEvent(WorkspaceHistoryEvent.TAG_UPDATED)
+  async onTagUpdated({ tx = this.prisma, ...dto }: OnTagUpdatedEvent) {
+    return this.workspaceHistoryService.createTagUpdated(
+      dto.workspaceId,
+      dto.actorId,
+      dto.oldTag,
+      dto.newTag,
+      tx,
+    );
+  }
+
+  @OnEvent(WorkspaceHistoryEvent.TAG_DELETED)
+  async onTagDeleted({ tx = this.prisma, ...dto }: OnTagDeletedEvent) {
+    return this.workspaceHistoryService.createTagDeleted(dto.workspaceId, dto.actorId, dto.tag, tx);
   }
 
   @OnEvent(WorkspaceHistoryEvent.WORKSPACE_CREATED)

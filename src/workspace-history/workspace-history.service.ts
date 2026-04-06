@@ -4,6 +4,7 @@ import { Prisma } from '../../generated/prisma/client';
 import ItemTag from '../item-tag/entity/item-tag.entity';
 import Item from '../item/entity/item.entity';
 import Payment from '../payment/entity/payment.entity';
+import Tag from '../tag/entity/tag.entity';
 import { Workspace } from '../workspace/entity/workspace.entity';
 import { PrismaService } from '../prisma/prisma.service';
 import { WorkspaceHistoryFilter } from './dto/workspace-history-filter.type';
@@ -231,6 +232,61 @@ export class WorkspaceHistoryService {
         newValue: null,
         oldValue: workspace as unknown as JsonObject,
         workspaceId: workspace.id,
+      },
+      tx,
+    );
+  }
+
+  async createTagCreated(
+    workspaceId: number,
+    actorId: number,
+    tag: Tag,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<WorkspaceHistory> {
+    return this.create(
+      {
+        action: WorkspaceHistoryAction.TAG_CREATED,
+        actorId,
+        newValue: tag as unknown as JsonObject,
+        oldValue: null,
+        workspaceId,
+      },
+      tx,
+    );
+  }
+
+  async createTagUpdated(
+    workspaceId: number,
+    actorId: number,
+    oldTag: Tag,
+    newTag: Tag,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<WorkspaceHistory> {
+    return this.create(
+      {
+        action: WorkspaceHistoryAction.TAG_UPDATED,
+        actorId,
+        newValue: newTag as unknown as JsonObject,
+        oldValue: oldTag as unknown as JsonObject,
+        workspaceId,
+      },
+      tx,
+    );
+  }
+
+  async createTagDeleted(
+    workspaceId: number,
+    actorId: number,
+    tag: Tag,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<WorkspaceHistory> {
+    return this.create(
+      {
+        action: WorkspaceHistoryAction.TAG_DELETED,
+        actorId,
+        newValue: null,
+        oldValue: tag as unknown as JsonObject,
+        workspaceId,
       },
       tx,
     );
