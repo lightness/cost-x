@@ -113,9 +113,20 @@ export class PaymentService {
     return updatedPayment;
   }
 
-  async deletePayment(payment: Payment, tx: Prisma.TransactionClient = this.prisma) {
-    await tx.payment.delete({
-      where: { id: payment.id },
+  async deletePayment(
+    payment: Payment,
+    currentUser: User,
+    tx: Prisma.TransactionClient = this.prisma,
+  ) {
+    const item = await tx.item.findUniqueOrThrow({ where: { id: payment.itemId } });
+
+    await tx.payment.delete({ where: { id: payment.id } });
+
+    await this.eventEmitter.emitAsync('payment.deleted', {
+      actorId: currentUser.id,
+      payment,
+      tx,
+      workspaceId: item.workspaceId,
     });
   }
 

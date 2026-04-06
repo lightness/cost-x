@@ -70,8 +70,11 @@ export class PaymentMutationResolver {
   ])
   async deletePayment(
     @Args('paymentId', { type: () => Int }, PaymentByIdPipe) payment: Payment,
+    @CurrentUser() currentUser: User,
     @Context('tx') tx: Prisma.TransactionClient,
   ) {
-    await this.paymentService.deletePayment(payment, tx);
+    await this.paymentService.deletePayment(payment, currentUser, tx);
+
+    return true;
   }
 }

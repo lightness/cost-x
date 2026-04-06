@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { PrismaService } from '../prisma/prisma.service';
-import { OnItemCreatedEvent, OnItemDeletedEvent, OnItemUpdatedEvent, OnPaymentCreatedEvent, OnPaymentUpdatedEvent } from './dto';
+import { OnItemCreatedEvent, OnItemDeletedEvent, OnItemUpdatedEvent, OnPaymentCreatedEvent, OnPaymentDeletedEvent, OnPaymentUpdatedEvent } from './dto';
 import { WorkspaceHistoryService } from './workspace-history.service';
 
 @Injectable()
@@ -38,6 +38,16 @@ export class WorkspaceHistoryEventListenerService {
       dto.workspaceId,
       dto.actorId,
       dto.item,
+      tx,
+    );
+  }
+
+  @OnEvent('payment.deleted')
+  async onPaymentDeleted({ tx = this.prisma, ...dto }: OnPaymentDeletedEvent) {
+    return this.workspaceHistoryService.createPaymentDeleted(
+      dto.workspaceId,
+      dto.actorId,
+      dto.payment,
       tx,
     );
   }

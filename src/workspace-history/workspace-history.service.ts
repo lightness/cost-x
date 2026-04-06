@@ -89,6 +89,24 @@ export class WorkspaceHistoryService {
     );
   }
 
+  async createPaymentDeleted(
+    workspaceId: number,
+    actorId: number,
+    payment: Payment,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<WorkspaceHistory> {
+    return this.create(
+      {
+        action: WorkspaceHistoryAction.PAYMENT_DELETED,
+        actorId,
+        newValue: null,
+        oldValue: payment as unknown as JsonObject,
+        workspaceId,
+      },
+      tx,
+    );
+  }
+
   async createPaymentUpdated(
     workspaceId: number,
     actorId: number,
