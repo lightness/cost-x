@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '../../generated/prisma/client';
 import { ConfirmEmailService } from '../confirm-email/confirm-email.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { ForgotPasswordInDto } from '../reset-password/dto';
@@ -14,8 +15,11 @@ export class ResendEmailService {
     private confirmEmailService: ConfirmEmailService,
   ) {}
 
-  async resendConfirmEmail(dto: ResendConfirmEmailInDto) {
-    const user = await this.prisma.user.findUnique({
+  async resendConfirmEmail(
+    dto: ResendConfirmEmailInDto,
+    tx: Prisma.TransactionClient = this.prisma,
+  ) {
+    const user = await tx.user.findUnique({
       where: { id: dto.userId },
     });
 
@@ -29,13 +33,16 @@ export class ResendEmailService {
       return { success: true };
     }
 
-    await this.confirmEmailService.runConfirmationProcess(user);
+    await this.confirmEmailService.runConfirmationProcess(user, tx);
 
     return { success: true };
   }
 
-  async resendForgotPasswordEmail(dto: ForgotPasswordInDto) {
-    await this.resetPasswordService.sendForgotPasswordEmail(dto, false);
+  async resendForgotPasswordEmail(
+    dto: ForgotPasswordInDto,
+    tx: Prisma.TransactionClient = this.prisma,
+  ) {
+    await this.resetPasswordService.sendForgotPasswordEmail(dto, false, tx);
 
     return { success: true };
   }

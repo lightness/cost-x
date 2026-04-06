@@ -65,7 +65,7 @@ export class UserService {
     });
 
     if (isNewEmail) {
-      await this.confirmEmailService.runConfirmationProcess(updatedUser);
+      await this.confirmEmailService.runConfirmationProcess(updatedUser, tx);
     }
 
     return updatedUser;

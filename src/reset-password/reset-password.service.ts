@@ -1,5 +1,6 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { v4 as uuid } from 'uuid';
+import { Prisma } from '../../generated/prisma/client';
 import { MailService } from '../mail/mail.service';
 import { BcryptService } from '../password/bcrypt.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -22,10 +23,11 @@ export class ResetPasswordService {
   async sendForgotPasswordEmail(
     dto: ForgotPasswordInDto,
     generateTempCode = true,
+    tx: Prisma.TransactionClient = this.prisma,
   ) {
     const { email } = dto;
 
-    let user = await this.prisma.user.findUnique({
+    let user = await tx.user.findUnique({
       where: {
         email,
       },
@@ -40,7 +42,7 @@ export class ResetPasswordService {
     }
 
     if (generateTempCode) {
-      user = await this.prisma.user.update({
+      user = await tx.user.update({
         data: { tempCode: uuid() },
         where: { id: user.id },
       });
@@ -54,7 +56,7 @@ export class ResetPasswordService {
     return this.mailService.sendResetPassword(user, token);
   }
 
-  async resetPassword(dto: ResetPasswordInDto) {
+  async resetPassword(dto: ResetPasswordInDto, tx: Prisma.TransactionClient = this.prisma) {
     const { token, password } = dto;
 
     const payload = await this.tokenService.verifyToken(token);
@@ -65,7 +67,7 @@ export class ResetPasswordService {
 
     const { id, tempCode } = payload;
 
-    const user = await this.prisma.user.findUnique({ where: { id } });
+    const user = await tx.user.findUnique({ where: { id } });
 
     if (!user) {
       throw new BadRequestException(`User not exists`);
@@ -75,7 +77,7 @@ export class ResetPasswordService {
       throw new BadRequestException(`Temp token is already used`);
     }
 
-    await this.prisma.user.update({
+    await tx.user.update({
       data: {
         password: await this.bcryptService.hashPassword(password),
         tempCode: '',
