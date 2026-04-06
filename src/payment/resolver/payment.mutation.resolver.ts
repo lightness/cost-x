@@ -38,7 +38,6 @@ export class PaymentMutationResolver {
     @CurrentUser() currentUser: User,
     @Context('tx') tx: Prisma.TransactionClient,
   ) {
-    console.log('>>> dto', dto);
     return this.paymentService.createPayment(item, dto, currentUser, tx);
   }
 

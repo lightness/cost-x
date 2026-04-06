@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")"
+      "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")",
+      "Bash(sed -n '150,170p' /Users/nb-078-11b/projects/cost-x/node_modules/src/TransformOperationExecutor.ts)",
+      "Bash(sed -n '150,175p' /Users/nb-078-11b/projects/cost-x/node_modules/class-transformer/cjs/TransformOperationExecutor.js)"
     ]
   }
 }
