@@ -5,7 +5,7 @@ import { BcryptService } from '../password/bcrypt.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserInDto, UpdateUserInDto } from './dto';
 import { UserStatus } from './entity/user-status.enum';
-import { User } from './entity/user.entity';
+import User from './entity/user.entity';
 import { UserAlreadyExistsError } from './error/user-already-exists.error';
 
 @Injectable()

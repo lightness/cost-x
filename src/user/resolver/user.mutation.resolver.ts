@@ -11,7 +11,7 @@ import { UserByIdPipe } from '../../common/pipe/user-by-id.pipe';
 import { GqlLoggingInterceptor } from '../../graphql/interceptor/gql-logging.interceptor';
 import { CreateUserInDto, UpdateUserInDto } from '../dto';
 import { UserRole } from '../entity/user-role.enum';
-import { User } from '../entity/user.entity';
+import User from '../entity/user.entity';
 import { UserService } from '../user.service';
 
 @Resolver()

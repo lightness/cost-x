@@ -5,16 +5,16 @@ import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
 import { AccessScope } from '../../access/interfaces';
+import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
 import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
 import { GqlLoggingInterceptor } from '../../graphql/interceptor/gql-logging.interceptor';
 import { UserRole } from '../../user/entity/user-role.enum';
+import User from '../../user/entity/user.entity';
 import { CreateInviteInDto } from '../dto';
 import { Invite } from '../entity/invite.entity';
 import { InviteValidationService } from '../invite-validation.service';
 import { InviteService } from '../invite.service';
-import { CurrentUser } from '../../auth/decorator/current-user.decorator';
-import { User } from '../../user/entity/user.entity';
 
 @Resolver()
 @UseInterceptors(GqlLoggingInterceptor, TransactionInterceptor)

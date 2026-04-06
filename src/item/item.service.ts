@@ -4,7 +4,7 @@ import { Prisma } from '../../generated/prisma/client';
 import { ItemWhereInput } from '../../generated/prisma/models';
 import { PaymentsFilter } from '../payment/dto';
 import { PrismaService } from '../prisma/prisma.service';
-import { User } from '../user/entity/user.entity';
+import User from '../user/entity/user.entity';
 import { ItemInDto, ItemsFilter } from './dto';
 import Item from './entity/item.entity';
 import { ItemNotFoundError } from './error';

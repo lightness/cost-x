@@ -3,7 +3,7 @@ import { v4 as uuid } from 'uuid';
 import { UserStatus } from '../../generated/prisma/enums';
 import { UserCreateInput, UserCreateManyInput } from '../../generated/prisma/models';
 import { PrismaService } from '../../src/prisma/prisma.service';
-import { User } from '../../src/user/entity/user.entity';
+import User from '../../src/user/entity/user.entity';
 import { KindBasedFactoryService } from './base-factory.service';
 
 export type UserKind = 'active' | 'email_not_verified' | 'banned';

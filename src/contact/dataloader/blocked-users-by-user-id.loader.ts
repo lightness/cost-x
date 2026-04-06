@@ -2,7 +2,7 @@ import { Injectable, Scope } from '@nestjs/common';
 import { BaseLoader } from '../../graphql/dataloader/base.loader';
 import { GroupService } from '../../group/group.service';
 import { PrismaService } from '../../prisma/prisma.service';
-import { User } from '../../user/entity/user.entity';
+import User from '../../user/entity/user.entity';
 import { UserBlockService } from '../user-block.service';
 
 @Injectable({ scope: Scope.REQUEST })

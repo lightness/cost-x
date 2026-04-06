@@ -10,7 +10,7 @@ import { Invite } from '../../contact/entity/invite.entity';
 import { WorkspacesByUserIdLoader } from '../../workspace/dataloader/workspaces-by-user-id.loader';
 import { WorkspacesFilter } from '../../workspace/dto';
 import { Workspace } from '../../workspace/entity/workspace.entity';
-import { User } from '../entity/user.entity';
+import User from '../entity/user.entity';
 
 @Resolver(() => User)
 export class UserFieldResolver {

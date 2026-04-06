@@ -71,27 +71,42 @@ export class DataMigrationService {
         }
 
         if (usdCost) {
-          await this.paymentService.createPayment(item, {
-            cost: usdCost,
-            currency: Currency.USD,
-            date: new Date(date),
-          });
+          await this.paymentService.createPayment(
+            item,
+            {
+              cost: usdCost,
+              currency: Currency.USD,
+              date: new Date(date),
+            },
+            user,
+            tx,
+          );
         }
 
         if (eurCost) {
-          await this.paymentService.createPayment(item, {
-            cost: eurCost,
-            currency: Currency.EUR,
-            date: new Date(date),
-          });
+          await this.paymentService.createPayment(
+            item,
+            {
+              cost: eurCost,
+              currency: Currency.EUR,
+              date: new Date(date),
+            },
+            user,
+            tx,
+          );
         }
 
         if (bynCost) {
-          await this.paymentService.createPayment(item, {
-            cost: bynCost,
-            currency: Currency.BYN,
-            date: new Date(date),
-          });
+          await this.paymentService.createPayment(
+            item,
+            {
+              cost: bynCost,
+              currency: Currency.BYN,
+              date: new Date(date),
+            },
+            user,
+            tx,
+          );
         }
       }
 

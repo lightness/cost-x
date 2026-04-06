@@ -1,7 +1,7 @@
 import { Parent, ResolveField, Resolver } from '@nestjs/graphql';
 import GraphQLJSON from 'graphql-type-json';
 import { UserByUserIdLoader } from '../../user/dataloader/user-by-user-id.loader';
-import { User } from '../../user/entity/user.entity';
+import User from '../../user/entity/user.entity';
 import { ChangesService } from '../changes.service';
 import { WorkspaceHistory } from '../entity/workspace-history.entity';
 import { WorkspaceHistoryMessageService } from '../workspace-history-message.service';

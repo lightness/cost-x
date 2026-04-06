@@ -9,7 +9,7 @@ import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
 import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
 import { UserRole } from '../../user/entity/user-role.enum';
-import { User } from '../../user/entity/user.entity';
+import User from '../../user/entity/user.entity';
 import { ItemInDto } from '../dto';
 import Item from '../entity/item.entity';
 import { ItemService } from '../item.service';

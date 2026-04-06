@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '../../generated/prisma/client';
 import { WorkspaceWhereInput } from '../../generated/prisma/models';
 import { PrismaService } from '../prisma/prisma.service';
-import { User } from '../user/entity/user.entity';
+import User from '../user/entity/user.entity';
 import { WorkspaceInDto, WorkspacesFilter } from './dto';
 import { Workspace } from './entity/workspace.entity';
 
