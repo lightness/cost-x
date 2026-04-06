@@ -34,11 +34,14 @@ export class DataMigrationService {
     const credentials = await this.inquirerService.askForCredentials();
 
     return this.prisma.$transaction(async (tx) => {
-      const user = await this.userService.create({
-        email: credentials.email.toLowerCase(),
-        name: credentials.name,
-        password: credentials.password,
-      });
+      const user = await this.userService.create(
+        {
+          email: credentials.email.toLowerCase(),
+          name: credentials.name,
+          password: credentials.password,
+        },
+        tx,
+      );
 
       const defaultCurrency = await this.inquirerService.askForDefaultCurrency();
 
@@ -48,6 +51,7 @@ export class DataMigrationService {
           title: `Imported workspace ${new Date().toISOString()}`,
         },
         user,
+        tx,
       );
 
       let globalTag: Tag;
@@ -58,9 +62,13 @@ export class DataMigrationService {
         if (title && !date && !usdCost && !eurCost && !bynCost) {
           const cleanTitle = title.trim();
 
-          globalTag = await this.tagService.create(workspace.id, {
-            title: cleanTitle,
-          });
+          globalTag = await this.tagService.create(
+            workspace.id,
+            {
+              title: cleanTitle,
+            },
+            tx,
+          );
 
           continue;
         }
@@ -68,7 +76,7 @@ export class DataMigrationService {
         const item = await this.itemService.create(workspace.id, { title }, user, tx);
 
         if (globalTag) {
-          await this.itemTagService.assignTag(item, globalTag);
+          await this.itemTagService.assignTag(item, globalTag, user, tx);
         }
 
         if (usdCost) {

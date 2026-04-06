@@ -7,6 +7,7 @@ import { PaymentLike } from '../item-cost/interfaces';
 import Item from '../item/entity/item.entity';
 import { PrismaService } from '../prisma/prisma.service';
 import User from '../user/entity/user.entity';
+import { WorkspaceHistoryEvent } from '../workspace-history/entity/workspace-history-event.enum';
 import { PaymentInDto, PaymentsFilter } from './dto';
 import Payment from './entity/payment.entity';
 
@@ -74,7 +75,7 @@ export class PaymentService {
       },
     });
 
-    await this.eventEmitter.emitAsync('payment.created', {
+    await this.eventEmitter.emitAsync(WorkspaceHistoryEvent.PAYMENT_CREATED, {
       actorId: currentUser.id,
       payment,
       tx,
@@ -102,7 +103,7 @@ export class PaymentService {
 
     const item = await tx.item.findUniqueOrThrow({ where: { id: payment.itemId } });
 
-    await this.eventEmitter.emitAsync('payment.updated', {
+    await this.eventEmitter.emitAsync(WorkspaceHistoryEvent.PAYMENT_UPDATED, {
       actorId: currentUser.id,
       newPayment: updatedPayment,
       oldPayment: payment,
@@ -122,7 +123,7 @@ export class PaymentService {
 
     await tx.payment.delete({ where: { id: payment.id } });
 
-    await this.eventEmitter.emitAsync('payment.deleted', {
+    await this.eventEmitter.emitAsync(WorkspaceHistoryEvent.PAYMENT_DELETED, {
       actorId: currentUser.id,
       payment,
       tx,

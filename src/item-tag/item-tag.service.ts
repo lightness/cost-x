@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Prisma } from '../../generated/prisma/client';
 import { ItemTagWhereInput } from '../../generated/prisma/models';
 import { ConsistencyService } from '../consistency/consistency.service';
@@ -7,6 +8,8 @@ import Item from '../item/entity/item.entity';
 import { PaymentsFilter } from '../payment/dto';
 import { PrismaService } from '../prisma/prisma.service';
 import Tag from '../tag/entity/tag.entity';
+import User from '../user/entity/user.entity';
+import { WorkspaceHistoryEvent } from '../workspace-history/entity/workspace-history-event.enum';
 import ItemTag from './entity/item-tag.entity';
 
 @Injectable()
@@ -14,6 +17,7 @@ export class ItemTagService {
   constructor(
     private prisma: PrismaService,
     private consistencyService: ConsistencyService,
+    private eventEmitter: EventEmitter2,
   ) {}
 
   async findByTagIds(
@@ -34,14 +38,12 @@ export class ItemTagService {
   async assignTag(
     item: Item,
     tag: Tag,
+    currentUser: User,
     tx: Prisma.TransactionClient = this.prisma,
   ): Promise<ItemTag> {
-    await this.consistencyService.itemAndTagToSameWorkspace.ensureIsBelonging(
-      item,
-      tag,
-    );
+    await this.consistencyService.itemAndTagToSameWorkspace.ensureIsBelonging(item, tag);
 
-    const itemTag = await tx.itemTag.findUnique({
+    const existingItemTag = await tx.itemTag.findUnique({
       where: {
         itemId_tagId: {
           itemId: item.id,
@@ -50,29 +52,34 @@ export class ItemTagService {
       },
     });
 
-    if (itemTag) {
-      throw new BadRequestException(
-        `Item #${item.id} already has tag #${tag.id}`,
-      );
+    if (existingItemTag) {
+      throw new BadRequestException(`Item #${item.id} already has tag #${tag.id}`);
     }
 
-    return tx.itemTag.create({
+    const itemTag = await tx.itemTag.create({
       data: {
         item: { connect: { id: item.id } },
         tag: { connect: { id: tag.id } },
       },
     });
+
+    await this.eventEmitter.emitAsync(WorkspaceHistoryEvent.ITEM_TAG_ASSIGNED, {
+      actorId: currentUser.id,
+      itemTag,
+      tx,
+      workspaceId: item.workspaceId,
+    });
+
+    return itemTag;
   }
 
   async unassignTag(
     item: Item,
     tag: Tag,
+    currentUser: User,
     tx: Prisma.TransactionClient = this.prisma,
   ): Promise<void> {
-    await this.consistencyService.itemAndTagToSameWorkspace.ensureIsBelonging(
-      item,
-      tag,
-    );
+    await this.consistencyService.itemAndTagToSameWorkspace.ensureIsBelonging(item, tag);
 
     const itemTag = await tx.itemTag.findUnique({
       where: {
@@ -84,9 +91,7 @@ export class ItemTagService {
     });
 
     if (!itemTag) {
-      throw new BadRequestException(
-        `Item #${item.id} does not have tag #${tag.id}`,
-      );
+      throw new BadRequestException(`Item #${item.id} does not have tag #${tag.id}`);
     }
 
     await tx.itemTag.delete({
@@ -96,6 +101,13 @@ export class ItemTagService {
           tagId: tag.id,
         },
       },
+    });
+
+    await this.eventEmitter.emitAsync(WorkspaceHistoryEvent.ITEM_TAG_UNASSIGNED, {
+      actorId: currentUser.id,
+      itemTag,
+      tx,
+      workspaceId: item.workspaceId,
     });
   }
 

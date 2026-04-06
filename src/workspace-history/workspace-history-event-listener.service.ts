@@ -1,7 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { PrismaService } from '../prisma/prisma.service';
-import { OnItemCreatedEvent, OnItemDeletedEvent, OnItemUpdatedEvent, OnPaymentCreatedEvent, OnPaymentDeletedEvent, OnPaymentUpdatedEvent } from './dto';
+import {
+  OnItemCreatedEvent,
+  OnItemDeletedEvent,
+  OnItemUpdatedEvent,
+  OnPaymentCreatedEvent,
+  OnPaymentDeletedEvent,
+  OnPaymentUpdatedEvent,
+  OnTagAddedEvent,
+  OnTagRemovedEvent,
+} from './dto';
+import { WorkspaceHistoryEvent } from './entity/workspace-history-event.enum';
 import { WorkspaceHistoryService } from './workspace-history.service';
 
 @Injectable()
@@ -11,7 +21,7 @@ export class WorkspaceHistoryEventListenerService {
     private workspaceHistoryService: WorkspaceHistoryService,
   ) {}
 
-  @OnEvent('item.created')
+  @OnEvent(WorkspaceHistoryEvent.ITEM_CREATED)
   async onItemCreated({ tx = this.prisma, ...dto }: OnItemCreatedEvent) {
     return this.workspaceHistoryService.createItemCreated(
       dto.workspaceId,
@@ -21,7 +31,7 @@ export class WorkspaceHistoryEventListenerService {
     );
   }
 
-  @OnEvent('item.updated')
+  @OnEvent(WorkspaceHistoryEvent.ITEM_UPDATED)
   async onItemUpdated({ tx = this.prisma, ...dto }: OnItemUpdatedEvent) {
     return this.workspaceHistoryService.createItemUpdated(
       dto.workspaceId,
@@ -32,7 +42,7 @@ export class WorkspaceHistoryEventListenerService {
     );
   }
 
-  @OnEvent('item.deleted')
+  @OnEvent(WorkspaceHistoryEvent.ITEM_DELETED)
   async onItemDeleted({ tx = this.prisma, ...dto }: OnItemDeletedEvent) {
     return this.workspaceHistoryService.createItemDeleted(
       dto.workspaceId,
@@ -42,7 +52,7 @@ export class WorkspaceHistoryEventListenerService {
     );
   }
 
-  @OnEvent('payment.deleted')
+  @OnEvent(WorkspaceHistoryEvent.PAYMENT_DELETED)
   async onPaymentDeleted({ tx = this.prisma, ...dto }: OnPaymentDeletedEvent) {
     return this.workspaceHistoryService.createPaymentDeleted(
       dto.workspaceId,
@@ -52,7 +62,7 @@ export class WorkspaceHistoryEventListenerService {
     );
   }
 
-  @OnEvent('payment.updated')
+  @OnEvent(WorkspaceHistoryEvent.PAYMENT_UPDATED)
   async onPaymentUpdated({ tx = this.prisma, ...dto }: OnPaymentUpdatedEvent) {
     return this.workspaceHistoryService.createPaymentUpdated(
       dto.workspaceId,
@@ -63,12 +73,32 @@ export class WorkspaceHistoryEventListenerService {
     );
   }
 
-  @OnEvent('payment.created')
+  @OnEvent(WorkspaceHistoryEvent.PAYMENT_CREATED)
   async onPaymentCreated({ tx = this.prisma, ...dto }: OnPaymentCreatedEvent) {
     return this.workspaceHistoryService.createPaymentCreated(
       dto.workspaceId,
       dto.actorId,
       dto.payment,
+      tx,
+    );
+  }
+
+  @OnEvent(WorkspaceHistoryEvent.ITEM_TAG_ASSIGNED)
+  async onItemTagAssigned({ tx = this.prisma, ...dto }: OnTagAddedEvent) {
+    return this.workspaceHistoryService.createItemTagAssigned(
+      dto.workspaceId,
+      dto.actorId,
+      dto.itemTag,
+      tx,
+    );
+  }
+
+  @OnEvent(WorkspaceHistoryEvent.ITEM_TAG_UNASSIGNED)
+  async onItemTagUnassigned({ tx = this.prisma, ...dto }: OnTagRemovedEvent) {
+    return this.workspaceHistoryService.createItemTagUnassigned(
+      dto.workspaceId,
+      dto.actorId,
+      dto.itemTag,
       tx,
     );
   }

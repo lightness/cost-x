@@ -5,6 +5,7 @@ import { ItemWhereInput } from '../../generated/prisma/models';
 import { PaymentsFilter } from '../payment/dto';
 import { PrismaService } from '../prisma/prisma.service';
 import User from '../user/entity/user.entity';
+import { WorkspaceHistoryEvent } from '../workspace-history/entity/workspace-history-event.enum';
 import { ItemInDto, ItemsFilter } from './dto';
 import Item from './entity/item.entity';
 import { ItemNotFoundError } from './error';
@@ -49,7 +50,7 @@ export class ItemService {
       },
     });
 
-    await this.eventEmitter.emitAsync('item.created', {
+    await this.eventEmitter.emitAsync(WorkspaceHistoryEvent.ITEM_CREATED, {
       actorId: currentUser.id,
       item,
       tx,
@@ -80,7 +81,7 @@ export class ItemService {
       },
     });
 
-    await this.eventEmitter.emitAsync('item.updated', {
+    await this.eventEmitter.emitAsync(WorkspaceHistoryEvent.ITEM_UPDATED, {
       actorId: currentUser.id,
       newItem: updatedItem,
       oldItem: existingItem,
@@ -106,7 +107,7 @@ export class ItemService {
       where: { id: itemId },
     });
 
-    await this.eventEmitter.emitAsync('item.deleted', {
+    await this.eventEmitter.emitAsync(WorkspaceHistoryEvent.ITEM_DELETED, {
       actorId: currentUser.id,
       item: existingItem,
       tx,

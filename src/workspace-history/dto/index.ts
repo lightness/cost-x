@@ -4,4 +4,6 @@ export * from './on-item-updated.event';
 export * from './on-payment-created.event';
 export * from './on-payment-updated.event';
 export * from './on-payment-deleted.event';
+export * from './on-tag-added.event';
+export * from './on-tag-removed.event';
 export * from './workspace-history-filter.type';

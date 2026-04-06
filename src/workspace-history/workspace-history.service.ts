@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { JsonObject } from '@prisma/client/runtime/client';
 import { Prisma } from '../../generated/prisma/client';
+import ItemTag from '../item-tag/entity/item-tag.entity';
 import Item from '../item/entity/item.entity';
 import Payment from '../payment/entity/payment.entity';
 import { PrismaService } from '../prisma/prisma.service';
@@ -140,6 +141,42 @@ export class WorkspaceHistoryService {
         actorId,
         newValue: payment as unknown as JsonObject,
         oldValue: null,
+        workspaceId,
+      },
+      tx,
+    );
+  }
+
+  async createItemTagAssigned(
+    workspaceId: number,
+    actorId: number,
+    itemTag: ItemTag,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<WorkspaceHistory> {
+    return this.create(
+      {
+        action: WorkspaceHistoryAction.ITEM_TAG_ASSIGNED,
+        actorId,
+        newValue: itemTag as unknown as JsonObject,
+        oldValue: null,
+        workspaceId,
+      },
+      tx,
+    );
+  }
+
+  async createItemTagUnassigned(
+    workspaceId: number,
+    actorId: number,
+    itemTag: ItemTag,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<WorkspaceHistory> {
+    return this.create(
+      {
+        action: WorkspaceHistoryAction.ITEM_TAG_UNASSIGNED,
+        actorId,
+        newValue: null,
+        oldValue: itemTag as unknown as JsonObject,
         workspaceId,
       },
       tx,

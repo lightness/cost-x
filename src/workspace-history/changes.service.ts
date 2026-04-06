@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import ItemTag from '../item-tag/entity/item-tag.entity';
 import Item from '../item/entity/item.entity';
 import Payment from '../payment/entity/payment.entity';
 import { WorkspaceHistoryAction } from './entity/workspace-history-action.enum';
@@ -22,8 +23,12 @@ export class ChangesService {
           workspaceHistory.oldValue as unknown as Payment,
           workspaceHistory.newValue as unknown as Payment,
         );
-      case WorkspaceHistoryAction.TAG_ADDED:
-      case WorkspaceHistoryAction.TAG_REMOVED:
+      case WorkspaceHistoryAction.ITEM_TAG_ASSIGNED:
+      case WorkspaceHistoryAction.ITEM_TAG_UNASSIGNED:
+        return this.getItemTagDiff(
+          workspaceHistory.oldValue as unknown as ItemTag,
+          workspaceHistory.newValue as unknown as ItemTag,
+        );
       default:
         throw new Error(`Unsupported workspace history action: ${workspaceHistory.action}`);
     }
@@ -55,5 +60,9 @@ export class ChangesService {
 
   getPaymentDiff(oldPayment: Payment, newPayment: Payment) {
     return this.getDiff(oldPayment, newPayment, ['title', 'cost', 'currency', 'date']);
+  }
+
+  getItemTagDiff(oldItemTag: ItemTag, newItemTag: ItemTag) {
+    return this.getDiff(oldItemTag, newItemTag, ['itemId', 'tagId']);
   }
 }

@@ -1,12 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { JsonValue } from '@prisma/client/runtime/client';
 import { get } from 'radash';
+import { PrismaService } from '../prisma/prisma.service';
 import { WorkspaceHistoryAction } from './entity/workspace-history-action.enum';
 import { WorkspaceHistory } from './entity/workspace-history.entity';
 
 @Injectable()
 export class WorkspaceHistoryMessageService {
-  build(workspaceHistory: WorkspaceHistory, actorName: string): string {
+  constructor(private prisma: PrismaService) {}
+
+  async build(workspaceHistory: WorkspaceHistory, actorName: string): Promise<string> {
     const { action, oldValue, newValue } = workspaceHistory;
 
     switch (action) {
@@ -22,10 +25,16 @@ export class WorkspaceHistoryMessageService {
         return `${actorName} updated a payment #${this.extractId(oldValue)} '${this.extractTitle(oldValue)}'`;
       case WorkspaceHistoryAction.PAYMENT_DELETED:
         return `${actorName} deleted a payment #${this.extractId(oldValue)} '${this.extractTitle(oldValue)}'`;
-      case WorkspaceHistoryAction.TAG_ADDED:
-        return `${actorName} added a tag`;
-      case WorkspaceHistoryAction.TAG_REMOVED:
-        return `${actorName} removed a tag`;
+      case WorkspaceHistoryAction.TAG_CREATED:
+        return `${actorName} created tag #${this.extractId(newValue)} '${this.extractTitle(newValue)}'`;
+      case WorkspaceHistoryAction.TAG_UPDATED:
+        return `${actorName} updated tag #${this.extractId(oldValue)} '${this.extractTitle(oldValue)}'`;
+      case WorkspaceHistoryAction.TAG_DELETED:
+        return `${actorName} deleted tag #${this.extractId(oldValue)} '${this.extractTitle(oldValue)}'`;
+      case WorkspaceHistoryAction.ITEM_TAG_ASSIGNED:
+        return `${actorName} assigned a tag #${this.extractTagId(newValue)} '${await this.extractTagTitle(newValue)}' to item #${this.extractItemId(newValue)} '${await this.extractItemTitle(newValue)}'`;
+      case WorkspaceHistoryAction.ITEM_TAG_UNASSIGNED:
+        return `${actorName} unassigned a tag #${this.extractTagId(oldValue)} '${await this.extractTagTitle(oldValue)}' from item #${this.extractItemId(oldValue)} '${await this.extractItemTitle(oldValue)}'`;
     }
   }
 
@@ -47,5 +56,41 @@ export class WorkspaceHistoryMessageService {
 
   private extractId(value: JsonValue | null): number {
     return this.extract<number>(value, 'id');
+  }
+
+  private extractItemId(value: JsonValue | null): number {
+    return this.extract<number>(value, 'itemId');
+  }
+
+  private extractTagId(value: JsonValue | null): number {
+    return this.extract<number>(value, 'tagId');
+  }
+
+  private async extractTagTitle(value: JsonValue | null): Promise<string> {
+    const tagId = this.extractTagId(value);
+
+    if (typeof tagId === 'number') {
+      const tag = await this.prisma.tag.findUnique({
+        where: { id: tagId },
+      });
+
+      return tag ? tag.title : 'unknown';
+    }
+
+    return 'unknown';
+  }
+
+  private async extractItemTitle(value: JsonValue | null): Promise<string> {
+    const itemId = this.extractItemId(value);
+
+    if (typeof itemId === 'number') {
+      const item = await this.prisma.item.findUnique({
+        where: { id: itemId },
+      });
+
+      return item ? item.title : 'unknown';
+    }
+
+    return 'unknown';
   }
 }
