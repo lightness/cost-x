@@ -15,6 +15,7 @@ import { FactoryModule } from './factory/factory.module';
 import { InviteFactoryService } from './factory/invite-factory.service';
 import { UserBlockFactoryService } from './factory/user-block-factory.service';
 import { UserFactoryService } from './factory/user-factory.service';
+import { TestGraphqlModule } from './graphql/test-graphql.module';
 import { TestConfigModule } from './test-config.module';
 
 describe('Contact E2E', () => {
@@ -29,7 +30,7 @@ describe('Contact E2E', () => {
 
   beforeAll(async () => {
     moduleRef = await Test.createTestingModule({
-      imports: [TestConfigModule, FactoryModule, ContactModule, GraphqlModule],
+      imports: [TestConfigModule, TestGraphqlModule, FactoryModule, ContactModule, GraphqlModule],
     }).compile();
 
     app = moduleRef.createNestApplication();

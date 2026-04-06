@@ -4,7 +4,7 @@ import { MailService } from '../../../mail/mail.service';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { TokenService } from '../../../token/token.service';
 import { UserStatus } from '../../../user/entity/user-status.enum';
-import { User } from '../../../user/entity/user.entity';
+import User from '../../../user/entity/user.entity';
 import { JwtPayload } from '../../interfaces';
 import { CONFIRM_EMAIL_TOKEN_SERVICE } from '../../symbols';
 import { IConfirmEmailStrategy } from '../interfaces';

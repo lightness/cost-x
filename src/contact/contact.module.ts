@@ -1,9 +1,9 @@
-import { forwardRef, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { AccessModule } from '../access/access.module';
 import { AuthModule } from '../auth/auth.module';
 import { GroupModule } from '../group/group.module';
 import { PrismaModule } from '../prisma/prisma.module';
-import { UserModule } from '../user/user.module';
+import { UserLoaderModule } from '../user/user-loader.module';
 import { ContactValidationService } from './contact-validation.service';
 import { ContactService } from './contact.service';
 import { BlockedUsersByUserIdLoader } from './dataloader/blocked-users-by-user-id.loader';
@@ -30,7 +30,7 @@ import { UserBlockService } from './user-block.service';
     ContactsByUserIdLoader,
     BlockedUsersByUserIdLoader,
   ],
-  imports: [PrismaModule, AuthModule, AccessModule, GroupModule, forwardRef(() => UserModule)],
+  imports: [PrismaModule, AuthModule, AccessModule, GroupModule, UserLoaderModule],
   providers: [
     ContactValidationService,
     ContactService,

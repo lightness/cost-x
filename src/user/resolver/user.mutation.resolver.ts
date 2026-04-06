@@ -1,27 +1,30 @@
 import { UseGuards, UseInterceptors } from '@nestjs/common';
-import { Args, Int, Mutation, Resolver } from '@nestjs/graphql';
+import { Args, Context, Int, Mutation, Resolver } from '@nestjs/graphql';
+import { Prisma } from '../../../generated/prisma/client';
 import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
 import { AccessScope } from '../../access/interfaces';
 import { AuthGuard } from '../../auth/guard/auth.guard';
+import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
 import { UserByIdPipe } from '../../common/pipe/user-by-id.pipe';
 import { GqlLoggingInterceptor } from '../../graphql/interceptor/gql-logging.interceptor';
 import { CreateUserInDto, UpdateUserInDto } from '../dto';
 import { UserRole } from '../entity/user-role.enum';
-import { User } from '../entity/user.entity';
+import User from '../entity/user.entity';
 import { UserService } from '../user.service';
 
 @Resolver()
-@UseInterceptors(GqlLoggingInterceptor)
+@UseInterceptors(GqlLoggingInterceptor, TransactionInterceptor)
 export class UserMutationResolver {
   constructor(private userService: UserService) {}
 
   @Mutation(() => User)
   async createUser(
     @Args('dto', { type: () => CreateUserInDto }) dto: CreateUserInDto,
+    @Context('tx') tx: Prisma.TransactionClient,
   ) {
-    return this.userService.create(dto);
+    return this.userService.create(dto, tx);
   }
 
   @Mutation(() => User)
@@ -37,15 +40,19 @@ export class UserMutationResolver {
   async updateUser(
     @Args('id', { type: () => Int }) id: number,
     @Args('dto', { type: () => UpdateUserInDto }) dto: UpdateUserInDto,
+    @Context('tx') tx: Prisma.TransactionClient,
   ) {
-    return this.userService.update(id, dto);
+    return this.userService.update(id, dto, tx);
   }
 
   @Mutation(() => Boolean)
   @UseGuards(AuthGuard, AccessGuard)
   @Access.allow([{ role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL }])
-  async deleteUser(@Args('id', { type: () => Int }, UserByIdPipe) user: User) {
-    await this.userService.delete(user);
+  async deleteUser(
+    @Args('id', { type: () => Int }, UserByIdPipe) user: User,
+    @Context('tx') tx: Prisma.TransactionClient,
+  ) {
+    await this.userService.delete(user, tx);
 
     return true;
   }
@@ -53,14 +60,20 @@ export class UserMutationResolver {
   @Mutation(() => User)
   @UseGuards(AuthGuard, AccessGuard)
   @Access.allow([{ role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL }])
-  async banUser(@Args('id', { type: () => Int }, UserByIdPipe) user: User) {
-    return this.userService.ban(user);
+  async banUser(
+    @Args('id', { type: () => Int }, UserByIdPipe) user: User,
+    @Context('tx') tx: Prisma.TransactionClient,
+  ) {
+    return this.userService.ban(user, tx);
   }
 
   @Mutation(() => User)
   @UseGuards(AuthGuard, AccessGuard)
   @Access.allow([{ role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL }])
-  async unbanUser(@Args('id', { type: () => Int }, UserByIdPipe) user: User) {
-    return this.userService.unban(user);
+  async unbanUser(
+    @Args('id', { type: () => Int }, UserByIdPipe) user: User,
+    @Context('tx') tx: Prisma.TransactionClient,
+  ) {
+    return this.userService.unban(user, tx);
   }
 }

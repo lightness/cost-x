@@ -9,7 +9,7 @@ import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
 import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
 import { GqlLoggingInterceptor } from '../../graphql/interceptor/gql-logging.interceptor';
-import { User } from '../../user/entity/user.entity';
+import User from '../../user/entity/user.entity';
 import { ContactValidationService } from '../contact-validation.service';
 import { ContactService } from '../contact.service';
 import { Contact } from '../entity/contact.entity';

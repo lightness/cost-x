@@ -6,7 +6,9 @@ import { ItemTagModule } from '../item-tag/item-tag.module';
 import { ItemsAggregationModule } from '../items-aggregation/items-aggregation.module';
 import { PrismaModule } from '../prisma/prisma.module';
 import { TagsByWorkspaceIdLoader } from './dataloader/tags-by-workspace-id.loader.service';
-import { TagResolver } from './resolver/tag.resolver';
+import { TagFieldResolver } from './resolver/tag.field.resolver';
+import { TagMutationResolver } from './resolver/tag.mutation.resolver';
+import { TagQueryResolver } from './resolver/tag.query.resolver';
 import { TagService } from './tag.service';
 
 @Module({
@@ -22,7 +24,9 @@ import { TagService } from './tag.service';
   providers: [
     TagService,
     // resolvers
-    TagResolver,
+    TagFieldResolver,
+    TagQueryResolver,
+    TagMutationResolver,
     // dataloaders
     TagsByWorkspaceIdLoader,
   ],

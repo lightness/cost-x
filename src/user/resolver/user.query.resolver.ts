@@ -8,7 +8,7 @@ import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
 import { GqlLoggingInterceptor } from '../../graphql/interceptor/gql-logging.interceptor';
 import { UserRole } from '../entity/user-role.enum';
-import { User } from '../entity/user.entity';
+import User from '../entity/user.entity';
 import { UserService } from '../user.service';
 
 @Resolver()

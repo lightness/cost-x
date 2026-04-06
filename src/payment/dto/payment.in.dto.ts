@@ -1,9 +1,9 @@
 import { Field, InputType } from '@nestjs/graphql';
-import { Transform } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
+import { Decimal } from '@prisma/client/runtime/client';
 import {
   IsDate,
   IsEnum,
-  IsNumber,
   IsOptional,
   IsString,
 } from 'class-validator';
@@ -17,9 +17,10 @@ export class PaymentInDto {
   @Field(() => String, { nullable: true })
   title?: string;
 
-  @IsNumber()
+  @Type(() => Object)
+  @Transform(({ obj, key }) => obj[key])
   @Field(() => DecimalScalar)
-  cost: number;
+  cost: Decimal;
 
   @IsEnum(Currency)
   @Field(() => Currency)

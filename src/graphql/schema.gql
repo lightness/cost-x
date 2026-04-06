@@ -2,129 +2,6 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-type CurrencyRate {
-  id: Int!
-  createdAt: DateIso!
-  fromCurrency: Currency!
-  toCurrency: Currency!
-  date: Date!
-  rate: Decimal!
-}
-
-"""Date custom scalar type in ISO format"""
-scalar DateIso
-
-enum Currency {
-  BYN
-  USD
-  EUR
-}
-
-"""Date custom scalar type in YYYY-MM-DD format"""
-scalar Date
-
-"""Decimal number"""
-scalar Decimal
-
-type Payment {
-  id: Int!
-  createdAt: DateIso
-  updatedAt: DateIso
-  title: String
-  cost: Decimal!
-  currency: Currency!
-  date: Date!
-  item: Item
-  itemId: Int!
-}
-
-type CostByCurrency {
-  BYN: Decimal!
-  USD: Decimal!
-  EUR: Decimal!
-}
-
-type FindPaymentsAggregates {
-  count: Int
-  costByCurrency: CostByCurrency
-  costInDefaultCurrency: Decimal
-  firstPaymentDate: Date
-  lastPaymentDate: Date
-}
-
-type PaymentsAggregation {
-  count: Int
-  costInDefaultCurrency: Decimal
-  costByCurrency: CostByCurrency
-  firstPaymentDate: Date
-  lastPaymentDate: Date
-}
-
-type ItemsAggregation {
-  count: Int
-  paymentsAggregation(paymentsFilter: PaymentsFilter): PaymentsAggregation
-}
-
-input PaymentsFilter {
-  dateFrom: Date
-  dateTo: Date
-}
-
-type Workspace {
-  id: Int!
-  createdAt: DateIso!
-  updatedAt: DateIso!
-  title: String!
-  ownerId: Int!
-  defaultCurrency: Currency!
-  items(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): [Item!]!
-  tags(tagsFilter: TagsFilter): [Tag!]!
-  itemsAggregation(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): ItemsAggregation!
-}
-
-input ItemsFilter {
-  tagIds: [Int!]
-  title: String
-}
-
-input TagsFilter {
-  title: String
-}
-
-type Tag {
-  id: Int!
-  createdAt: DateIso!
-  updatedAt: DateIso!
-  title: String!
-  color: String!
-  workspaceId: Int!
-  workspace: Workspace
-  items(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): [Item!]
-  itemsAggregation(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): ItemsAggregation
-}
-
-type Item {
-  id: Int!
-  createdAt: DateIso!
-  updatedAt: DateIso!
-  title: String!
-  workspaceId: Int!
-  workspace: Workspace
-  payments(paymentsFilter: PaymentsFilter): [Payment!]
-  paymentsAggregation(paymentsFilter: PaymentsFilter): PaymentsAggregation
-  tags: [Tag!]
-}
-
-type ItemTag {
-  id: Int!
-  createdAt: DateIso!
-  updatedAt: DateIso!
-  item: Item
-  itemId: Int!
-  tag: Item
-  tagId: Int!
-}
-
 type User {
   id: Int!
   createdAt: DateIso!
@@ -133,11 +10,10 @@ type User {
   email: String!
   status: UserStatus!
   role: UserRole!
-  workspaces(workspacesFilter: WorkspacesFilter): [Workspace!]!
-  incomingInvites(invitesFilter: InvitesFilter): [Invite!]!
-  outgoingInvites(invitesFilter: InvitesFilter): [Invite!]!
-  contacts: [Contact!]!
 }
+
+"""Date custom scalar type in ISO format"""
+scalar DateIso
 
 enum UserStatus {
   ACTIVE
@@ -148,21 +24,6 @@ enum UserStatus {
 enum UserRole {
   USER
   ADMIN
-}
-
-input WorkspacesFilter {
-  title: String
-  defaultCurrency: Currency
-}
-
-input InvitesFilter {
-  status: InviteStatus
-}
-
-enum InviteStatus {
-  PENDING
-  ACCEPTED
-  REJECTED
 }
 
 type Contact {
@@ -189,6 +50,12 @@ type Invite {
   invitee: User!
 }
 
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
 type UserBlock {
   id: Int!
   createdAt: DateIso!
@@ -201,17 +68,7 @@ type UserBlock {
 }
 
 type Query {
-  users: [User!]!
-  user(id: Int!): User!
-  me: User!
-  item(id: Int!): Item!
-  items(workspaceId: Int!, itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): [Item!]!
-  currencyRate(fromCurrency: Currency!, toCurrency: Currency!, date: Date!): CurrencyRate!
-  payment(id: Int!): Payment!
-  payments(itemId: Int!, paymentsFilter: PaymentsFilter): [Payment!]!
-  tags(workspaceId: Int!, dto: TagsFilter): [Tag!]!
-  tag(id: Int!): Tag!
-  itemsAggregation(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): ItemsAggregation!
+  _stub: Boolean!
 }
 
 type Mutation {
@@ -222,25 +79,6 @@ type Mutation {
   deleteContact(contactId: Int!): Contact!
   blockUser(dto: CreateUserBlockInDto!): UserBlock!
   unblockUser(dto: RemoveUserBlockInDto!): UserBlock!
-  createUser(dto: CreateUserInDto!): User!
-  updateUser(id: Int!, dto: UpdateUserInDto!): User!
-  deleteUser(id: Int!): Boolean!
-  banUser(id: Int!): User!
-  unbanUser(id: Int!): User!
-  createWorkspace(dto: WorkspaceInDto!): Workspace!
-  updateWorkspace(id: Int!, dto: WorkspaceInDto!): Workspace!
-  deleteWorkspace(id: Int!): Workspace!
-  createItem(workspaceId: Int!, dto: ItemInDto!): Item!
-  updateItem(id: Int!, dto: ItemInDto!): Item!
-  deleteItem(id: Int!): Boolean!
-  assignTag(dto: AssignTagInDto!): ItemTag!
-  unassignTag(dto: UnassignTagInDto!): Boolean!
-  createPayment(itemId: Int!, dto: PaymentInDto!): Payment!
-  updatePayment(paymentId: Int!, dto: PaymentInDto!): Payment!
-  deletePayment(paymentId: Int!): Boolean!
-  createTag(workspaceId: Int!, dto: TagInDto!): Tag!
-  updateTag(id: Int!, dto: TagInDto!): Tag!
-  deleteTag(id: Int!): Boolean!
 }
 
 input CreateInviteInDto {
@@ -256,47 +94,4 @@ input CreateUserBlockInDto {
 input RemoveUserBlockInDto {
   blockerId: Int!
   blockedId: Int!
-}
-
-input CreateUserInDto {
-  name: String!
-  email: String!
-  password: String!
-}
-
-input UpdateUserInDto {
-  name: String!
-  email: String!
-  password: String!
-}
-
-input WorkspaceInDto {
-  title: String!
-  defaultCurrency: Currency!
-}
-
-input ItemInDto {
-  title: String!
-}
-
-input AssignTagInDto {
-  tagId: Int!
-  itemId: Int!
-}
-
-input UnassignTagInDto {
-  tagId: Int!
-  itemId: Int!
-}
-
-input PaymentInDto {
-  title: String
-  cost: Decimal!
-  currency: Currency!
-  date: Date!
-}
-
-input TagInDto {
-  title: String!
-  color: String
 }

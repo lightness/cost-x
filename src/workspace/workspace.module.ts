@@ -4,11 +4,13 @@ import { AuthModule } from '../auth/auth.module';
 import { ItemModule } from '../item/item.module';
 import { PrismaModule } from '../prisma/prisma.module';
 import { WorkspacesByUserIdLoader } from './dataloader/workspaces-by-user-id.loader';
-import { WorkspaceResolver } from './resolver/workspace.resolver';
+import { WorkspaceFieldResolver } from './resolver/workspace.field.resolver';
+import { WorkspaceMutationResolver } from './resolver/workspace.mutation.resolver';
 import { WorkspaceService } from './workspace.service';
 import { GroupModule } from '../group/group.module';
 import { TagModule } from '../tag/tag.module';
 import { ItemsAggregationModule } from '../items-aggregation/items-aggregation.module';
+import { WorkspaceHistoryModule } from '../workspace-history/workspace-history.module';
 
 @Module({
   exports: [WorkspaceService, WorkspacesByUserIdLoader],
@@ -20,11 +22,13 @@ import { ItemsAggregationModule } from '../items-aggregation/items-aggregation.m
     TagModule,
     ItemsAggregationModule,
     GroupModule,
+    WorkspaceHistoryModule,
   ],
   providers: [
     WorkspaceService,
-    // resolver
-    WorkspaceResolver,
+    // resolvers
+    WorkspaceFieldResolver,
+    WorkspaceMutationResolver,
     // dataloader
     WorkspacesByUserIdLoader,
   ],

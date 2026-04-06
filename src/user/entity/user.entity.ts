@@ -1,13 +1,10 @@
 import { Field, HideField, Int, ObjectType } from '@nestjs/graphql';
-import {
-  type User as PrismaUser,
-  UserStatus,
-} from '../../../generated/prisma/client';
+import { type User as PrismaUser, UserStatus } from '../../../generated/prisma/client';
 import { DateIsoScalar } from '../../graphql/scalar';
 import { UserRole } from './user-role.enum';
 
 @ObjectType()
-export class User implements PrismaUser {
+class User implements PrismaUser {
   @Field(() => Int)
   id: number;
 
@@ -35,3 +32,5 @@ export class User implements PrismaUser {
   @HideField()
   tempCode: string | null;
 }
+
+export default User;

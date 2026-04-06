@@ -9,7 +9,9 @@ import { PaymentModule } from '../payment/payment.module';
 import { PrismaModule } from '../prisma/prisma.module';
 import { ItemsByWorkspaceIdLoader } from './dataloader/items-by-workspace-id.loader.service';
 import { ItemService } from './item.service';
-import { ItemResolver } from './resolver/item.resolver';
+import { ItemFieldResolver } from './resolver/item.field.resolver';
+import { ItemMutationResolver } from './resolver/item.mutation.resolver';
+import { ItemQueryResolver } from './resolver/item.query.resolver';
 
 @Module({
   exports: [ItemService, ItemsByWorkspaceIdLoader],
@@ -27,7 +29,9 @@ import { ItemResolver } from './resolver/item.resolver';
     // service
     ItemService,
     // resolvers
-    ItemResolver,
+    ItemFieldResolver,
+    ItemQueryResolver,
+    ItemMutationResolver,
     ItemsByWorkspaceIdLoader,
   ],
 })

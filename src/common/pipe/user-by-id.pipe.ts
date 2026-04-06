@@ -1,10 +1,6 @@
-import {
-  Injectable,
-  NotFoundException,
-  type PipeTransform,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, type PipeTransform } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { User } from '../../user/entity/user.entity';
+import User from '../../user/entity/user.entity';
 
 @Injectable()
 export class UserByIdPipe implements PipeTransform<number, Promise<User>> {

@@ -1,6 +1,6 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { User } from '../user/entity/user.entity';
+import User from '../user/entity/user.entity';
 import { ConfirmEmailStrategy } from './confirm-email-strategy.enum';
 import { AutoConfirmEmailService } from './strategy/auto/auto-confirm-email.service';
 import { IConfirmEmailStrategy } from './strategy/interfaces';
@@ -15,9 +15,7 @@ export class ConfirmEmailService {
   ) {}
 
   private get strategy(): ConfirmEmailStrategy {
-    return this.configService.getOrThrow<ConfirmEmailStrategy>(
-      'confirmEmail.strategy',
-    );
+    return this.configService.getOrThrow<ConfirmEmailStrategy>('confirmEmail.strategy');
   }
 
   private get confirmEmailStrategy(): IConfirmEmailStrategy {

@@ -1,0 +1,21 @@
+import { Module } from '@nestjs/common';
+import { PrismaModule } from '../prisma/prisma.module';
+import { UserLoaderModule } from '../user/user-loader.module';
+import { ChangesService } from './changes.service';
+import { WorkspaceHistoryFieldResolver } from './resolver/workspace-history.field.resolver';
+import { WorkspaceHistoryEventListenerService } from './workspace-history-event-listener.service';
+import { WorkspaceHistoryMessageService } from './workspace-history-message.service';
+import { WorkspaceHistoryService } from './workspace-history.service';
+
+@Module({
+  exports: [WorkspaceHistoryService],
+  imports: [PrismaModule, UserLoaderModule],
+  providers: [
+    WorkspaceHistoryService,
+    WorkspaceHistoryEventListenerService,
+    WorkspaceHistoryMessageService,
+    WorkspaceHistoryFieldResolver,
+    ChangesService,
+  ],
+})
+export class WorkspaceHistoryModule {}

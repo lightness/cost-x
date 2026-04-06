@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '../../generated/prisma/browser';
 import { PrismaService } from '../prisma/prisma.service';
-import { User } from '../user/entity/user.entity';
+import User from '../user/entity/user.entity';
 import { CreateUserBlockInDto, RemoveUserBlockInDto } from './dto';
 import {
   BlockedUserNotFoundError,

@@ -10,7 +10,7 @@ import { AuthGuard } from '../../auth/guard/auth.guard';
 import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
 import { GqlLoggingInterceptor } from '../../graphql/interceptor/gql-logging.interceptor';
 import { UserRole } from '../../user/entity/user-role.enum';
-import { User } from '../../user/entity/user.entity';
+import User from '../../user/entity/user.entity';
 import { CreateUserBlockInDto, RemoveUserBlockInDto } from '../dto';
 import { UserBlock } from '../entity/user-block.entity';
 import { UserBlockValidationService } from '../user-block-validation.service';

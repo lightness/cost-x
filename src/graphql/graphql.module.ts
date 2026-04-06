@@ -3,7 +3,7 @@ import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 import { join } from 'node:path';
 import { get } from 'radash';
-import { DateIsoScalar, DateScalar, DecimalScalar } from './scalar';
+import { DateIsoScalar, DateScalar, DecimalScalar, JsonScalar } from './scalar';
 
 @Module({
   imports: [
@@ -25,9 +25,12 @@ import { DateIsoScalar, DateScalar, DecimalScalar } from './scalar';
         Date: DateScalar,
         DateIso: DateIsoScalar,
         Decimal: DecimalScalar,
+        Json: JsonScalar,
+      },
+      resolverValidationOptions: {
+        requireResolversToMatchSchema: 'ignore',
       },
     }),
   ],
-  providers: [],
 })
 export class GraphqlModule {}

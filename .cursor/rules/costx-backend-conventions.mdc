@@ -1,0 +1,27 @@
+---
+description: Backend conventions for NestJS, Prisma, GraphQL, and Biome in cost-x
+alwaysApply: true
+---
+
+# Cost-x Backend Conventions
+
+- Keep domain boundaries: place code under `src/<domain>/...` and wire modules through `*.module.ts` imports.
+- Keep resolver/service responsibilities separate: resolver handles GraphQL I/O and delegates business logic to services.
+- Use `PrismaService` for data access; for mutating service methods, keep `tx: Prisma.TransactionClient = this.prisma` to support transactional composition.
+- Reuse the passed transaction client for writes and related reads in transaction-aware methods; do not mix in direct `this.prisma` calls there.
+- Model business failures as typed domain errors and map to `ApplicationErrorCode` via `CodedApplicationError`-based patterns.
+- Keep GraphQL conventions aligned with `src/graphql/graphql.module.ts` and `src/graphql/scalar`: preserve code-first schema generation and register custom scalars consistently.
+- For Prisma model changes, update `prisma/schema.prisma`, add migration, and regenerate Prisma client before finalizing related code edits.
+- Keep diffs minimal and deterministic; avoid unrelated refactors in feature/bugfix changes.
+- Before finishing, run relevant checks:
+  - `npm run lint:fix`
+  - `npm test` (or targeted Jest tests)
+  - Prisma workflow commands when schema changes (`npm run prisma:migration:create`, `npm run prisma:client:generate`)
+
+## Do / Don't
+
+- Do: `async create(..., tx: Prisma.TransactionClient = this.prisma)` and use `tx` for repository calls in that flow.
+- Don't: add write methods that ignore `tx` and hardcode `this.prisma`, which breaks transaction composition.
+- Do: add/update domain-specific errors with `ApplicationErrorCode` when introducing business-rule failures.
+- Don't: throw untyped generic errors for expected domain conditions (not found, no access, invalid state).
+- Do: keep resolvers thin and business logic in services; keep event emission near the service mutation that owns the change.

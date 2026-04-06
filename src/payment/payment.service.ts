@@ -1,9 +1,13 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { cmp } from 'type-comparator';
+import { Prisma } from '../../generated/prisma/client';
 import { ConsistencyService } from '../consistency/consistency.service';
 import { PaymentLike } from '../item-cost/interfaces';
 import Item from '../item/entity/item.entity';
 import { PrismaService } from '../prisma/prisma.service';
+import User from '../user/entity/user.entity';
+import { WorkspaceHistoryEvent } from '../workspace-history/entity/workspace-history-event.enum';
 import { PaymentInDto, PaymentsFilter } from './dto';
 import Payment from './entity/payment.entity';
 
@@ -12,6 +16,7 @@ export class PaymentService {
   constructor(
     private prisma: PrismaService,
     private consistencyService: ConsistencyService,
+    private eventEmitter: EventEmitter2,
   ) {}
 
   async getPaymentsByItemIds(
@@ -53,8 +58,13 @@ export class PaymentService {
     return payment;
   }
 
-  async createPayment(item: Item, dto: PaymentInDto): Promise<Payment> {
-    return this.prisma.payment.create({
+  async createPayment(
+    item: Item,
+    dto: PaymentInDto,
+    currentUser: User,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<Payment> {
+    const payment = await tx.payment.create({
       data: {
         ...dto,
         item: {
@@ -64,10 +74,24 @@ export class PaymentService {
         },
       },
     });
+
+    await this.eventEmitter.emitAsync(WorkspaceHistoryEvent.PAYMENT_CREATED, {
+      actorId: currentUser.id,
+      payment,
+      tx,
+      workspaceId: item.workspaceId,
+    });
+
+    return payment;
   }
 
-  async updatePayment(payment: Payment, dto: PaymentInDto): Promise<Payment> {
-    return this.prisma.payment.update({
+  async updatePayment(
+    payment: Payment,
+    dto: PaymentInDto,
+    currentUser: User,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<Payment> {
+    const updatedPayment = await tx.payment.update({
       data: {
         cost: dto.cost,
         currency: dto.currency,
@@ -76,11 +100,34 @@ export class PaymentService {
       },
       where: { id: payment.id },
     });
+
+    const item = await tx.item.findUniqueOrThrow({ where: { id: payment.itemId } });
+
+    await this.eventEmitter.emitAsync(WorkspaceHistoryEvent.PAYMENT_UPDATED, {
+      actorId: currentUser.id,
+      newPayment: updatedPayment,
+      oldPayment: payment,
+      tx,
+      workspaceId: item.workspaceId,
+    });
+
+    return updatedPayment;
   }
 
-  async deletePayment(payment: Payment) {
-    await this.prisma.payment.delete({
-      where: { id: payment.id },
+  async deletePayment(
+    payment: Payment,
+    currentUser: User,
+    tx: Prisma.TransactionClient = this.prisma,
+  ) {
+    const item = await tx.item.findUniqueOrThrow({ where: { id: payment.itemId } });
+
+    await tx.payment.delete({ where: { id: payment.id } });
+
+    await this.eventEmitter.emitAsync(WorkspaceHistoryEvent.PAYMENT_DELETED, {
+      actorId: currentUser.id,
+      payment,
+      tx,
+      workspaceId: item.workspaceId,
     });
   }
 
