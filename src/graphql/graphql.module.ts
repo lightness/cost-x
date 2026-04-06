@@ -3,9 +3,11 @@ import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 import { join } from 'node:path';
 import { get } from 'radash';
+import { GraphqlController } from './graphql.controller';
 import { DateIsoScalar, DateScalar, DecimalScalar, JsonScalar } from './scalar';
 
 @Module({
+  controllers: [GraphqlController],
   imports: [
     GraphQLModule.forRoot<ApolloDriverConfig>({
       autoSchemaFile: join(process.cwd(), 'src/graphql/schema.gql'),
