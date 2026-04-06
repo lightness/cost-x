@@ -235,6 +235,7 @@ enum WorkspaceHistoryAction {
   WORKSPACE_UPDATED
   WORKSPACE_DELETED
   ITEM_MERGED
+  ITEM_EXTRACTED
 }
 
 """
@@ -278,6 +279,7 @@ type Mutation {
   updatePayment(paymentId: Int!, dto: PaymentInDto!): Payment!
   deletePayment(paymentId: Int!): Boolean!
   mergeItems(dto: MergeItemsInDto!): Item!
+  extractAsItem(dto: ExtractAsItemInDto!): Item!
   createUser(dto: CreateUserInDto!): User!
   updateUser(id: Int!, dto: UpdateUserInDto!): User!
   deleteUser(id: Int!): Boolean!
@@ -328,6 +330,12 @@ input PaymentInDto {
 input MergeItemsInDto {
   hostItemId: Int!
   mergingItemId: Int!
+}
+
+input ExtractAsItemInDto {
+  itemId: Int!
+  paymentIds: [Int!]!
+  title: String!
 }
 
 input CreateUserInDto {

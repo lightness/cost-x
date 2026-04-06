@@ -10,6 +10,7 @@ export * from './on-tag-created.event';
 export * from './on-tag-updated.event';
 export * from './on-tag-deleted.event';
 export * from './on-item-merged.event';
+export * from './on-item-extracted.event';
 export * from './on-workspace-created.event';
 export * from './on-workspace-updated.event';
 export * from './on-workspace-deleted.event';

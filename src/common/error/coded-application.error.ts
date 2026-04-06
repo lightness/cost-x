@@ -28,6 +28,10 @@ export enum ApplicationErrorCode {
   USER_IS_NOT_BLOCKED = 'user_is_not_blocked',
   // item
   ITEM_NOT_FOUND = 'item_not_found',
+  // item-extract
+  EXTRACT_PAYMENTS_EMPTY = 'extract_payments_empty',
+  EXTRACT_ALL_PAYMENTS = 'extract_all_payments',
+  PAYMENT_NOT_BELONG_TO_ITEM = 'payment_not_belong_to_item',
   // common
   UNIQUE_CONSTRAINT_VIOLATION = 'unique_constraint_violation',
   UNKNOWN = 'unknown',

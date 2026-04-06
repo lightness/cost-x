@@ -4,6 +4,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import {
   OnItemCreatedEvent,
   OnItemDeletedEvent,
+  OnItemExtractedEvent,
   OnItemUpdatedEvent,
   OnPaymentCreatedEvent,
   OnPaymentDeletedEvent,
@@ -106,6 +107,17 @@ export class WorkspaceHistoryEventListenerService {
       dto.workspaceId,
       dto.actorId,
       dto.itemTag,
+      tx,
+    );
+  }
+
+  @OnEvent(WorkspaceHistoryEvent.ITEM_EXTRACTED)
+  async onItemExtracted({ tx = this.prisma, ...dto }: OnItemExtractedEvent) {
+    return this.workspaceHistoryService.createItemExtracted(
+      dto.workspaceId,
+      dto.actorId,
+      dto.sourceItem,
+      dto.extractedItem,
       tx,
     );
   }
