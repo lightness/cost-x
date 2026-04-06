@@ -156,7 +156,7 @@ type Workspace {
   items(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): [Item!]!
   tags(tagsFilter: TagsFilter): [Tag!]!
   itemsAggregation(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): ItemsAggregation!
-  history: [WorkspaceHistory!]!
+  history(workspaceHistoryFilter: WorkspaceHistoryFilter): [WorkspaceHistory!]!
 }
 
 input ItemsFilter {
@@ -166,6 +166,10 @@ input ItemsFilter {
 
 input TagsFilter {
   title: String
+}
+
+input WorkspaceHistoryFilter {
+  id: Int
 }
 
 type Tag {

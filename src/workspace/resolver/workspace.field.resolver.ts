@@ -8,6 +8,7 @@ import { PaymentsFilter } from '../../payment/dto';
 import { TagsByWorkspaceIdLoader } from '../../tag/dataloader/tags-by-workspace-id.loader.service';
 import { TagsFilter } from '../../tag/dto';
 import Tag from '../../tag/entity/tag.entity';
+import { WorkspaceHistoryFilter } from '../../workspace-history/dto/workspace-history-filter.type';
 import { WorkspaceHistory } from '../../workspace-history/entity/workspace-history.entity';
 import { WorkspaceHistoryService } from '../../workspace-history/workspace-history.service';
 import { Workspace } from '../entity/workspace.entity';
@@ -52,7 +53,11 @@ export class WorkspaceFieldResolver {
   }
 
   @ResolveField(() => [WorkspaceHistory])
-  async history(@Parent() workspace: Workspace) {
-    return this.workspaceHistoryService.listByWorkspaceId(workspace.id);
+  async history(
+    @Parent() workspace: Workspace,
+    @Args('workspaceHistoryFilter', { nullable: true })
+    filter: WorkspaceHistoryFilter,
+  ) {
+    return this.workspaceHistoryService.listByWorkspaceId(workspace.id, filter);
   }
 }
