@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { Decimal } from '@prisma/client/runtime/client';
 import { Currency } from '../../generated/prisma/enums';
 import { ItemTagService } from '../item-tag/item-tag.service';
 import { ItemService } from '../item/item.service';
@@ -74,7 +75,7 @@ export class DataMigrationService {
           await this.paymentService.createPayment(
             item,
             {
-              cost: usdCost,
+              cost: new Decimal(usdCost),
               currency: Currency.USD,
               date: new Date(date),
             },
@@ -87,7 +88,7 @@ export class DataMigrationService {
           await this.paymentService.createPayment(
             item,
             {
-              cost: eurCost,
+              cost: new Decimal(eurCost),
               currency: Currency.EUR,
               date: new Date(date),
             },
@@ -100,7 +101,7 @@ export class DataMigrationService {
           await this.paymentService.createPayment(
             item,
             {
-              cost: bynCost,
+              cost: new Decimal(bynCost),
               currency: Currency.BYN,
               date: new Date(date),
             },
