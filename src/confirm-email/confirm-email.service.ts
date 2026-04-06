@@ -5,6 +5,7 @@ import { ConfirmEmailStrategy } from './confirm-email-strategy.enum';
 import { AutoConfirmEmailService } from './strategy/auto/auto-confirm-email.service';
 import { IConfirmEmailStrategy } from './strategy/interfaces';
 import { ManualConfirmEmailService } from './strategy/manual/manual-confirm-email.service';
+import { Prisma } from '../../generated/prisma/client';
 
 @Injectable()
 export class ConfirmEmailService {
@@ -31,7 +32,7 @@ export class ConfirmEmailService {
     }
   }
 
-  async runConfirmationProcess(user: User): Promise<User> {
-    return this.confirmEmailStrategy.initiateFlow(user);
+  async runConfirmationProcess(user: User, tx?: Prisma.TransactionClient): Promise<User> {
+    return this.confirmEmailStrategy.initiateFlow(user, tx);
   }
 }

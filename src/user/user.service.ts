@@ -36,7 +36,7 @@ export class UserService {
       },
     });
 
-    await this.confirmEmailService.runConfirmationProcess(user);
+    await this.confirmEmailService.runConfirmationProcess(user, tx);
 
     return user;
   }
