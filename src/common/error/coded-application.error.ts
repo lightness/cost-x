@@ -7,6 +7,7 @@ export enum ApplicationErrorCode {
   EMAIL_IS_NOT_VERIFIED = 'email_is_not_verified',
   USER_BANNED = 'user_banned',
   USER_ALREADY_EXISTS = 'user_already_exists',
+  USER_NOT_AUTHORIZED = 'user_not_authorized',
   INVALID_CREDENTIALS = 'invalid_credentials',
   INVALID_REFRESH_TOKEN = 'invalid_refresh_token',
   UNKNOWN_USER = 'unknown_user',
