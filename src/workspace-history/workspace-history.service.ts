@@ -291,4 +291,24 @@ export class WorkspaceHistoryService {
       tx,
     );
   }
+
+  async createItemMerged(
+    workspaceId: number,
+    actorId: number,
+    hostItem: Item,
+    mergingItem: Item,
+    resultItem: Item,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<WorkspaceHistory> {
+    return this.create(
+      {
+        action: WorkspaceHistoryAction.ITEM_MERGED,
+        actorId,
+        newValue: { hostItem: resultItem, mergingItem: null } as unknown as JsonObject,
+        oldValue: { hostItem, mergingItem } as unknown as JsonObject,
+        workspaceId,
+      },
+      tx,
+    );
+  }
 }

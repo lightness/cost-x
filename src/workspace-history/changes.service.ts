@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { get } from 'radash';
 import ItemTag from '../item-tag/entity/item-tag.entity';
 import Item from '../item/entity/item.entity';
 import Payment from '../payment/entity/payment.entity';
@@ -17,6 +18,11 @@ export class ChangesService {
         return this.getItemDiff(
           workspaceHistory.oldValue as unknown as Item,
           workspaceHistory.newValue as unknown as Item,
+        );
+      case WorkspaceHistoryAction.ITEM_MERGED:
+        return this.getMergedItemDiff(
+          workspaceHistory.oldValue as unknown as { hostItem: Item; mergingItem: Item },
+          workspaceHistory.newValue as unknown as { hostItem: Item; mergingItem: Item },
         );
       case WorkspaceHistoryAction.PAYMENT_CREATED:
       case WorkspaceHistoryAction.PAYMENT_UPDATED:
@@ -53,16 +59,15 @@ export class ChangesService {
   getDiff<O, N>(
     oldObject: O,
     newObject: N,
-    whitelistedKeys?: (keyof O & keyof N)[],
+    whitelistedKeys: string[],
   ): Record<string, { oldValue: unknown; newValue: unknown }> {
     const diff: Record<string, { oldValue: unknown; newValue: unknown }> = {};
-    const allKeys = new Set([...Object.keys(oldObject || {}), ...Object.keys(newObject || {})]);
 
-    for (const key of allKeys) {
-      const oldVal = oldObject ? oldObject[key] : null;
-      const newVal = newObject ? newObject[key] : null;
+    for (const key of whitelistedKeys) {
+      const oldVal = get(oldObject, key, null);
+      const newVal = get(newObject, key, null);
 
-      if (oldVal !== newVal && (!whitelistedKeys || (whitelistedKeys as string[]).includes(key))) {
+      if (oldVal !== newVal) {
         diff[key] = { newValue: newVal, oldValue: oldVal };
       }
     }
@@ -88,5 +93,12 @@ export class ChangesService {
 
   getWorkspaceDiff(oldWorkspace: Workspace, newWorkspace: Workspace) {
     return this.getDiff(oldWorkspace, newWorkspace, ['title', 'defaultCurrency']);
+  }
+
+  getMergedItemDiff(
+    oldValue: { hostItem: Item; mergingItem: Item },
+    newValue: { hostItem: Item; mergingItem: Item },
+  ): Record<string, { oldValue: unknown; newValue: unknown }> {
+    return this.getDiff(oldValue, newValue, ['hostItem.title', 'mergingItem.title']);
   }
 }

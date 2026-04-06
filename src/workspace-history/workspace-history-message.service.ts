@@ -35,6 +35,8 @@ export class WorkspaceHistoryMessageService {
         return `${actorName} assigned a tag #${this.extractTagId(newValue)} '${await this.extractTagTitle(newValue)}' to item #${this.extractItemId(newValue)} '${await this.extractItemTitle(newValue)}'`;
       case WorkspaceHistoryAction.ITEM_TAG_UNASSIGNED:
         return `${actorName} unassigned a tag #${this.extractTagId(oldValue)} '${await this.extractTagTitle(oldValue)}' from item #${this.extractItemId(oldValue)} '${await this.extractItemTitle(oldValue)}'`;
+      case WorkspaceHistoryAction.ITEM_MERGED:
+        return `${actorName} merged item #${this.extract<number>(oldValue, 'mergingItem.id')} '${this.extract<string>(oldValue, 'mergingItem.title')}' into item #${this.extract<number>(newValue, 'hostItem.id')} '${this.extract<string>(newValue, 'hostItem.title')}'`;
       case WorkspaceHistoryAction.WORKSPACE_CREATED:
         return `${actorName} created workspace #${this.extractId(newValue)} '${this.extractTitle(newValue)}'`;
       case WorkspaceHistoryAction.WORKSPACE_UPDATED:

@@ -10,6 +10,7 @@ import {
   OnPaymentUpdatedEvent,
   OnTagAddedEvent,
   OnTagRemovedEvent,
+  OnItemMergedEvent,
   OnTagCreatedEvent,
   OnTagDeletedEvent,
   OnTagUpdatedEvent,
@@ -105,6 +106,18 @@ export class WorkspaceHistoryEventListenerService {
       dto.workspaceId,
       dto.actorId,
       dto.itemTag,
+      tx,
+    );
+  }
+
+  @OnEvent(WorkspaceHistoryEvent.ITEM_MERGED)
+  async onItemMerged({ tx = this.prisma, ...dto }: OnItemMergedEvent) {
+    return this.workspaceHistoryService.createItemMerged(
+      dto.workspaceId,
+      dto.actorId,
+      dto.hostItem,
+      dto.mergingItem,
+      dto.resultItem,
       tx,
     );
   }
