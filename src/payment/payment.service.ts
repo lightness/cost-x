@@ -1,10 +1,12 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { cmp } from 'type-comparator';
 import { Prisma } from '../../generated/prisma/client';
 import { ConsistencyService } from '../consistency/consistency.service';
 import { PaymentLike } from '../item-cost/interfaces';
 import Item from '../item/entity/item.entity';
 import { PrismaService } from '../prisma/prisma.service';
+import User from '../user/entity/user.entity';
 import { PaymentInDto, PaymentsFilter } from './dto';
 import Payment from './entity/payment.entity';
 
@@ -13,6 +15,7 @@ export class PaymentService {
   constructor(
     private prisma: PrismaService,
     private consistencyService: ConsistencyService,
+    private eventEmitter: EventEmitter2,
   ) {}
 
   async getPaymentsByItemIds(
@@ -57,9 +60,10 @@ export class PaymentService {
   async createPayment(
     item: Item,
     dto: PaymentInDto,
+    currentUser: User,
     tx: Prisma.TransactionClient = this.prisma,
   ): Promise<Payment> {
-    return tx.payment.create({
+    const payment = await tx.payment.create({
       data: {
         ...dto,
         item: {
@@ -69,6 +73,15 @@ export class PaymentService {
         },
       },
     });
+
+    await this.eventEmitter.emitAsync('payment.created', {
+      actorId: currentUser.id,
+      payment,
+      tx,
+      workspaceId: item.workspaceId,
+    });
+
+    return payment;
   }
 
   async updatePayment(

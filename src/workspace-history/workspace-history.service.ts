@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { JsonObject } from '@prisma/client/runtime/client';
 import { Prisma } from '../../generated/prisma/client';
 import Item from '../item/entity/item.entity';
+import Payment from '../payment/entity/payment.entity';
 import { PrismaService } from '../prisma/prisma.service';
 import { WorkspaceHistoryAction } from './entity/workspace-history-action.enum';
 import { WorkspaceHistory } from './entity/workspace-history.entity';
@@ -82,6 +83,24 @@ export class WorkspaceHistoryService {
         actorId,
         newValue: null,
         oldValue: item as unknown as JsonObject,
+        workspaceId,
+      },
+      tx,
+    );
+  }
+
+  async createPaymentCreated(
+    workspaceId: number,
+    actorId: number,
+    payment: Payment,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<WorkspaceHistory> {
+    return this.create(
+      {
+        action: WorkspaceHistoryAction.PAYMENT_CREATED,
+        actorId,
+        newValue: payment as unknown as JsonObject,
+        oldValue: null,
         workspaceId,
       },
       tx,
