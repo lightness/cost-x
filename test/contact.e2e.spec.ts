@@ -1,4 +1,5 @@
 import { NestApplication } from '@nestjs/core';
+import { Query, Resolver } from '@nestjs/graphql';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { Contact, Invite, User } from '../generated/prisma/client';
@@ -17,6 +18,14 @@ import { UserBlockFactoryService } from './factory/user-block-factory.service';
 import { UserFactoryService } from './factory/user-factory.service';
 import { TestConfigModule } from './test-config.module';
 
+@Resolver()
+class StubQueryResolver {
+  @Query(() => Boolean)
+  _stub() {
+    return true;
+  }
+}
+
 describe('Contact E2E', () => {
   let moduleRef: TestingModule;
   let app: NestApplication;
@@ -30,6 +39,7 @@ describe('Contact E2E', () => {
   beforeAll(async () => {
     moduleRef = await Test.createTestingModule({
       imports: [TestConfigModule, FactoryModule, ContactModule, GraphqlModule],
+      providers: [StubQueryResolver],
     }).compile();
 
     app = moduleRef.createNestApplication();

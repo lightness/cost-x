@@ -27,6 +27,9 @@ import { DateIsoScalar, DateScalar, DecimalScalar, JsonScalar } from './scalar';
         Decimal: DecimalScalar,
         Json: JsonScalar,
       },
+      resolverValidationOptions: {
+        requireResolversToMatchSchema: 'ignore',
+      },
     }),
   ],
 })

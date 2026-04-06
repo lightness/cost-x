@@ -3,7 +3,12 @@
     "allow": [
       "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")",
       "Bash(sed -n '150,170p' /Users/nb-078-11b/projects/cost-x/node_modules/src/TransformOperationExecutor.ts)",
-      "Bash(sed -n '150,175p' /Users/nb-078-11b/projects/cost-x/node_modules/class-transformer/cjs/TransformOperationExecutor.js)"
+      "Bash(sed -n '150,175p' /Users/nb-078-11b/projects/cost-x/node_modules/class-transformer/cjs/TransformOperationExecutor.js)",
+      "Bash(npm test:*)",
+      "Bash(npx jest:*)",
+      "Bash(git stash:*)",
+      "Bash(ls src/user/*.resolver.ts)",
+      "Bash(cat src/workspace-history/resolver/*.resolver.ts)"
     ]
   }
 }
