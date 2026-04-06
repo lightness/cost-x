@@ -1,5 +1,5 @@
 import { Controller, Get, Res } from '@nestjs/common';
-import type { Response } from 'express';
+import { Response } from 'express';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 

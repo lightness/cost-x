@@ -1,9 +1,9 @@
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
-import { GraphqlController } from './graphql.controller';
 import { join } from 'node:path';
 import { get } from 'radash';
+import { GraphqlController } from './graphql.controller';
 import { DateIsoScalar, DateScalar, DecimalScalar, JsonScalar } from './scalar';
 
 @Module({
