@@ -4,7 +4,6 @@ import { ConfirmEmailService } from '../confirm-email/confirm-email.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { ForgotPasswordInDto } from '../reset-password/dto';
 import { ResetPasswordService } from '../reset-password/reset-password.service';
-import { UserStatus } from '../user/entity/user-status.enum';
 import { ResendConfirmEmailInDto } from './dto';
 
 @Injectable()
@@ -28,7 +27,7 @@ export class ResendEmailService {
       return { success: true };
     }
 
-    if (user.status !== UserStatus.EMAIL_NOT_VERIFIED) {
+    if (user.confirmEmailTempCode === null) {
       // Do not reveal status of existing user
       return { success: true };
     }

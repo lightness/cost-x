@@ -56,6 +56,11 @@ export class UserFieldResolver {
     return outgoingInvites;
   }
 
+  @ResolveField(() => Boolean)
+  isEmailVerified(@Parent() user: User): boolean {
+    return user.confirmEmailTempCode === null;
+  }
+
   @ResolveField(() => [Contact])
   async contacts(@Parent() user: User) {
     const contacts = await this.contactsByUserIdLoader.load(user.id);

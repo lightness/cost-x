@@ -29,6 +29,12 @@ export class MailService {
     return url;
   }
 
+  private get emailInviteLinkUrl() {
+    const url = this.configService.getOrThrow('emailInvite.linkUrl');
+
+    return url;
+  }
+
   async send(params: MailParams) {
     const {
       toUser: { name, email },
@@ -63,6 +69,23 @@ export class MailService {
       ].join('\n'),
       subject: 'Welcome to Cost-X',
       toUser: user,
+    });
+  }
+
+  async sendEmailInvite(invitee: User, inviter: User, token: string) {
+    const url = `${this.emailInviteLinkUrl}?token=${token}`;
+
+    return this.send({
+      html: [
+        `<p>Hey!</p>`,
+        '<br/>',
+        `<p>${inviter.name} has invited you to Cost-X.</p>`,
+        `<p>Click to accept the invite and set up your account: <a href="${url}">LINK</a></p>`,
+        '<h3>DEV</h3>',
+        `<p>Call "acceptEmailInvite" endpoint using following token: ${token}</p>`,
+      ].join('\n'),
+      subject: `${inviter.name} invited you to Cost-X`,
+      toUser: invitee,
     });
   }
 

@@ -4,7 +4,6 @@ import { Prisma } from '../../../../generated/prisma/client';
 import { MailService } from '../../../mail/mail.service';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { TokenService } from '../../../token/token.service';
-import { UserStatus } from '../../../user/entity/user-status.enum';
 import User from '../../../user/entity/user.entity';
 import { JwtPayload } from '../../interfaces';
 import { CONFIRM_EMAIL_TOKEN_SERVICE } from '../../symbols';
@@ -26,17 +25,16 @@ export class ManualConfirmEmailService implements IConfirmEmailStrategy {
   async sendConfirmEmail(user: User, tx: Prisma.TransactionClient = this.prisma): Promise<User> {
     const updatedUser = await tx.user.update({
       data: {
-        status: UserStatus.EMAIL_NOT_VERIFIED,
-        tempCode: uuid(),
+        confirmEmailTempCode: uuid(),
       },
       where: {
         id: user.id,
       },
     });
 
-    const { id, tempCode } = updatedUser;
+    const { id, confirmEmailTempCode } = updatedUser;
 
-    const token = await this.tokenService.createToken({ id, tempCode });
+    const token = await this.tokenService.createToken({ id, tempCode: confirmEmailTempCode });
 
     await this.mailService.sendConfirmEmail(user, token);
 
@@ -56,18 +54,13 @@ export class ManualConfirmEmailService implements IConfirmEmailStrategy {
       where: { id: tokenData.id },
     });
 
-    if (
-      !user ||
-      user.tempCode !== tokenData.tempCode ||
-      user.status !== UserStatus.EMAIL_NOT_VERIFIED
-    ) {
+    if (!user || user.confirmEmailTempCode !== tokenData.tempCode) {
       throw new BadRequestException(`Token is invalid`);
     }
 
     await this.prisma.user.update({
       data: {
-        status: UserStatus.ACTIVE,
-        tempCode: null,
+        confirmEmailTempCode: null,
       },
       where: {
         id: user.id,

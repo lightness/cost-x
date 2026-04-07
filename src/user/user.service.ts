@@ -4,7 +4,6 @@ import { ConfirmEmailService } from '../confirm-email/confirm-email.service';
 import { BcryptService } from '../password/bcrypt.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserInDto, UpdateUserInDto } from './dto';
-import { UserStatus } from './entity/user-status.enum';
 import User from './entity/user.entity';
 import { UserAlreadyExistsError } from './error/user-already-exists.error';
 
@@ -32,7 +31,6 @@ export class UserService {
         email,
         name: dto.name,
         password: await this.bcryptService.hashPassword(dto.password),
-        status: UserStatus.EMAIL_NOT_VERIFIED,
       },
     });
 
@@ -59,7 +57,6 @@ export class UserService {
         email: dto.email.toLowerCase(),
         name: dto.name,
         password: await this.bcryptService.hashPassword(dto.password),
-        status: isNewEmail ? UserStatus.EMAIL_NOT_VERIFIED : user.status,
       },
       where: { id },
     });

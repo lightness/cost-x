@@ -32,6 +32,14 @@ export default () => ({
     logQuery: true,
     url: process.env.DATABASE_URL,
   },
+  emailInvite: {
+    jwt: {
+      expiresIn: process.env.EMAIL_INVITE_JWT_EXPIRES_IN || '7d',
+      redisPrefix: process.env.EMAIL_INVITE_JWT_REDIS_PREFIX || 'expired:email-invite:',
+      secret: process.env.EMAIL_INVITE_JWT_SECRET || 'EmailInviteTopSecret',
+    },
+    linkUrl: process.env.EMAIL_INVITE_LINK_URL,
+  },
   graphql: {
     logTime: true,
   },

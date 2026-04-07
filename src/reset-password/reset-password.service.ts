@@ -5,7 +5,7 @@ import { MailService } from '../mail/mail.service';
 import { BcryptService } from '../password/bcrypt.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { TokenService } from '../token/token.service';
-import { UserStatus } from '../user/entity/user-status.enum';
+import User from '../user/entity/user.entity';
 import { ForgotPasswordInDto, ResetPasswordInDto } from './dto';
 import { JwtPayload } from './interfaces';
 import { RESET_PASSWORD_TOKEN_SERVICE } from './symbols';
@@ -37,23 +37,27 @@ export class ResetPasswordService {
       throw new BadRequestException(`User with such email not exists`);
     }
 
-    if (user.status !== UserStatus.ACTIVE || user.isBanned) {
+    if (user.confirmEmailTempCode !== null || user.isBanned) {
       throw new BadRequestException(`User is not active`);
     }
 
     if (generateTempCode) {
       user = await tx.user.update({
-        data: { tempCode: uuid() },
+        data: { resetPasswordTempCode: uuid() },
         where: { id: user.id },
       });
     }
 
     const token = await this.tokenService.createToken({
       id: user.id,
-      tempCode: user.tempCode,
+      tempCode: user.resetPasswordTempCode,
     });
 
     return this.mailService.sendResetPassword(user, token);
+  }
+
+  async createTokenFromExistingCode(user: Pick<User, 'id' | 'resetPasswordTempCode'>): Promise<string> {
+    return this.tokenService.createToken({ id: user.id, tempCode: user.resetPasswordTempCode });
   }
 
   async resetPassword(dto: ResetPasswordInDto, tx: Prisma.TransactionClient = this.prisma) {
@@ -73,14 +77,14 @@ export class ResetPasswordService {
       throw new BadRequestException(`User not exists`);
     }
 
-    if (user.tempCode !== tempCode) {
+    if (user.resetPasswordTempCode !== tempCode) {
       throw new BadRequestException(`Temp token is already used`);
     }
 
     await tx.user.update({
       data: {
         password: await this.bcryptService.hashPassword(password),
-        tempCode: '',
+        resetPasswordTempCode: null,
       },
       where: { id },
     });

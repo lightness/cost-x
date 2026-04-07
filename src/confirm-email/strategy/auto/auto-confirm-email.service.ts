@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '../../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { UserStatus } from '../../../user/entity/user-status.enum';
 import User from '../../../user/entity/user.entity';
 import { IConfirmEmailStrategy } from '../interfaces';
 
@@ -19,8 +18,7 @@ export class AutoConfirmEmailService implements IConfirmEmailStrategy {
   ): Promise<User> {
     return tx.user.update({
       data: {
-        status: UserStatus.ACTIVE,
-        tempCode: null,
+        confirmEmailTempCode: null,
       },
       where: {
         id: user.id,

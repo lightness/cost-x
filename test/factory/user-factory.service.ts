@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { v4 as uuid } from 'uuid';
-import { UserStatus } from '../../generated/prisma/enums';
 import { UserCreateInput, UserCreateManyInput } from '../../generated/prisma/models';
 import { PrismaService } from '../../src/prisma/prisma.service';
 import User from '../../src/user/entity/user.entity';
@@ -30,12 +29,12 @@ export class UserFactoryService
     overrides: Partial<UserCreateManyInput> = {},
   ): Promise<UserCreateInput> {
     return {
+      confirmEmailTempCode: this.generateConfirmEmailTempCode(kind),
       email: this.generateEmail(),
       isBanned: this.generateBanned(kind),
       name: this.generateName(),
       password: this.generatePassword(),
-      status: this.generateStatus(kind),
-      tempCode: this.generateTempCode(kind),
+      resetPasswordTempCode: null,
       ...overrides,
     };
   }
@@ -52,22 +51,11 @@ export class UserFactoryService
     return '12345';
   }
 
-  generateStatus(kind: UserKind): UserStatus {
-    switch (kind) {
-      case 'active':
-        return UserStatus.ACTIVE;
-      case 'email_not_verified':
-        return UserStatus.EMAIL_NOT_VERIFIED;
-      case 'banned':
-        return UserStatus.ACTIVE;
-    }
-  }
-
   generateBanned(kind: UserKind): boolean {
     return kind === 'banned';
   }
 
-  generateTempCode(kind: UserKind): string {
+  generateConfirmEmailTempCode(kind: UserKind): string {
     if (kind === 'email_not_verified') {
       return uuid();
     }
