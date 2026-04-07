@@ -1,4 +1,5 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { createHash } from 'node:crypto';
 import { v4 as uuid } from 'uuid';
 import { Prisma } from '../../generated/prisma/client';
 import { MailService } from '../mail/mail.service';
@@ -10,10 +11,16 @@ import { ContactService } from './contact.service';
 import { CreateInviteByEmailInDto } from './dto';
 import { InviteStatus } from './entity/invite-status.enum';
 import { Invite } from './entity/invite.entity';
+import {
+  InviteeBlockedInviterError,
+  InviterAlreadySendInviteError,
+  InviterBlockedInviteeError,
+} from './error';
 import { EmailInviteJwtPayload } from './interfaces';
 import { InviteValidationService } from './invite-validation.service';
 import { InviteService } from './invite.service';
 import { EMAIL_INVITE_TOKEN_SERVICE } from './symbols';
+import { UserBlockService } from './user-block.service';
 
 @Injectable()
 export class EmailInviteService {
@@ -27,6 +34,7 @@ export class EmailInviteService {
     private inviteValidationService: InviteValidationService,
     private contactService: ContactService,
     private resetPasswordService: ResetPasswordService,
+    private userBlockService: UserBlockService,
   ) {}
 
   async createInviteByEmail(
@@ -34,43 +42,66 @@ export class EmailInviteService {
     tx: Prisma.TransactionClient = this.prisma,
   ): Promise<Invite> {
     const { inviterUserId, inviteeEmail } = dto;
-    const email = inviteeEmail.toLowerCase();
+    const email = this.normalizeEmail(inviteeEmail.toLowerCase());
+    const ghostEmail = this.buildGhostEmail(inviterUserId, email);
 
-    const existingUser = await tx.user.findUnique({ where: { email } });
+    const existingGhost = await tx.user.findUnique({ where: { email: ghostEmail } });
 
-    if (existingUser) {
-      await this.inviteValidationService.validateCreateInvite(inviterUserId, existingUser.id, tx);
+    if (existingGhost) {
+      throw new InviterAlreadySendInviteError();
+    }
 
-      return this.inviteService.createInvite(inviterUserId, existingUser.id, tx);
+    const realUser = await tx.user.findUnique({ where: { email } });
+
+    if (realUser) {
+      const isInviterBlocked = await this.userBlockService.isUserBlockExists(
+        inviterUserId,
+        realUser.id,
+        tx,
+      );
+
+      if (isInviterBlocked) {
+        throw new InviteeBlockedInviterError();
+      }
+
+      const isInviteeBlocked = await this.userBlockService.isUserBlockExists(
+        realUser.id,
+        inviterUserId,
+        tx,
+      );
+
+      if (isInviteeBlocked) {
+        throw new InviterBlockedInviteeError();
+      }
     }
 
     const inviter = await tx.user.findUnique({ where: { id: inviterUserId } });
 
-    const name = email.split('@')[0];
-    const password = await this.bcryptService.hashPassword(uuid());
     const confirmEmailTempCode = uuid();
     const resetPasswordTempCode = uuid();
+    const password = await this.bcryptService.hashPassword(uuid());
 
-    const invitee = await tx.user.create({
+    const ghost = await tx.user.create({
       data: {
         confirmEmailTempCode,
-        email,
-        name,
+        email: ghostEmail,
+        name: email.split('@')[0],
         password,
         resetPasswordTempCode,
       },
     });
 
-    const invite = await this.inviteService.createInvite(inviterUserId, invitee.id, tx);
+    const invite = await this.inviteService.createInvite(inviterUserId, ghost.id, tx);
 
     const token = await this.tokenService.createToken({
       confirmEmailTempCode,
-      id: invitee.id,
+      id: ghost.id,
+      inviteeEmail: email,
       inviteId: invite.id,
       resetPasswordTempCode,
     });
 
-    await this.mailService.sendEmailInvite(invitee, inviter, token);
+    await this.mailService.sendEmailInvite(ghost, inviter, token);
 
     return invite;
   }
@@ -85,9 +116,9 @@ export class EmailInviteService {
     }
 
     return this.prisma.$transaction(async (tx) => {
-      const user = await tx.user.findUnique({ where: { id: payload.id } });
+      const ghost = await tx.user.findUnique({ where: { id: payload.id } });
 
-      if (!user || user.confirmEmailTempCode !== payload.confirmEmailTempCode) {
+      if (!ghost || ghost.confirmEmailTempCode !== payload.confirmEmailTempCode) {
         throw new BadRequestException('Token is invalid');
       }
 
@@ -97,9 +128,34 @@ export class EmailInviteService {
         throw new BadRequestException('Invite is no longer valid');
       }
 
+      const realUser = await tx.user.findUnique({ where: { email: payload.inviteeEmail } });
+
+      if (realUser) {
+        await this.inviteValidationService.validateCreateInvite(invite.inviterId, realUser.id, tx);
+
+        await tx.invite.update({
+          data: { inviteeId: realUser.id, reactedAt: new Date(), status: InviteStatus.ACCEPTED },
+          where: { id: invite.id },
+        });
+
+        await this.contactService.createContactPair(invite.inviterId, realUser.id, invite.id, tx);
+
+        await tx.user.update({
+          data: { confirmEmailTempCode: null },
+          where: { id: ghost.id },
+        });
+
+        const resetPasswordToken = await this.resetPasswordService.createTokenFromExistingCode({
+          id: realUser.id,
+          resetPasswordTempCode: realUser.resetPasswordTempCode,
+        });
+
+        return { resetPasswordToken };
+      }
+
       await tx.user.update({
-        data: { confirmEmailTempCode: null },
-        where: { id: user.id },
+        data: { confirmEmailTempCode: null, email: payload.inviteeEmail },
+        where: { id: ghost.id },
       });
 
       await tx.invite.update({
@@ -107,19 +163,26 @@ export class EmailInviteService {
         where: { id: invite.id },
       });
 
-      await this.contactService.createContactPair(
-        invite.inviterId,
-        invite.inviteeId,
-        invite.id,
-        tx,
-      );
+      await this.contactService.createContactPair(invite.inviterId, ghost.id, invite.id, tx);
 
       const resetPasswordToken = await this.resetPasswordService.createTokenFromExistingCode({
-        id: user.id,
+        id: ghost.id,
         resetPasswordTempCode: payload.resetPasswordTempCode,
       });
 
       return { resetPasswordToken };
     });
+  }
+
+  private normalizeEmail(email: string): string {
+    const [local, domain] = email.split('@');
+
+    return `${local.split('+')[0]}@${domain}`;
+  }
+
+  private buildGhostEmail(inviterUserId: number, inviteeEmail: string): string {
+    const hash = createHash('sha256').update(`${inviterUserId}:${inviteeEmail}`).digest('hex');
+
+    return `${hash}@placeholder.internal`;
   }
 }
