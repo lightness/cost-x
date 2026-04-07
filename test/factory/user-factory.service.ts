@@ -31,6 +31,7 @@ export class UserFactoryService
   ): Promise<UserCreateInput> {
     return {
       email: this.generateEmail(),
+      isBanned: this.generateBanned(kind),
       name: this.generateName(),
       password: this.generatePassword(),
       status: this.generateStatus(kind),
@@ -58,8 +59,12 @@ export class UserFactoryService
       case 'email_not_verified':
         return UserStatus.EMAIL_NOT_VERIFIED;
       case 'banned':
-        return UserStatus.BANNED;
+        return UserStatus.ACTIVE;
     }
+  }
+
+  generateBanned(kind: UserKind): boolean {
+    return kind === 'banned';
   }
 
   generateTempCode(kind: UserKind): string {

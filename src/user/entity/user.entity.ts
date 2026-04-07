@@ -1,5 +1,6 @@
 import { Field, HideField, Int, ObjectType } from '@nestjs/graphql';
-import { type User as PrismaUser, UserStatus } from '../../../generated/prisma/client';
+import { type User as PrismaUser } from '../../../generated/prisma/client';
+import { UserStatus } from './user-status.enum';
 import { DateIsoScalar } from '../../graphql/scalar';
 import { UserRole } from './user-role.enum';
 
@@ -22,6 +23,9 @@ class User implements PrismaUser {
 
   @Field(() => UserStatus)
   status: UserStatus;
+
+  @Field(() => Boolean)
+  isBanned: boolean;
 
   @Field(() => UserRole)
   role: UserRole;

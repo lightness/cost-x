@@ -87,6 +87,7 @@ model User {
   name                    String             @db.VarChar(50)
   role                    UserRole           @default(USER)
   status                  UserStatus
+  isBanned                Boolean            @default(false) @map("is_banned")
   tempCode                String?
   workspaces              Workspace[]
   inviters                Invite[]           @relation(name: "inviter")
@@ -105,7 +106,6 @@ model User {
 enum UserStatus {
   ACTIVE
   EMAIL_NOT_VERIFIED
-  BANNED
 }
 
 enum UserRole {

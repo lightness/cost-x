@@ -51,7 +51,7 @@ export class AuthService {
       throw new EmailNotVerifiedError();
     }
 
-    if (user.status === UserStatus.BANNED) {
+    if (user.isBanned) {
       throw new UserBannedError();
     }
 

@@ -37,7 +37,7 @@ export class ResetPasswordService {
       throw new BadRequestException(`User with such email not exists`);
     }
 
-    if (user.status !== UserStatus.ACTIVE) {
+    if (user.status !== UserStatus.ACTIVE || user.isBanned) {
       throw new BadRequestException(`User is not active`);
     }
 

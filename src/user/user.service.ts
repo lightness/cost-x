@@ -76,13 +76,13 @@ export class UserService {
   }
 
   async ban(user: User, tx: Prisma.TransactionClient = this.prisma) {
-    if (user.status === UserStatus.BANNED) {
+    if (user.isBanned) {
       throw new BadRequestException(`User is already banned`);
     }
 
     return tx.user.update({
       data: {
-        status: UserStatus.BANNED,
+        isBanned: true,
       },
       where: {
         id: user.id,
@@ -91,13 +91,13 @@ export class UserService {
   }
 
   async unban(user: User, tx: Prisma.TransactionClient = this.prisma) {
-    if (user.status !== UserStatus.BANNED) {
+    if (!user.isBanned) {
       throw new BadRequestException(`User is not banned`);
     }
 
     return tx.user.update({
       data: {
-        status: UserStatus.ACTIVE,
+        isBanned: false,
       },
       where: {
         id: user.id,
