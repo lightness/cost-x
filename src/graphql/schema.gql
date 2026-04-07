@@ -8,7 +8,8 @@ type User {
   updatedAt: DateIso!
   name: String!
   email: String!
-  status: UserStatus!
+  isEmailVerified: Boolean!
+  isBanned: Boolean!
   role: UserRole!
   workspaces(workspacesFilter: WorkspacesFilter): [Workspace!]!
   incomingInvites(invitesFilter: InvitesFilter): [Invite!]!
@@ -18,12 +19,6 @@ type User {
 
 """Date custom scalar type in ISO format"""
 scalar DateIso
-
-enum UserStatus {
-  ACTIVE
-  EMAIL_NOT_VERIFIED
-  BANNED
-}
 
 enum UserRole {
   USER
@@ -288,6 +283,7 @@ type Mutation {
   createWorkspace(dto: WorkspaceInDto!): Workspace!
   updateWorkspace(id: Int!, dto: WorkspaceInDto!): Workspace!
   deleteWorkspace(id: Int!): Workspace!
+  createInviteByEmail(dto: CreateInviteByEmailInDto!): Invite!
   createInvite(dto: CreateInviteInDto!): Invite!
   acceptInvite(inviteId: Int!): Invite!
   rejectInvite(inviteId: Int!): Invite!
@@ -353,6 +349,11 @@ input UpdateUserInDto {
 input WorkspaceInDto {
   title: String!
   defaultCurrency: Currency!
+}
+
+input CreateInviteByEmailInDto {
+  inviterUserId: Int!
+  inviteeEmail: String!
 }
 
 input CreateInviteInDto {
