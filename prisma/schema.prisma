@@ -201,6 +201,7 @@ enum WorkspaceHistoryAction {
   WORKSPACE_UPDATED
   WORKSPACE_DELETED
   ITEM_MERGED
+  ITEM_EXTRACTED
 }
 
 model WorkspaceHistory {

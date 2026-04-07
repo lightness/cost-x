@@ -4,9 +4,9 @@ import { Prisma } from '../../generated/prisma/client';
 import ItemTag from '../item-tag/entity/item-tag.entity';
 import Item from '../item/entity/item.entity';
 import Payment from '../payment/entity/payment.entity';
+import { PrismaService } from '../prisma/prisma.service';
 import Tag from '../tag/entity/tag.entity';
 import { Workspace } from '../workspace/entity/workspace.entity';
-import { PrismaService } from '../prisma/prisma.service';
 import { WorkspaceHistoryFilter } from './dto/workspace-history-filter.type';
 import { WorkspaceHistoryAction } from './entity/workspace-history-action.enum';
 import { WorkspaceHistory } from './entity/workspace-history.entity';
@@ -286,6 +286,25 @@ export class WorkspaceHistoryService {
         actorId,
         newValue: null,
         oldValue: tag as unknown as JsonObject,
+        workspaceId,
+      },
+      tx,
+    );
+  }
+
+  async createItemExtracted(
+    workspaceId: number,
+    actorId: number,
+    sourceItem: Item,
+    extractedItem: Item,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<WorkspaceHistory> {
+    return this.create(
+      {
+        action: WorkspaceHistoryAction.ITEM_EXTRACTED,
+        actorId,
+        newValue: { extractedItem, sourceItem } as unknown as JsonObject,
+        oldValue: { extractedItem: null, sourceItem } as unknown as JsonObject,
         workspaceId,
       },
       tx,
