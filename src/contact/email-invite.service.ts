@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { createHash } from 'node:crypto';
 import { v4 as uuid } from 'uuid';
 import { Prisma } from '../../generated/prisma/client';
@@ -12,6 +12,8 @@ import { CreateInviteByEmailInDto } from './dto';
 import { InviteStatus } from './entity/invite-status.enum';
 import { Invite } from './entity/invite.entity';
 import {
+  EmailInviteNoLongerValidError,
+  EmailInviteTokenInvalidError,
   InviteeBlockedInviterError,
   InviterAlreadySendInviteError,
   InviterBlockedInviteeError,
@@ -112,20 +114,20 @@ export class EmailInviteService {
     try {
       payload = await this.tokenService.verifyToken(token);
     } catch (_e) {
-      throw new BadRequestException('Token is invalid');
+      throw new EmailInviteTokenInvalidError();
     }
 
     return this.prisma.$transaction(async (tx) => {
       const ghost = await tx.user.findUnique({ where: { id: payload.id } });
 
       if (!ghost || ghost.confirmEmailTempCode !== payload.confirmEmailTempCode) {
-        throw new BadRequestException('Token is invalid');
+        throw new EmailInviteTokenInvalidError();
       }
 
       const invite = await tx.invite.findUnique({ where: { id: payload.inviteId } });
 
       if (!invite || invite.status !== InviteStatus.PENDING) {
-        throw new BadRequestException('Invite is no longer valid');
+        throw new EmailInviteNoLongerValidError();
       }
 
       const realUser = await tx.user.findUnique({ where: { email: payload.inviteeEmail } });

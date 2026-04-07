@@ -12,6 +12,8 @@ export enum ApplicationErrorCode {
   INVALID_REFRESH_TOKEN = 'invalid_refresh_token',
   UNKNOWN_USER = 'unknown_user',
   // contact
+  EMAIL_INVITE_TOKEN_INVALID = 'email_invite_token_invalid',
+  EMAIL_INVITE_NO_LONGER_VALID = 'email_invite_no_longer_valid',
   INVITEE_ALREADY_SEND_INVITE = 'invitee_already_send_invite',
   INVITER_ALREADY_SEND_INVITE = 'inviter_already_send_invite',
   INVITEE_BLOCKED_INVITER = 'invitee_blocked_inviter',
