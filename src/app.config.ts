@@ -42,6 +42,7 @@ export default () => ({
   },
   graphql: {
     logTime: true,
+    writeSchema: process.env.GRAPHQL_WRITE_SCHEMA !== 'false',
   },
   mailersend: {
     apiKey: process.env.MAILERSEND_API_KEY,
