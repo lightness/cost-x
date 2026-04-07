@@ -11,6 +11,7 @@ import { DateIsoScalar, DateScalar, DecimalScalar, JsonScalar } from './scalar';
   imports: [
     GraphQLModule.forRoot<ApolloDriverConfig>({
       autoSchemaFile: join(process.cwd(), 'src/graphql/schema.gql'),
+      sortSchema: true,
       context: async () => ({}),
       driver: ApolloDriver,
       formatError: (err) => {
