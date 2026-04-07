@@ -12,7 +12,8 @@
       "Bash(migration_name=add_item_extracted_action npm run:*)",
       "Bash(npm run:*)",
       "Bash(npx tsc:*)",
-      "Bash(npx biome:*)"
+      "Bash(npx biome:*)",
+      "Bash(xargs ls:*)"
     ]
   }
 }

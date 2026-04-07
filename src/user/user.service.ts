@@ -34,9 +34,7 @@ export class UserService {
       },
     });
 
-    await this.confirmEmailService.runConfirmationProcess(user, tx);
-
-    return user;
+    return this.confirmEmailService.runConfirmationProcess(user, tx);
   }
 
   async update(
@@ -62,7 +60,7 @@ export class UserService {
     });
 
     if (isNewEmail) {
-      await this.confirmEmailService.runConfirmationProcess(updatedUser, tx);
+      return this.confirmEmailService.runConfirmationProcess(updatedUser, tx);
     }
 
     return updatedUser;

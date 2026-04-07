@@ -243,38 +243,22 @@ The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://
 """
 scalar JSON
 
-type ResendEmailOutDto {
-  success: Boolean!
-}
-
 type Query {
-  tags(workspaceId: Int!, dto: TagsFilter): [Tag!]!
-  tag(id: Int!): Tag!
-  itemsAggregation(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): ItemsAggregation!
+  _stub: Boolean!
+  users: [User!]!
+  user(id: Int!): User!
+  me: User!
   item(id: Int!): Item!
   items(workspaceId: Int!, itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): [Item!]!
   currencyRate(fromCurrency: Currency!, toCurrency: Currency!, date: Date!): CurrencyRate!
   payment(id: Int!): Payment!
   payments(itemId: Int!, paymentsFilter: PaymentsFilter): [Payment!]!
-  users: [User!]!
-  user(id: Int!): User!
-  me: User!
+  tags(workspaceId: Int!, dto: TagsFilter): [Tag!]!
+  tag(id: Int!): Tag!
+  itemsAggregation(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): ItemsAggregation!
 }
 
 type Mutation {
-  createTag(workspaceId: Int!, dto: TagInDto!): Tag!
-  updateTag(id: Int!, dto: TagInDto!): Tag!
-  deleteTag(id: Int!): Boolean!
-  assignTag(dto: AssignTagInDto!): ItemTag!
-  unassignTag(dto: UnassignTagInDto!): Boolean!
-  createItem(workspaceId: Int!, dto: ItemInDto!): Item!
-  updateItem(id: Int!, dto: ItemInDto!): Item!
-  deleteItem(id: Int!): Boolean!
-  createPayment(itemId: Int!, dto: PaymentInDto!): Payment!
-  updatePayment(paymentId: Int!, dto: PaymentInDto!): Payment!
-  deletePayment(paymentId: Int!): Boolean!
-  mergeItems(dto: MergeItemsInDto!): Item!
-  extractAsItem(dto: ExtractAsItemInDto!): Item!
   createUser(dto: CreateUserInDto!): User!
   updateUser(id: Int!, dto: UpdateUserInDto!): User!
   deleteUser(id: Int!): Boolean!
@@ -283,6 +267,17 @@ type Mutation {
   createWorkspace(dto: WorkspaceInDto!): Workspace!
   updateWorkspace(id: Int!, dto: WorkspaceInDto!): Workspace!
   deleteWorkspace(id: Int!): Workspace!
+  createItem(workspaceId: Int!, dto: ItemInDto!): Item!
+  updateItem(id: Int!, dto: ItemInDto!): Item!
+  deleteItem(id: Int!): Boolean!
+  assignTag(dto: AssignTagInDto!): ItemTag!
+  unassignTag(dto: UnassignTagInDto!): Boolean!
+  createPayment(itemId: Int!, dto: PaymentInDto!): Payment!
+  updatePayment(paymentId: Int!, dto: PaymentInDto!): Payment!
+  deletePayment(paymentId: Int!): Boolean!
+  createTag(workspaceId: Int!, dto: TagInDto!): Tag!
+  updateTag(id: Int!, dto: TagInDto!): Tag!
+  deleteTag(id: Int!): Boolean!
   createInviteByEmail(dto: CreateInviteByEmailInDto!): Invite!
   createInvite(dto: CreateInviteInDto!): Invite!
   acceptInvite(inviteId: Int!): Invite!
@@ -293,45 +288,6 @@ type Mutation {
   unblockUser(dto: RemoveUserBlockInDto!): UserBlock!
   forgotPassword(dto: ForgotPasswordInDto!): Boolean!
   resetPassword(dto: ResetPasswordInDto!): Boolean!
-  resendConfirmEmail(dto: ResendConfirmEmailInDto!): ResendEmailOutDto!
-  resendForgotPasswordEmail(dto: ForgotPasswordInDto!): ResendEmailOutDto!
-}
-
-input TagInDto {
-  title: String!
-  color: String
-}
-
-input AssignTagInDto {
-  tagId: Int!
-  itemId: Int!
-}
-
-input UnassignTagInDto {
-  tagId: Int!
-  itemId: Int!
-}
-
-input ItemInDto {
-  title: String!
-}
-
-input PaymentInDto {
-  title: String
-  cost: Decimal!
-  currency: Currency!
-  date: Date!
-}
-
-input MergeItemsInDto {
-  hostItemId: Int!
-  mergingItemId: Int!
-}
-
-input ExtractAsItemInDto {
-  itemId: Int!
-  paymentIds: [Int!]!
-  title: String!
 }
 
 input CreateUserInDto {
@@ -349,6 +305,32 @@ input UpdateUserInDto {
 input WorkspaceInDto {
   title: String!
   defaultCurrency: Currency!
+}
+
+input ItemInDto {
+  title: String!
+}
+
+input AssignTagInDto {
+  tagId: Int!
+  itemId: Int!
+}
+
+input UnassignTagInDto {
+  tagId: Int!
+  itemId: Int!
+}
+
+input PaymentInDto {
+  title: String
+  cost: Decimal!
+  currency: Currency!
+  date: Date!
+}
+
+input TagInDto {
+  title: String!
+  color: String
 }
 
 input CreateInviteByEmailInDto {
@@ -378,8 +360,4 @@ input ForgotPasswordInDto {
 input ResetPasswordInDto {
   token: String!
   password: String!
-}
-
-input ResendConfirmEmailInDto {
-  userId: Int!
 }
