@@ -108,7 +108,10 @@ export class EmailInviteService {
     return invite;
   }
 
-  async acceptEmailInvite(token: string): Promise<{ resetPasswordToken: string }> {
+  async acceptEmailInvite(
+    token: string,
+    tx: Prisma.TransactionClient,
+  ): Promise<{ resetPasswordToken: string }> {
     let payload: EmailInviteJwtPayload;
 
     try {
@@ -117,63 +120,61 @@ export class EmailInviteService {
       throw new EmailInviteTokenInvalidError();
     }
 
-    return this.prisma.$transaction(async (tx) => {
-      const ghost = await tx.user.findUnique({ where: { id: payload.id } });
+    const ghost = await tx.user.findUnique({ where: { id: payload.id } });
 
-      if (!ghost || ghost.confirmEmailTempCode !== payload.confirmEmailTempCode) {
-        throw new EmailInviteTokenInvalidError();
-      }
+    if (!ghost || ghost.confirmEmailTempCode !== payload.confirmEmailTempCode) {
+      throw new EmailInviteTokenInvalidError();
+    }
 
-      const invite = await tx.invite.findUnique({ where: { id: payload.inviteId } });
+    const invite = await tx.invite.findUnique({ where: { id: payload.inviteId } });
 
-      if (!invite || invite.status !== InviteStatus.PENDING) {
-        throw new EmailInviteNoLongerValidError();
-      }
+    if (!invite || invite.status !== InviteStatus.PENDING) {
+      throw new EmailInviteNoLongerValidError();
+    }
 
-      const realUser = await tx.user.findUnique({ where: { email: payload.inviteeEmail } });
+    const realUser = await tx.user.findUnique({ where: { email: payload.inviteeEmail } });
 
-      if (realUser) {
-        await this.inviteValidationService.validateCreateInvite(invite.inviterId, realUser.id, tx);
-
-        await tx.invite.update({
-          data: { inviteeId: realUser.id, reactedAt: new Date(), status: InviteStatus.ACCEPTED },
-          where: { id: invite.id },
-        });
-
-        await this.contactService.createContactPair(invite.inviterId, realUser.id, invite.id, tx);
-
-        await tx.user.update({
-          data: { confirmEmailTempCode: null },
-          where: { id: ghost.id },
-        });
-
-        const resetPasswordToken = await this.resetPasswordService.createTokenFromExistingCode({
-          id: realUser.id,
-          resetPasswordTempCode: realUser.resetPasswordTempCode,
-        });
-
-        return { resetPasswordToken };
-      }
-
-      await tx.user.update({
-        data: { confirmEmailTempCode: null, email: payload.inviteeEmail },
-        where: { id: ghost.id },
-      });
+    if (realUser) {
+      await this.inviteValidationService.validateCreateInvite(invite.inviterId, realUser.id, tx);
 
       await tx.invite.update({
-        data: { reactedAt: new Date(), status: InviteStatus.ACCEPTED },
+        data: { inviteeId: realUser.id, reactedAt: new Date(), status: InviteStatus.ACCEPTED },
         where: { id: invite.id },
       });
 
-      await this.contactService.createContactPair(invite.inviterId, ghost.id, invite.id, tx);
+      await this.contactService.createContactPair(invite.inviterId, realUser.id, invite.id, tx);
+
+      await tx.user.update({
+        data: { confirmEmailTempCode: null },
+        where: { id: ghost.id },
+      });
 
       const resetPasswordToken = await this.resetPasswordService.createTokenFromExistingCode({
-        id: ghost.id,
-        resetPasswordTempCode: payload.resetPasswordTempCode,
+        id: realUser.id,
+        resetPasswordTempCode: realUser.resetPasswordTempCode,
       });
 
       return { resetPasswordToken };
+    }
+
+    await tx.user.update({
+      data: { confirmEmailTempCode: null, email: payload.inviteeEmail },
+      where: { id: ghost.id },
     });
+
+    await tx.invite.update({
+      data: { reactedAt: new Date(), status: InviteStatus.ACCEPTED },
+      where: { id: invite.id },
+    });
+
+    await this.contactService.createContactPair(invite.inviterId, ghost.id, invite.id, tx);
+
+    const resetPasswordToken = await this.resetPasswordService.createTokenFromExistingCode({
+      id: ghost.id,
+      resetPasswordTempCode: payload.resetPasswordTempCode,
+    });
+
+    return { resetPasswordToken };
   }
 
   private normalizeEmail(email: string): string {
