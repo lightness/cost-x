@@ -12,4 +12,10 @@ export class EmailInviteController {
   acceptEmailInvite(@Query('token') token: string, @Req() req: Request) {
     return this.emailInviteService.acceptEmailInvite(token, req['tx']);
   }
+
+  @UseInterceptors(HttpTransactionInterceptor)
+  @Get('reject')
+  rejectEmailInvite(@Query('token') token: string, @Req() req: Request) {
+    return this.emailInviteService.rejectEmailInvite(token, req['tx']);
+  }
 }

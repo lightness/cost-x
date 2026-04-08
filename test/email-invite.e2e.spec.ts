@@ -1,15 +1,21 @@
 import { NestApplication } from '@nestjs/core';
 import { Test, TestingModule } from '@nestjs/testing';
+import { createHash } from 'node:crypto';
+import { v4 as uuid } from 'uuid';
 import request from 'supertest';
 import { AuthService } from '../src/auth/auth.service';
 import { ApplicationErrorCode } from '../src/common/error/coded-application.error';
 import { configureApp } from '../src/configure-app';
 import { ContactModule } from '../src/contact/contact.module';
 import { InviteStatus } from '../src/contact/entity/invite-status.enum';
+import { EmailInviteJwtPayload } from '../src/contact/interfaces';
+import { EMAIL_INVITE_TOKEN_SERVICE } from '../src/contact/symbols';
 import { GraphqlModule } from '../src/graphql/graphql.module';
 import { MailService } from '../src/mail/mail.service';
 import { PrismaService } from '../src/prisma/prisma.service';
+import { TokenService } from '../src/token/token.service';
 import { FactoryModule } from './factory/factory.module';
+import { InviteFactoryService } from './factory/invite-factory.service';
 import { UserBlockFactoryService } from './factory/user-block-factory.service';
 import { UserFactoryService } from './factory/user-factory.service';
 import { TestGraphqlModule } from './graphql/test-graphql.module';
@@ -29,7 +35,9 @@ describe('Email Invite E2E', () => {
   let authService: AuthService;
   let prisma: PrismaService;
   let userFactory: UserFactoryService;
+  let inviteFactory: InviteFactoryService;
   let userBlockFactory: UserBlockFactoryService;
+  let tokenService: TokenService<EmailInviteJwtPayload>;
   let mockMailService: { sendEmailInvite: jest.Mock };
 
   beforeAll(async () => {
@@ -49,7 +57,9 @@ describe('Email Invite E2E', () => {
     authService = moduleRef.get(AuthService);
     prisma = moduleRef.get(PrismaService);
     userFactory = moduleRef.get(UserFactoryService);
+    inviteFactory = moduleRef.get(InviteFactoryService);
     userBlockFactory = moduleRef.get(UserBlockFactoryService);
+    tokenService = moduleRef.get<TokenService<EmailInviteJwtPayload>>(EMAIL_INVITE_TOKEN_SERVICE);
   });
 
   afterAll(async () => {
@@ -59,6 +69,35 @@ describe('Email Invite E2E', () => {
   beforeEach(() => {
     mockMailService.sendEmailInvite.mockClear();
   });
+
+  async function setupEmailInvite(inviterUserId: number, inviteeEmail: string) {
+    const email = inviteeEmail.toLowerCase();
+    const hash = createHash('sha256').update(`${inviterUserId}:${email}`).digest('hex');
+    const ghostEmail = `${hash}@placeholder.internal`;
+    const confirmEmailTempCode = uuid();
+    const resetPasswordTempCode = uuid();
+
+    const ghost = await userFactory.create('email_not_verified', {
+      confirmEmailTempCode,
+      email: ghostEmail,
+      resetPasswordTempCode,
+    });
+
+    const invite = await inviteFactory.create('pending', {
+      inviteeId: ghost.id,
+      inviterId: inviterUserId,
+    });
+
+    const token = await tokenService.createToken({
+      confirmEmailTempCode,
+      id: ghost.id,
+      inviteeEmail: email,
+      inviteId: invite.id,
+      resetPasswordTempCode,
+    });
+
+    return { ghost, invite, token };
+  }
 
   describe('createInviteByEmail', () => {
     const getInviteId = (response) => response.body?.data?.createInviteByEmail?.id;
@@ -253,32 +292,11 @@ describe('Email Invite E2E', () => {
     const acceptEmailInvite = (token: string) =>
       request(app.getHttpServer()).get('/email-invite/accept').query({ token });
 
-    const getCapturedToken = () => mockMailService.sendEmailInvite.mock.calls[0][2];
-
-    async function createEmailInvite(
-      inviterUserId: number,
-      inviteeEmail: string,
-      accessToken: string,
-    ) {
-      const response = await request(app.getHttpServer())
-        .post('/graphql')
-        .send({
-          query: CREATE_INVITE_BY_EMAIL,
-          variables: { dto: { inviteeEmail, inviterUserId } },
-        })
-        .set('Content-Type', 'application/json')
-        .set('Authorization', `Bearer ${accessToken}`);
-
-      return response.body.data.createInviteByEmail.id as number;
-    }
-
     it('should accept invite and convert ghost user into real user', async () => {
       // Assume
       const inviter = await userFactory.create('active');
       const inviteeEmail = userFactory.generateEmail();
-      const { accessToken } = await authService.authenticateUser(inviter);
-      const inviteId = await createEmailInvite(inviter.id, inviteeEmail, accessToken);
-      const token = getCapturedToken();
+      const { invite, token } = await setupEmailInvite(inviter.id, inviteeEmail);
 
       // Act
       const response = await acceptEmailInvite(token);
@@ -287,31 +305,24 @@ describe('Email Invite E2E', () => {
       expect(response.status).toBe(200);
       expect(response.body.resetPasswordToken).toEqual(expect.any(String));
 
-      const invite = await prisma.invite.findUnique({ where: { id: inviteId } });
+      const updatedInvite = await prisma.invite.findUnique({ where: { id: invite.id } });
 
-      expect(invite.status).toBe(InviteStatus.ACCEPTED);
-      expect(invite.reactedAt).toEqual(expect.any(Date));
+      expect(updatedInvite.status).toBe(InviteStatus.ACCEPTED);
+      expect(updatedInvite.reactedAt).toEqual(expect.any(Date));
 
-      // Ghost was converted: email updated, confirmEmailTempCode cleared
-      const user = await prisma.user.findUnique({ where: { id: invite.inviteeId } });
+      const user = await prisma.user.findUnique({ where: { id: updatedInvite.inviteeId } });
 
       expect(user.email).toBe(inviteeEmail.toLowerCase());
       expect(user.confirmEmailTempCode).toBeNull();
 
-      // Bidirectional contact pair created
-      await expectActiveContactPairExists(inviter.id, invite.inviteeId, inviteId);
+      await expectActiveContactPairExists(inviter.id, updatedInvite.inviteeId, invite.id);
     });
 
     it('should accept invite and link to existing user when email is already registered', async () => {
       // Assume
       const inviter = await userFactory.create('active');
       const existingUser = await userFactory.create('active');
-      const { accessToken } = await authService.authenticateUser(inviter);
-      const inviteId = await createEmailInvite(inviter.id, existingUser.email, accessToken);
-
-      const invite = await prisma.invite.findUnique({ where: { id: inviteId } });
-      const ghostId = invite.inviteeId;
-      const token = getCapturedToken();
+      const { invite, ghost, token } = await setupEmailInvite(inviter.id, existingUser.email);
 
       // Act
       const response = await acceptEmailInvite(token);
@@ -320,19 +331,17 @@ describe('Email Invite E2E', () => {
       expect(response.status).toBe(200);
       expect(response.body.resetPasswordToken).toEqual(expect.any(String));
 
-      const updatedInvite = await prisma.invite.findUnique({ where: { id: inviteId } });
+      const updatedInvite = await prisma.invite.findUnique({ where: { id: invite.id } });
 
       expect(updatedInvite.status).toBe(InviteStatus.ACCEPTED);
       expect(updatedInvite.reactedAt).toEqual(expect.any(Date));
       expect(updatedInvite.inviteeId).toBe(existingUser.id);
 
-      // Ghost confirmEmailTempCode cleared
-      const ghost = await prisma.user.findUnique({ where: { id: ghostId } });
+      const deletedGhost = await prisma.user.findUnique({ where: { id: ghost.id } });
 
-      expect(ghost.confirmEmailTempCode).toBeNull();
+      expect(deletedGhost).toBeNull();
 
-      // Contact pair created between inviter and real user
-      await expectActiveContactPairExists(inviter.id, existingUser.id, inviteId);
+      await expectActiveContactPairExists(inviter.id, existingUser.id, invite.id);
     });
 
     it('should fail when token is invalid', async () => {
@@ -348,13 +357,11 @@ describe('Email Invite E2E', () => {
       // Assume
       const inviter = await userFactory.create('active');
       const inviteeEmail = userFactory.generateEmail();
-      const { accessToken } = await authService.authenticateUser(inviter);
-      const inviteId = await createEmailInvite(inviter.id, inviteeEmail, accessToken);
-      const token = getCapturedToken();
+      const { invite, token } = await setupEmailInvite(inviter.id, inviteeEmail);
 
       await prisma.invite.update({
         data: { reactedAt: new Date(), status: InviteStatus.REJECTED },
-        where: { id: inviteId },
+        where: { id: invite.id },
       });
 
       // Act
@@ -363,6 +370,57 @@ describe('Email Invite E2E', () => {
       // Assert
       expect(response.status).toBe(400);
       expect(response.body.code).toBe(ApplicationErrorCode.EMAIL_INVITE_NO_LONGER_VALID);
+    });
+  });
+
+  describe('rejectEmailInvite', () => {
+    const rejectEmailInvite = (token: string) =>
+      request(app.getHttpServer()).get('/email-invite/reject').query({ token });
+
+    it('should reject invite and delete ghost user', async () => {
+      // Assume
+      const inviter = await userFactory.create('active');
+      const inviteeEmail = userFactory.generateEmail();
+      const { invite, ghost, token } = await setupEmailInvite(inviter.id, inviteeEmail);
+
+      // Act
+      const response = await rejectEmailInvite(token);
+
+      // Assert
+      expect(response.status).toBe(200);
+
+      const deletedInvite = await prisma.invite.findUnique({ where: { id: invite.id } });
+
+      expect(deletedInvite).toBeNull();
+
+      const deletedGhost = await prisma.user.findUnique({ where: { id: ghost.id } });
+
+      expect(deletedGhost).toBeNull();
+    });
+
+    it('should fail when token is invalid', async () => {
+      // Act
+      const response = await rejectEmailInvite('invalid-token');
+
+      // Assert
+      expect(response.status).toBe(400);
+      expect(response.body.code).toBe(ApplicationErrorCode.EMAIL_INVITE_TOKEN_INVALID);
+    });
+
+    it('should fail when invite is no longer pending', async () => {
+      // Assume
+      const inviter = await userFactory.create('active');
+      const inviteeEmail = userFactory.generateEmail();
+      const { token } = await setupEmailInvite(inviter.id, inviteeEmail);
+
+      await rejectEmailInvite(token);
+
+      // Act — reject again with the same token (ghost already deleted)
+      const response = await rejectEmailInvite(token);
+
+      // Assert
+      expect(response.status).toBe(400);
+      expect(response.body.code).toBe(ApplicationErrorCode.EMAIL_INVITE_TOKEN_INVALID);
     });
   });
 

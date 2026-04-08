@@ -39,6 +39,7 @@ export default () => ({
       secret: process.env.EMAIL_INVITE_JWT_SECRET || 'EmailInviteTopSecret',
     },
     linkUrl: process.env.EMAIL_INVITE_LINK_URL,
+    rejectLinkUrl: process.env.EMAIL_INVITE_REJECT_LINK_URL,
   },
   graphql: {
     logTime: true,

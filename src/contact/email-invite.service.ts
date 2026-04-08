@@ -185,6 +185,30 @@ export class EmailInviteService {
     return { resetPasswordToken };
   }
 
+  async rejectEmailInvite(token: string, tx: Prisma.TransactionClient): Promise<void> {
+    let payload: EmailInviteJwtPayload;
+
+    try {
+      payload = await this.tokenService.verifyToken(token);
+    } catch (_e) {
+      throw new EmailInviteTokenInvalidError();
+    }
+
+    const ghostUser = await tx.user.findUnique({ where: { id: payload.id } });
+
+    if (!ghostUser || ghostUser.confirmEmailTempCode !== payload.confirmEmailTempCode) {
+      throw new EmailInviteTokenInvalidError();
+    }
+
+    const invite = await tx.invite.findUnique({ where: { id: payload.inviteId } });
+
+    if (!invite || invite.status !== InviteStatus.PENDING) {
+      throw new EmailInviteNoLongerValidError();
+    }
+
+    await tx.user.delete({ where: { id: ghostUser.id } });
+  }
+
   private normalizeEmail(email: string): string {
     const [local, domain] = email.split('@');
 

@@ -30,6 +30,10 @@ export class MailService {
     return this.configService.getOrThrow('emailInvite.linkUrl');
   }
 
+  private get emailInviteRejectLinkUrl() {
+    return this.configService.getOrThrow('emailInvite.rejectLinkUrl');
+  }
+
   async send(params: MailParams) {
     const {
       toUser: { name, email },
@@ -62,16 +66,19 @@ export class MailService {
   }
 
   async sendEmailInvite(invitee: User, inviteeEmail: string, inviter: User, token: string) {
-    const url = `${this.emailInviteLinkUrl}?token=${token}`;
+    const acceptUrl = `${this.emailInviteLinkUrl}?token=${token}`;
+    const rejectUrl = `${this.emailInviteRejectLinkUrl}?token=${token}`;
 
     return this.send({
       html: [
         `<p>Hey!</p>`,
         '<br/>',
         `<p>${inviter.name} has invited you to Cost-X.</p>`,
-        `<p>Click to accept the invite and set up your account: <a href="${url}">LINK</a></p>`,
+        `<p>Click to accept the invite and set up your account: <a href="${acceptUrl}">ACCEPT</a></p>`,
+        `<p>Click to reject the invite: <a href="${rejectUrl}">REJECT</a></p>`,
         '<h3>DEV</h3>',
         `<p>Call "acceptEmailInvite" endpoint using following token: ${token}</p>`,
+        `<p>Call "rejectEmailInvite" endpoint using following token: ${token}</p>`,
       ].join('\n'),
       subject: `${inviter.name} invited you to Cost-X`,
       toUser: { ...invitee, email: inviteeEmail },
