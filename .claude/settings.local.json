@@ -14,7 +14,10 @@
       "Bash(npx tsc:*)",
       "Bash(npx biome:*)",
       "Bash(xargs ls:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(git -C /Users/nb-078-11b/projects/cost-x diff HEAD~5..HEAD -- src/auth/auth.service.ts)",
+      "Bash(git -C /Users/nb-078-11b/projects/cost-x show ca42584 --stat)",
+      "Bash(find:*)"
     ]
   }
 }
