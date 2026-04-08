@@ -12,6 +12,7 @@ import { CreateInviteByEmailInDto } from './dto';
 import { InviteStatus } from './entity/invite-status.enum';
 import { Invite } from './entity/invite.entity';
 import {
+  ContactAlreadyExistsError,
   EmailInviteNoLongerValidError,
   EmailInviteTokenInvalidError,
   InviteeBlockedInviterError,
@@ -75,6 +76,16 @@ export class EmailInviteService {
       if (isInviteeBlocked) {
         throw new InviterBlockedInviteeError();
       }
+
+      const isContactAlreadyExists = await this.contactService.isContactExists(
+        inviterUserId,
+        realUser.id,
+        tx,
+      );
+
+      if (isContactAlreadyExists) {
+        throw new ContactAlreadyExistsError();
+      }
     }
 
     const inviter = await tx.user.findUnique({ where: { id: inviterUserId } });
@@ -83,7 +94,7 @@ export class EmailInviteService {
     const resetPasswordTempCode = uuid();
     const password = await this.bcryptService.hashPassword(uuid());
 
-    const ghost = await tx.user.create({
+    const ghostUser = await tx.user.create({
       data: {
         confirmEmailTempCode,
         email: ghostEmail,
@@ -93,17 +104,17 @@ export class EmailInviteService {
       },
     });
 
-    const invite = await this.inviteService.createInvite(inviterUserId, ghost.id, tx);
+    const invite = await this.inviteService.createInvite(inviterUserId, ghostUser.id, tx);
 
     const token = await this.tokenService.createToken({
       confirmEmailTempCode,
-      id: ghost.id,
+      id: ghostUser.id,
       inviteeEmail: email,
       inviteId: invite.id,
       resetPasswordTempCode,
     });
 
-    await this.mailService.sendEmailInvite(ghost, inviter, token);
+    await this.mailService.sendEmailInvite(ghostUser, email, inviter, token);
 
     return invite;
   }
@@ -144,10 +155,7 @@ export class EmailInviteService {
 
       await this.contactService.createContactPair(invite.inviterId, realUser.id, invite.id, tx);
 
-      await tx.user.update({
-        data: { confirmEmailTempCode: null },
-        where: { id: ghost.id },
-      });
+      await tx.user.delete({ where: { id: ghost.id } });
 
       const resetPasswordToken = await this.resetPasswordService.createTokenFromExistingCode({
         id: realUser.id,

@@ -44,13 +44,6 @@ export default () => ({
     logTime: true,
     writeSchema: process.env.GRAPHQL_WRITE_SCHEMA !== 'false',
   },
-  mailersend: {
-    apiKey: process.env.MAILERSEND_API_KEY,
-    sender: {
-      email: process.env.SENDER_EMAIL,
-      name: 'Cost-X',
-    },
-  },
   port: asInteger(process.env.PORT, 8080),
   redis: {
     url: process.env.REDIS_URL,
@@ -62,6 +55,14 @@ export default () => ({
       secret: process.env.RESET_PASSWORD_JWT_SECRET || 'ResetPasswordTopSecret',
     },
     linkUrl: process.env.RESET_PASSWORD_LINK_URL,
+  },
+  smtp: {
+    host: process.env.SMTP_HOST || 'localhost',
+    port: asInteger(process.env.SMTP_PORT, 1025),
+    sender: {
+      email: process.env.SENDER_EMAIL || 'no-reply@cost-x.local',
+      name: 'Cost-X',
+    },
   },
   spreadsheet: {
     columnNames: ['title', 'date', 'bynCost', 'usdCost', 'eurCost'],
