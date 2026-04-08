@@ -86,8 +86,9 @@ model User {
   password                String             @db.VarChar(72)
   name                    String             @db.VarChar(50)
   role                    UserRole           @default(USER)
-  status                  UserStatus
-  tempCode                String?
+  isBanned                Boolean            @default(false) @map("is_banned")
+  confirmEmailTempCode    String?            @map("confirm_email_temp_code")
+  resetPasswordTempCode   String?            @map("reset_password_temp_code")
   workspaces              Workspace[]
   inviters                Invite[]           @relation(name: "inviter")
   invitees                Invite[]           @relation(name: "invitee")
@@ -100,12 +101,6 @@ model User {
   workspaceHistoryEntries WorkspaceHistory[]
 
   @@map("user")
-}
-
-enum UserStatus {
-  ACTIVE
-  EMAIL_NOT_VERIFIED
-  BANNED
 }
 
 enum UserRole {

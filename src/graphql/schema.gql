@@ -2,335 +2,74 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-type User {
-  id: Int!
-  createdAt: DateIso!
-  updatedAt: DateIso!
-  name: String!
-  email: String!
-  status: UserStatus!
-  role: UserRole!
-  workspaces(workspacesFilter: WorkspacesFilter): [Workspace!]!
-  incomingInvites(invitesFilter: InvitesFilter): [Invite!]!
-  outgoingInvites(invitesFilter: InvitesFilter): [Invite!]!
-  contacts: [Contact!]!
-}
-
-"""Date custom scalar type in ISO format"""
-scalar DateIso
-
-enum UserStatus {
-  ACTIVE
-  EMAIL_NOT_VERIFIED
-  BANNED
-}
-
-enum UserRole {
-  USER
-  ADMIN
-}
-
-input WorkspacesFilter {
-  id: Int
-  title: String
-  defaultCurrency: Currency
-}
-
-enum Currency {
-  BYN
-  USD
-  EUR
-}
-
-input InvitesFilter {
-  status: InviteStatus
-}
-
-enum InviteStatus {
-  PENDING
-  ACCEPTED
-  REJECTED
+input AssignTagInDto {
+  itemId: Int!
+  tagId: Int!
 }
 
 type Contact {
-  id: Int!
   createdAt: DateIso!
-  sourceUserId: Int!
-  targetUserId: Int!
+  id: Int!
+  invite: Invite!
   inviteId: Int!
   removedAt: DateIso
   removedByUserId: Int!
   sourceUser: User!
+  sourceUserId: Int!
   targetUser: User!
-  invite: Invite!
+  targetUserId: Int!
 }
 
-type Invite {
-  id: Int!
-  inviterId: Int!
-  inviteeId: Int!
-  status: InviteStatus!
-  createdAt: DateIso!
-  reactedAt: DateIso
-  inviter: User!
-  invitee: User!
+type CostByCurrency {
+  BYN: Decimal!
+  EUR: Decimal!
+  USD: Decimal!
 }
 
-type UserBlock {
-  id: Int!
-  createdAt: DateIso!
-  blockerId: Int!
+input CreateInviteByEmailInDto {
+  inviteeEmail: String!
+  inviterUserId: Int!
+}
+
+input CreateInviteInDto {
+  inviteeUserId: Int!
+  inviterUserId: Int!
+}
+
+input CreateUserBlockInDto {
   blockedId: Int!
-  removedAt: DateIso
-  removedByUserId: Int
-  blocker: User!
-  blocked: User!
+  blockerId: Int!
+}
+
+input CreateUserInDto {
+  email: String!
+  name: String!
+  password: String!
+}
+
+enum Currency {
+  BYN
+  EUR
+  USD
 }
 
 type CurrencyRate {
-  id: Int!
   createdAt: DateIso!
-  fromCurrency: Currency!
-  toCurrency: Currency!
   date: Date!
+  fromCurrency: Currency!
+  id: Int!
   rate: Decimal!
+  toCurrency: Currency!
 }
 
 """Date custom scalar type in YYYY-MM-DD format"""
 scalar Date
 
+"""Date custom scalar type in ISO format"""
+scalar DateIso
+
 """Decimal number"""
 scalar Decimal
-
-type Payment {
-  id: Int!
-  createdAt: DateIso
-  updatedAt: DateIso
-  title: String
-  cost: Decimal!
-  currency: Currency!
-  date: Date!
-  item: Item
-  itemId: Int!
-}
-
-type CostByCurrency {
-  BYN: Decimal!
-  USD: Decimal!
-  EUR: Decimal!
-}
-
-type FindPaymentsAggregates {
-  count: Int
-  costByCurrency: CostByCurrency
-  costInDefaultCurrency: Decimal
-  firstPaymentDate: Date
-  lastPaymentDate: Date
-}
-
-type PaymentsAggregation {
-  count: Int
-  costInDefaultCurrency: Decimal
-  costByCurrency: CostByCurrency
-  firstPaymentDate: Date
-  lastPaymentDate: Date
-}
-
-type ItemsAggregation {
-  count: Int
-  paymentsAggregation(paymentsFilter: PaymentsFilter): PaymentsAggregation
-}
-
-input PaymentsFilter {
-  dateFrom: Date
-  dateTo: Date
-}
-
-type Workspace {
-  id: Int!
-  createdAt: DateIso!
-  updatedAt: DateIso!
-  title: String!
-  ownerId: Int!
-  defaultCurrency: Currency!
-  items(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): [Item!]!
-  tags(tagsFilter: TagsFilter): [Tag!]!
-  itemsAggregation(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): ItemsAggregation!
-  history(workspaceHistoryFilter: WorkspaceHistoryFilter): [WorkspaceHistory!]!
-}
-
-input ItemsFilter {
-  tagIds: [Int!]
-  title: String
-}
-
-input TagsFilter {
-  title: String
-}
-
-input WorkspaceHistoryFilter {
-  id: Int
-}
-
-type Tag {
-  id: Int!
-  createdAt: DateIso!
-  updatedAt: DateIso!
-  title: String!
-  color: String!
-  workspaceId: Int!
-  workspace: Workspace
-  items(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): [Item!]
-  itemsAggregation(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): ItemsAggregation
-}
-
-type Item {
-  id: Int!
-  createdAt: DateIso!
-  updatedAt: DateIso!
-  title: String!
-  workspaceId: Int!
-  workspace: Workspace
-  payments(paymentsFilter: PaymentsFilter): [Payment!]
-  paymentsAggregation(paymentsFilter: PaymentsFilter): PaymentsAggregation
-  tags: [Tag!]
-}
-
-type ItemTag {
-  id: Int!
-  createdAt: DateIso!
-  updatedAt: DateIso!
-  item: Item
-  itemId: Int!
-  tag: Item
-  tagId: Int!
-}
-
-type WorkspaceHistory {
-  id: Int!
-  createdAt: DateIso!
-  workspaceId: Int!
-  actorId: Int!
-  action: WorkspaceHistoryAction!
-  oldValue: Json
-  newValue: Json
-  actor: User!
-  message: String!
-  changes: JSON!
-}
-
-enum WorkspaceHistoryAction {
-  ITEM_CREATED
-  ITEM_UPDATED
-  ITEM_DELETED
-  PAYMENT_CREATED
-  PAYMENT_UPDATED
-  PAYMENT_DELETED
-  ITEM_TAG_ASSIGNED
-  ITEM_TAG_UNASSIGNED
-  TAG_CREATED
-  TAG_UPDATED
-  TAG_DELETED
-  WORKSPACE_CREATED
-  WORKSPACE_UPDATED
-  WORKSPACE_DELETED
-  ITEM_MERGED
-  ITEM_EXTRACTED
-}
-
-"""
-The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
-"""
-scalar Json
-
-"""
-The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
-"""
-scalar JSON
-
-type ResendEmailOutDto {
-  success: Boolean!
-}
-
-type Query {
-  tags(workspaceId: Int!, dto: TagsFilter): [Tag!]!
-  tag(id: Int!): Tag!
-  itemsAggregation(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): ItemsAggregation!
-  item(id: Int!): Item!
-  items(workspaceId: Int!, itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): [Item!]!
-  currencyRate(fromCurrency: Currency!, toCurrency: Currency!, date: Date!): CurrencyRate!
-  payment(id: Int!): Payment!
-  payments(itemId: Int!, paymentsFilter: PaymentsFilter): [Payment!]!
-  users: [User!]!
-  user(id: Int!): User!
-  me: User!
-}
-
-type Mutation {
-  createTag(workspaceId: Int!, dto: TagInDto!): Tag!
-  updateTag(id: Int!, dto: TagInDto!): Tag!
-  deleteTag(id: Int!): Boolean!
-  assignTag(dto: AssignTagInDto!): ItemTag!
-  unassignTag(dto: UnassignTagInDto!): Boolean!
-  createItem(workspaceId: Int!, dto: ItemInDto!): Item!
-  updateItem(id: Int!, dto: ItemInDto!): Item!
-  deleteItem(id: Int!): Boolean!
-  createPayment(itemId: Int!, dto: PaymentInDto!): Payment!
-  updatePayment(paymentId: Int!, dto: PaymentInDto!): Payment!
-  deletePayment(paymentId: Int!): Boolean!
-  mergeItems(dto: MergeItemsInDto!): Item!
-  extractAsItem(dto: ExtractAsItemInDto!): Item!
-  createUser(dto: CreateUserInDto!): User!
-  updateUser(id: Int!, dto: UpdateUserInDto!): User!
-  deleteUser(id: Int!): Boolean!
-  banUser(id: Int!): User!
-  unbanUser(id: Int!): User!
-  createWorkspace(dto: WorkspaceInDto!): Workspace!
-  updateWorkspace(id: Int!, dto: WorkspaceInDto!): Workspace!
-  deleteWorkspace(id: Int!): Workspace!
-  createInvite(dto: CreateInviteInDto!): Invite!
-  acceptInvite(inviteId: Int!): Invite!
-  rejectInvite(inviteId: Int!): Invite!
-  rejectInviteAndBlockUser(inviteId: Int!): Invite!
-  deleteContact(contactId: Int!): Contact!
-  blockUser(dto: CreateUserBlockInDto!): UserBlock!
-  unblockUser(dto: RemoveUserBlockInDto!): UserBlock!
-  forgotPassword(dto: ForgotPasswordInDto!): Boolean!
-  resetPassword(dto: ResetPasswordInDto!): Boolean!
-  resendConfirmEmail(dto: ResendConfirmEmailInDto!): ResendEmailOutDto!
-  resendForgotPasswordEmail(dto: ForgotPasswordInDto!): ResendEmailOutDto!
-}
-
-input TagInDto {
-  title: String!
-  color: String
-}
-
-input AssignTagInDto {
-  tagId: Int!
-  itemId: Int!
-}
-
-input UnassignTagInDto {
-  tagId: Int!
-  itemId: Int!
-}
-
-input ItemInDto {
-  title: String!
-}
-
-input PaymentInDto {
-  title: String
-  cost: Decimal!
-  currency: Currency!
-  date: Date!
-}
-
-input MergeItemsInDto {
-  hostItemId: Int!
-  mergingItemId: Int!
-}
 
 input ExtractAsItemInDto {
   itemId: Int!
@@ -338,47 +77,309 @@ input ExtractAsItemInDto {
   title: String!
 }
 
-input CreateUserInDto {
-  name: String!
-  email: String!
-  password: String!
-}
-
-input UpdateUserInDto {
-  name: String!
-  email: String!
-  password: String!
-}
-
-input WorkspaceInDto {
-  title: String!
-  defaultCurrency: Currency!
-}
-
-input CreateInviteInDto {
-  inviterUserId: Int!
-  inviteeUserId: Int!
-}
-
-input CreateUserBlockInDto {
-  blockerId: Int!
-  blockedId: Int!
-}
-
-input RemoveUserBlockInDto {
-  blockerId: Int!
-  blockedId: Int!
+type FindPaymentsAggregates {
+  costByCurrency: CostByCurrency
+  costInDefaultCurrency: Decimal
+  count: Int
+  firstPaymentDate: Date
+  lastPaymentDate: Date
 }
 
 input ForgotPasswordInDto {
   email: String!
 }
 
-input ResetPasswordInDto {
-  token: String!
-  password: String!
+type Invite {
+  createdAt: DateIso!
+  id: Int!
+  invitee: User!
+  inviteeId: Int!
+  inviter: User!
+  inviterId: Int!
+  reactedAt: DateIso
+  status: InviteStatus!
+}
+
+enum InviteStatus {
+  ACCEPTED
+  PENDING
+  REJECTED
+}
+
+input InvitesFilter {
+  status: InviteStatus
+}
+
+type Item {
+  createdAt: DateIso!
+  id: Int!
+  payments(paymentsFilter: PaymentsFilter): [Payment!]
+  paymentsAggregation(paymentsFilter: PaymentsFilter): PaymentsAggregation
+  tags: [Tag!]
+  title: String!
+  updatedAt: DateIso!
+  workspace: Workspace
+  workspaceId: Int!
+}
+
+input ItemInDto {
+  title: String!
+}
+
+type ItemTag {
+  createdAt: DateIso!
+  id: Int!
+  item: Item
+  itemId: Int!
+  tag: Item
+  tagId: Int!
+  updatedAt: DateIso!
+}
+
+type ItemsAggregation {
+  count: Int
+  paymentsAggregation(paymentsFilter: PaymentsFilter): PaymentsAggregation
+}
+
+input ItemsFilter {
+  tagIds: [Int!]
+  title: String
+}
+
+"""
+The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSON
+
+"""
+The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar Json
+
+input MergeItemsInDto {
+  hostItemId: Int!
+  mergingItemId: Int!
+}
+
+type Mutation {
+  acceptInvite(inviteId: Int!): Invite!
+  assignTag(dto: AssignTagInDto!): ItemTag!
+  banUser(id: Int!): User!
+  blockUser(dto: CreateUserBlockInDto!): UserBlock!
+  createInvite(dto: CreateInviteInDto!): Invite!
+  createInviteByEmail(dto: CreateInviteByEmailInDto!): Invite!
+  createItem(dto: ItemInDto!, workspaceId: Int!): Item!
+  createPayment(dto: PaymentInDto!, itemId: Int!): Payment!
+  createTag(dto: TagInDto!, workspaceId: Int!): Tag!
+  createUser(dto: CreateUserInDto!): User!
+  createWorkspace(dto: WorkspaceInDto!): Workspace!
+  deleteContact(contactId: Int!): Contact!
+  deleteItem(id: Int!): Boolean!
+  deletePayment(paymentId: Int!): Boolean!
+  deleteTag(id: Int!): Boolean!
+  deleteUser(id: Int!): Boolean!
+  deleteWorkspace(id: Int!): Workspace!
+  extractAsItem(dto: ExtractAsItemInDto!): Item!
+  forgotPassword(dto: ForgotPasswordInDto!): Boolean!
+  mergeItems(dto: MergeItemsInDto!): Item!
+  rejectInvite(inviteId: Int!): Invite!
+  rejectInviteAndBlockUser(inviteId: Int!): Invite!
+  resendConfirmEmail(dto: ResendConfirmEmailInDto!): ResendEmailOutDto!
+  resendForgotPasswordEmail(dto: ForgotPasswordInDto!): ResendEmailOutDto!
+  resetPassword(dto: ResetPasswordInDto!): Boolean!
+  unassignTag(dto: UnassignTagInDto!): Boolean!
+  unbanUser(id: Int!): User!
+  unblockUser(dto: RemoveUserBlockInDto!): UserBlock!
+  updateItem(dto: ItemInDto!, id: Int!): Item!
+  updatePayment(dto: PaymentInDto!, paymentId: Int!): Payment!
+  updateTag(dto: TagInDto!, id: Int!): Tag!
+  updateUser(dto: UpdateUserInDto!, id: Int!): User!
+  updateWorkspace(dto: WorkspaceInDto!, id: Int!): Workspace!
+}
+
+type Payment {
+  cost: Decimal!
+  createdAt: DateIso
+  currency: Currency!
+  date: Date!
+  id: Int!
+  item: Item
+  itemId: Int!
+  title: String
+  updatedAt: DateIso
+}
+
+input PaymentInDto {
+  cost: Decimal!
+  currency: Currency!
+  date: Date!
+  title: String
+}
+
+type PaymentsAggregation {
+  costByCurrency: CostByCurrency
+  costInDefaultCurrency: Decimal
+  count: Int
+  firstPaymentDate: Date
+  lastPaymentDate: Date
+}
+
+input PaymentsFilter {
+  dateFrom: Date
+  dateTo: Date
+}
+
+type Query {
+  currencyRate(date: Date!, fromCurrency: Currency!, toCurrency: Currency!): CurrencyRate!
+  item(id: Int!): Item!
+  items(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter, workspaceId: Int!): [Item!]!
+  itemsAggregation(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): ItemsAggregation!
+  me: User!
+  payment(id: Int!): Payment!
+  payments(itemId: Int!, paymentsFilter: PaymentsFilter): [Payment!]!
+  tag(id: Int!): Tag!
+  tags(dto: TagsFilter, workspaceId: Int!): [Tag!]!
+  user(id: Int!): User!
+  users: [User!]!
+}
+
+input RemoveUserBlockInDto {
+  blockedId: Int!
+  blockerId: Int!
 }
 
 input ResendConfirmEmailInDto {
   userId: Int!
+}
+
+type ResendEmailOutDto {
+  success: Boolean!
+}
+
+input ResetPasswordInDto {
+  password: String!
+  token: String!
+}
+
+type Tag {
+  color: String!
+  createdAt: DateIso!
+  id: Int!
+  items(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): [Item!]
+  itemsAggregation(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): ItemsAggregation
+  title: String!
+  updatedAt: DateIso!
+  workspace: Workspace
+  workspaceId: Int!
+}
+
+input TagInDto {
+  color: String
+  title: String!
+}
+
+input TagsFilter {
+  title: String
+}
+
+input UnassignTagInDto {
+  itemId: Int!
+  tagId: Int!
+}
+
+input UpdateUserInDto {
+  email: String!
+  name: String!
+  password: String!
+}
+
+type User {
+  contacts: [Contact!]!
+  createdAt: DateIso!
+  email: String!
+  id: Int!
+  incomingInvites(invitesFilter: InvitesFilter): [Invite!]!
+  isBanned: Boolean!
+  isEmailVerified: Boolean!
+  name: String!
+  outgoingInvites(invitesFilter: InvitesFilter): [Invite!]!
+  role: UserRole!
+  updatedAt: DateIso!
+  workspaces(workspacesFilter: WorkspacesFilter): [Workspace!]!
+}
+
+type UserBlock {
+  blocked: User!
+  blockedId: Int!
+  blocker: User!
+  blockerId: Int!
+  createdAt: DateIso!
+  id: Int!
+  removedAt: DateIso
+  removedByUserId: Int
+}
+
+enum UserRole {
+  ADMIN
+  USER
+}
+
+type Workspace {
+  createdAt: DateIso!
+  defaultCurrency: Currency!
+  history(workspaceHistoryFilter: WorkspaceHistoryFilter): [WorkspaceHistory!]!
+  id: Int!
+  items(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): [Item!]!
+  itemsAggregation(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): ItemsAggregation!
+  ownerId: Int!
+  tags(tagsFilter: TagsFilter): [Tag!]!
+  title: String!
+  updatedAt: DateIso!
+}
+
+type WorkspaceHistory {
+  action: WorkspaceHistoryAction!
+  actor: User!
+  actorId: Int!
+  changes: JSON!
+  createdAt: DateIso!
+  id: Int!
+  message: String!
+  newValue: Json
+  oldValue: Json
+  workspaceId: Int!
+}
+
+enum WorkspaceHistoryAction {
+  ITEM_CREATED
+  ITEM_DELETED
+  ITEM_EXTRACTED
+  ITEM_MERGED
+  ITEM_TAG_ASSIGNED
+  ITEM_TAG_UNASSIGNED
+  ITEM_UPDATED
+  PAYMENT_CREATED
+  PAYMENT_DELETED
+  PAYMENT_UPDATED
+  TAG_CREATED
+  TAG_DELETED
+  TAG_UPDATED
+  WORKSPACE_CREATED
+  WORKSPACE_DELETED
+  WORKSPACE_UPDATED
+}
+
+input WorkspaceHistoryFilter {
+  id: Int
+}
+
+input WorkspaceInDto {
+  defaultCurrency: Currency!
+  title: String!
+}
+
+input WorkspacesFilter {
+  defaultCurrency: Currency
+  id: Int
+  title: String
 }

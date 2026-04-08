@@ -1,14 +1,17 @@
 import { Provider } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { MailerSend } from 'mailersend';
+import * as nodemailer from 'nodemailer';
+
+export const MAIL_TRANSPORTER = 'MAIL_TRANSPORTER';
 
 export const providers: Provider[] = [
   {
     inject: [ConfigService],
-    provide: MailerSend,
+    provide: MAIL_TRANSPORTER,
     useFactory: (configService: ConfigService) => {
-      return new MailerSend({
-        apiKey: configService.getOrThrow('mailersend.apiKey'),
+      return nodemailer.createTransport({
+        host: configService.getOrThrow('smtp.host'),
+        port: configService.getOrThrow('smtp.port'),
       });
     },
   },

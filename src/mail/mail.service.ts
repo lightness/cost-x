@@ -1,57 +1,56 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { EmailParams, MailerSend, Recipient, Sender } from 'mailersend';
+import { Transporter } from 'nodemailer';
 import User from '../user/entity/user.entity';
 import { MailParams } from './interfaces';
+import { MAIL_TRANSPORTER } from './mail.providers';
 
 @Injectable()
 export class MailService {
   constructor(
-    private mailerSend: MailerSend,
+    @Inject(MAIL_TRANSPORTER) private transporter: Transporter,
     private configService: ConfigService,
   ) {}
 
   private get sender() {
-    const { email, name } = this.configService.getOrThrow('mailersend.sender');
+    const { email, name } = this.configService.getOrThrow('smtp.sender');
 
-    return new Sender(email, name);
+    return `"${name}" <${email}>`;
   }
 
   private get confirmEmailLinkUrl() {
-    const url = this.configService.getOrThrow('confirmEmail.linkUrl');
-
-    return url;
+    return this.configService.getOrThrow('confirmEmail.linkUrl');
   }
 
   private get resetPasswordLinkUrl() {
-    const url = this.configService.getOrThrow('resetPassword.linkUrl');
+    return this.configService.getOrThrow('resetPassword.linkUrl');
+  }
 
-    return url;
+  private get emailInviteLinkUrl() {
+    return this.configService.getOrThrow('emailInvite.linkUrl');
+  }
+
+  private get emailInviteRejectLinkUrl() {
+    return this.configService.getOrThrow('emailInvite.rejectLinkUrl');
   }
 
   async send(params: MailParams) {
     const {
       toUser: { name, email },
       subject,
-      text,
       html,
     } = params;
 
-    const recipients = [new Recipient(email, name)];
-
-    const emailParams = new EmailParams()
-      .setFrom(this.sender)
-      .setTo(recipients)
-      .setSubject(subject)
-      .setHtml(html)
-      .setText(text);
-
-    await this.mailerSend.email.send(emailParams);
+    await this.transporter.sendMail({
+      from: this.sender,
+      html,
+      subject,
+      to: `"${name}" <${email}>`,
+    });
   }
 
   async sendConfirmEmail(user: User, token: string) {
     const { name } = user;
-
     const url = `${this.confirmEmailLinkUrl}?token=${token}`;
 
     return this.send({
@@ -66,9 +65,28 @@ export class MailService {
     });
   }
 
+  async sendEmailInvite(invitee: User, inviteeEmail: string, inviter: User, token: string) {
+    const acceptUrl = `${this.emailInviteLinkUrl}?token=${token}`;
+    const rejectUrl = `${this.emailInviteRejectLinkUrl}?token=${token}`;
+
+    return this.send({
+      html: [
+        `<p>Hey!</p>`,
+        '<br/>',
+        `<p>${inviter.name} has invited you to Cost-X.</p>`,
+        `<p>Click to accept the invite and set up your account: <a href="${acceptUrl}">ACCEPT</a></p>`,
+        `<p>Click to reject the invite: <a href="${rejectUrl}">REJECT</a></p>`,
+        '<h3>DEV</h3>',
+        `<p>Call "acceptEmailInvite" endpoint using following token: ${token}</p>`,
+        `<p>Call "rejectEmailInvite" endpoint using following token: ${token}</p>`,
+      ].join('\n'),
+      subject: `${inviter.name} invited you to Cost-X`,
+      toUser: { ...invitee, email: inviteeEmail },
+    });
+  }
+
   async sendResetPassword(user: User, token: string) {
     const { name } = user;
-
     const url = `${this.resetPasswordLinkUrl}?token=${token}`;
 
     return this.send({

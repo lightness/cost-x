@@ -32,15 +32,18 @@ export default () => ({
     logQuery: true,
     url: process.env.DATABASE_URL,
   },
+  emailInvite: {
+    jwt: {
+      expiresIn: process.env.EMAIL_INVITE_JWT_EXPIRES_IN || '7d',
+      redisPrefix: process.env.EMAIL_INVITE_JWT_REDIS_PREFIX || 'expired:email-invite:',
+      secret: process.env.EMAIL_INVITE_JWT_SECRET || 'EmailInviteTopSecret',
+    },
+    linkUrl: process.env.EMAIL_INVITE_LINK_URL,
+    rejectLinkUrl: process.env.EMAIL_INVITE_REJECT_LINK_URL,
+  },
   graphql: {
     logTime: true,
-  },
-  mailersend: {
-    apiKey: process.env.MAILERSEND_API_KEY,
-    sender: {
-      email: process.env.SENDER_EMAIL,
-      name: 'Cost-X',
-    },
+    writeSchema: process.env.GRAPHQL_WRITE_SCHEMA !== 'false',
   },
   port: asInteger(process.env.PORT, 8080),
   redis: {
@@ -53,6 +56,14 @@ export default () => ({
       secret: process.env.RESET_PASSWORD_JWT_SECRET || 'ResetPasswordTopSecret',
     },
     linkUrl: process.env.RESET_PASSWORD_LINK_URL,
+  },
+  smtp: {
+    host: process.env.SMTP_HOST || 'localhost',
+    port: asInteger(process.env.SMTP_PORT, 1025),
+    sender: {
+      email: process.env.SENDER_EMAIL || 'no-reply@cost-x.local',
+      name: 'Cost-X',
+    },
   },
   spreadsheet: {
     columnNames: ['title', 'date', 'bynCost', 'usdCost', 'eurCost'],

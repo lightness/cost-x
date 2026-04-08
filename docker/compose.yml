@@ -23,6 +23,16 @@ services:
     environment:
       REDIS_PASSWORD: 12345
 
+  maildev:
+    image: maildev/maildev
+    container_name: cost-x-maildev
+    restart: unless-stopped
+    ports:
+      - "1080:1080"
+      - "1025:1025"
+    networks:
+      - cost-x-network
+
 volumes:
   redis-data:
 

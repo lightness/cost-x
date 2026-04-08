@@ -11,7 +11,8 @@ import { TransactionInterceptor } from '../../common/interceptor/transaction.int
 import { GqlLoggingInterceptor } from '../../graphql/interceptor/gql-logging.interceptor';
 import { UserRole } from '../../user/entity/user-role.enum';
 import User from '../../user/entity/user.entity';
-import { CreateInviteInDto } from '../dto';
+import { CreateInviteByEmailInDto, CreateInviteInDto } from '../dto';
+import { EmailInviteService } from '../email-invite.service';
 import { Invite } from '../entity/invite.entity';
 import { InviteValidationService } from '../invite-validation.service';
 import { InviteService } from '../invite.service';
@@ -23,7 +24,24 @@ export class InviteMutationResolver {
   constructor(
     private inviteService: InviteService,
     private inviteValidationService: InviteValidationService,
+    private emailInviteService: EmailInviteService,
   ) {}
+
+  @Mutation(() => Invite)
+  @Access.allow([
+    {
+      role: UserRole.USER,
+      targetId: fromArg('dto.inviterUserId'),
+      targetScope: AccessScope.USER,
+    },
+    { role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL },
+  ])
+  async createInviteByEmail(
+    @Args('dto') dto: CreateInviteByEmailInDto,
+    @Context('tx') tx: Prisma.TransactionClient,
+  ) {
+    return this.emailInviteService.createInviteByEmail(dto, tx);
+  }
 
   @Mutation(() => Invite)
   @Access.allow([

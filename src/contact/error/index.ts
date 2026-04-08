@@ -1,4 +1,6 @@
 export * from './blocked-user-not-found.error';
+export * from './email-invite-no-longer-valid.error';
+export * from './email-invite-token-invalid.error';
 export * from './contact-already-exists.error';
 export * from './contact-already-removed.error';
 export * from './contact-not-found.error';

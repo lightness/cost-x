@@ -2,7 +2,6 @@ import { Inject, Injectable } from '@nestjs/common';
 import { BcryptService } from '../password/bcrypt.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { TokenService } from '../token/token.service';
-import { UserStatus } from '../user/entity/user-status.enum';
 import User from '../user/entity/user.entity';
 import { AuthInDto, AuthOutDto } from './dto';
 import { EmailNotVerifiedError } from './error/email-not-verified.error';
@@ -47,11 +46,11 @@ export class AuthService {
   }
 
   async authenticateUser(user: User): Promise<AuthOutDto> {
-    if (user.status === UserStatus.EMAIL_NOT_VERIFIED) {
+    if (user.confirmEmailTempCode !== null) {
       throw new EmailNotVerifiedError();
     }
 
-    if (user.status === UserStatus.BANNED) {
+    if (user.isBanned) {
       throw new UserBannedError();
     }
 

@@ -1,5 +1,5 @@
 import { Field, HideField, Int, ObjectType } from '@nestjs/graphql';
-import { type User as PrismaUser, UserStatus } from '../../../generated/prisma/client';
+import { type User as PrismaUser } from '../../../generated/prisma/client';
 import { DateIsoScalar } from '../../graphql/scalar';
 import { UserRole } from './user-role.enum';
 
@@ -20,8 +20,11 @@ class User implements PrismaUser {
   @Field(() => String)
   email: string;
 
-  @Field(() => UserStatus)
-  status: UserStatus;
+  @Field(() => Boolean)
+  isEmailVerified?: boolean;
+
+  @Field(() => Boolean)
+  isBanned: boolean;
 
   @Field(() => UserRole)
   role: UserRole;
@@ -30,7 +33,10 @@ class User implements PrismaUser {
   password: string;
 
   @HideField()
-  tempCode: string | null;
+  confirmEmailTempCode: string | null;
+
+  @HideField()
+  resetPasswordTempCode: string | null;
 }
 
 export default User;
