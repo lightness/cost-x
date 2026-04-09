@@ -4,6 +4,24 @@ Manages user accounts — registration, profile updates, and administration.
 
 ---
 
+## Table of Contents
+
+- [Authentication](#authentication)
+- [Object Type: User](#object-type-user)
+- [Queries](#queries)
+  - [`me`](#me)
+  - [`user`](#userid-int)
+  - [`users`](#users)
+- [Mutations](#mutations)
+  - [`createUser`](#createuser--registration)
+  - [`updateUser`](#updateuserid-int--update-profile)
+  - [`deleteUser`](#deleteuserid-int--delete-account)
+  - [`banUser`](#banuserid-int--ban-account)
+  - [`unbanUser`](#unbanuserid-int--unban-account)
+- [Error Codes](#error-codes)
+
+---
+
 ## Authentication
 
 Most operations require a valid JWT session (set via cookie after login). Operations that require **admin role** are noted explicitly. The `createUser` mutation is the only public endpoint.
