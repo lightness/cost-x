@@ -47,6 +47,7 @@ export default () => ({
   },
   port: asInteger(process.env.PORT, 8080),
   redis: {
+    logQuery: true,
     url: process.env.REDIS_URL,
   },
   resetPassword: {
