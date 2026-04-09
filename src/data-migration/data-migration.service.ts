@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Decimal } from '@prisma/client/runtime/client';
+import { hrtime } from 'process';
 import { Currency } from '../../generated/prisma/enums';
 import { ItemTagService } from '../item-tag/item-tag.service';
 import { ItemService } from '../item/item.service';
@@ -32,8 +33,11 @@ export class DataMigrationService {
     const rows = await this.spreadsheetService.loadEverything();
 
     const credentials = await this.inquirerService.askForCredentials();
+    const defaultCurrency = await this.inquirerService.askForDefaultCurrency();
 
-    return this.prisma.$transaction(async (tx) => {
+    const transactionStart = hrtime();
+
+    await this.prisma.$transaction(async (tx) => {
       const user = await this.userService.create(
         {
           email: credentials.email.toLowerCase(),
@@ -42,8 +46,6 @@ export class DataMigrationService {
         },
         tx,
       );
-
-      const defaultCurrency = await this.inquirerService.askForDefaultCurrency();
 
       const workspace = await this.workspaceService.create(
         {
@@ -119,8 +121,8 @@ export class DataMigrationService {
           );
         }
       }
-
-      this.logger.log('Done');
     });
+
+    this.logger.log(`Done (in ${hrtime(transactionStart).join('.')}s)`);
   }
 }
