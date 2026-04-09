@@ -2,14 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AccessScope, Rule } from '../interfaces';
-import { GlobalAccessStrategy } from './global.access-strategy';
 import { AccessStrategy } from './interface';
 
 @Injectable()
-export class UserToInviteAccessStrategy extends GlobalAccessStrategy implements AccessStrategy {
-  constructor(private prisma: PrismaService) {
-    super();
-  }
+export class UserToInviteAccessStrategy implements AccessStrategy {
+  constructor(private prisma: PrismaService) {}
 
   isApplicable(rule: Rule): boolean {
     return (
@@ -37,6 +34,6 @@ export class UserToInviteAccessStrategy extends GlobalAccessStrategy implements 
       return false;
     }
 
-    return super.executeRule(rule, ctx);
+    return true;
   }
 }

@@ -3,22 +3,13 @@ import { GqlExecutionContext } from '@nestjs/graphql';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AccessScope, Rule } from '../interfaces';
 import { AccessStrategy } from './interface';
-import { GlobalAccessStrategy } from './global.access-strategy';
 
 @Injectable()
-export class UserToWorkspaceAccessStrategy
-  extends GlobalAccessStrategy
-  implements AccessStrategy
-{
-  constructor(private prisma: PrismaService) {
-    super();
-  }
+export class UserToWorkspaceAccessStrategy implements AccessStrategy {
+  constructor(private prisma: PrismaService) {}
 
   isApplicable(rule: Rule): boolean {
-    return (
-      rule.targetScope === AccessScope.WORKSPACE &&
-      rule.sourceScope === AccessScope.USER
-    );
+    return rule.targetScope === AccessScope.WORKSPACE && rule.sourceScope === AccessScope.USER;
   }
 
   async executeRule(rule: Rule, ctx: GqlExecutionContext): Promise<boolean> {
@@ -31,10 +22,6 @@ export class UserToWorkspaceAccessStrategy
       where: { id: workspaceId },
     });
 
-    if (workspace?.ownerId !== userId) {
-      return false;
-    }
-
-    return super.executeRule(rule, ctx);
+    return workspace?.ownerId === userId;
   }
 }

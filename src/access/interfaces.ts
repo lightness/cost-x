@@ -1,5 +1,7 @@
 import { GqlExecutionContext } from '@nestjs/graphql';
-import { UserRole } from '../user/entity/user-role.enum';
+import { Permission } from '../../generated/prisma/enums';
+
+export { Permission };
 
 export enum AccessAction {
   ALLOW = 'allow',
@@ -14,16 +16,21 @@ export enum AccessScope {
   TAG = 'tag',
   PAYMENT = 'payment',
   INVITE = 'invite',
-  GLOBAL = 'global',
   USER_BLOCK = 'user-block',
+}
+
+export enum PermissionLevel {
+  OWNER = 1,
+  ADMIN = 2,
 }
 
 export interface Rule {
   sourceScope?: AccessScope; // Default 'user'
   sourceId?: GetId; // Default ctx.getContext().req.user.id
-  targetScope: AccessScope;
+  targetScope?: AccessScope;
   targetId?: GetId;
-  role: UserRole | UserRole[];
+  permission?: Permission | Permission[];
+  level?: PermissionLevel;
   metadata?: Record<string, unknown>;
 }
 

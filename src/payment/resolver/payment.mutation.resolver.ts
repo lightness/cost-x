@@ -4,14 +4,14 @@ import { Prisma } from '../../../generated/prisma/client';
 import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
-import { AccessScope } from '../../access/interfaces';
+import { AccessScope, PermissionLevel } from '../../access/interfaces';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
 import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
 import { ItemByIdPipe } from '../../common/pipe/item-by-id.pipe';
 import { PaymentByIdPipe } from '../../common/pipe/payment-by-id.pipe';
 import Item from '../../item/entity/item.entity';
-import { UserRole } from '../../user/entity/user-role.enum';
+import { Permission } from '../../access/interfaces';
 import User from '../../user/entity/user.entity';
 import { PaymentInDto } from '../dto';
 import Payment from '../entity/payment.entity';
@@ -25,12 +25,13 @@ export class PaymentMutationResolver {
 
   @Mutation(() => Payment)
   @Access.allow([
-    { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
     {
-      role: [UserRole.USER],
-      targetId: fromArg('itemId'),
-      targetScope: AccessScope.ITEM,
+      and: [
+        { targetId: fromArg('itemId'), targetScope: AccessScope.ITEM },
+        { level: PermissionLevel.OWNER, permission: Permission.PAYMENT_CREATE },
+      ],
     },
+    { level: PermissionLevel.ADMIN, permission: Permission.PAYMENT_CREATE },
   ])
   async createPayment(
     @Args('itemId', { type: () => Int }, ItemByIdPipe) item: Item,
@@ -43,12 +44,13 @@ export class PaymentMutationResolver {
 
   @Mutation(() => Payment)
   @Access.allow([
-    { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
     {
-      role: [UserRole.USER],
-      targetId: fromArg('paymentId'),
-      targetScope: AccessScope.PAYMENT,
+      and: [
+        { targetId: fromArg('paymentId'), targetScope: AccessScope.PAYMENT },
+        { level: PermissionLevel.OWNER, permission: Permission.PAYMENT_UPDATE },
+      ],
     },
+    { level: PermissionLevel.ADMIN, permission: Permission.PAYMENT_UPDATE },
   ])
   async updatePayment(
     @Args('paymentId', { type: () => Int }, PaymentByIdPipe) payment: Payment,
@@ -61,12 +63,13 @@ export class PaymentMutationResolver {
 
   @Mutation(() => Boolean)
   @Access.allow([
-    { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
     {
-      role: [UserRole.USER],
-      targetId: fromArg('paymentId'),
-      targetScope: AccessScope.PAYMENT,
+      and: [
+        { targetId: fromArg('paymentId'), targetScope: AccessScope.PAYMENT },
+        { level: PermissionLevel.OWNER, permission: Permission.PAYMENT_DELETE },
+      ],
     },
+    { level: PermissionLevel.ADMIN, permission: Permission.PAYMENT_DELETE },
   ])
   async deletePayment(
     @Args('paymentId', { type: () => Int }, PaymentByIdPipe) payment: Payment,

@@ -17,6 +17,7 @@ import { TokenService } from '../src/token/token.service';
 import { FactoryModule } from './factory/factory.module';
 import { InviteFactoryService } from './factory/invite-factory.service';
 import { UserBlockFactoryService } from './factory/user-block-factory.service';
+import { Permission } from '../generated/prisma/enums';
 import { UserFactoryService } from './factory/user-factory.service';
 import { TestGraphqlModule } from './graphql/test-graphql.module';
 import { TestConfigModule } from './test-config.module';
@@ -104,7 +105,7 @@ describe('Email Invite E2E', () => {
 
     it('should create pending invite with ghost user for a new email', async () => {
       // Assume
-      const inviter = await userFactory.create('active');
+      const inviter = await userFactory.createWithPermissions('active', [Permission.INVITE_CREATE]);
       const inviteeEmail = userFactory.generateEmail();
       const { accessToken } = await authService.authenticateUser(inviter);
 
@@ -141,7 +142,7 @@ describe('Email Invite E2E', () => {
 
     it('should create pending invite when invitee email belongs to an existing user', async () => {
       // Assume
-      const inviter = await userFactory.create('active');
+      const inviter = await userFactory.createWithPermissions('active', [Permission.INVITE_CREATE]);
       const existingUser = await userFactory.create('active');
       const { accessToken } = await authService.authenticateUser(inviter);
 
@@ -171,7 +172,7 @@ describe('Email Invite E2E', () => {
 
     it('should not create duplicate invite to the same email', async () => {
       // Assume
-      const inviter = await userFactory.create('active');
+      const inviter = await userFactory.createWithPermissions('active', [Permission.INVITE_CREATE]);
       const inviteeEmail = userFactory.generateEmail();
       const { accessToken } = await authService.authenticateUser(inviter);
 
@@ -203,7 +204,7 @@ describe('Email Invite E2E', () => {
 
     it('should normalize email (strip + alias) and detect duplicate invite', async () => {
       // Assume
-      const inviter = await userFactory.create('active');
+      const inviter = await userFactory.createWithPermissions('active', [Permission.INVITE_CREATE]);
       const baseEmail = userFactory.generateEmail();
       const [local, domain] = baseEmail.split('@');
       const aliasEmail = `${local}+alias@${domain}`;
@@ -237,7 +238,7 @@ describe('Email Invite E2E', () => {
 
     it('should not create invite when invitee has blocked the inviter', async () => {
       // Assume
-      const inviter = await userFactory.create('active');
+      const inviter = await userFactory.createWithPermissions('active', [Permission.INVITE_CREATE]);
       const invitee = await userFactory.create('active');
       await userBlockFactory.create('active', { blockedId: inviter.id, blockerId: invitee.id });
       const { accessToken } = await authService.authenticateUser(inviter);
@@ -263,7 +264,7 @@ describe('Email Invite E2E', () => {
 
     it('should not create invite when inviter has blocked the invitee', async () => {
       // Assume
-      const inviter = await userFactory.create('active');
+      const inviter = await userFactory.createWithPermissions('active', [Permission.INVITE_CREATE]);
       const invitee = await userFactory.create('active');
       await userBlockFactory.create('active', { blockedId: invitee.id, blockerId: inviter.id });
       const { accessToken } = await authService.authenticateUser(inviter);

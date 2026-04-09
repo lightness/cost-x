@@ -7,9 +7,9 @@ import { configureApp } from '../src/configure-app';
 import { GraphqlModule } from '../src/graphql/graphql.module';
 import { MailService } from '../src/mail/mail.service';
 import { PrismaService } from '../src/prisma/prisma.service';
-import { UserRole } from '../src/user/entity/user-role.enum';
 import { UserModule } from '../src/user/user.module';
 import { FactoryModule } from './factory/factory.module';
+import { Permission } from '../generated/prisma/enums';
 import { UserFactoryService } from './factory/user-factory.service';
 import { TestGraphqlModule } from './graphql/test-graphql.module';
 import { TestConfigModule } from './test-config.module';
@@ -22,7 +22,6 @@ const CREATE_USER = `
       id
       name
       email
-      role
       isBanned
       isEmailVerified
     }
@@ -35,7 +34,6 @@ const UPDATE_USER = `
       id
       name
       email
-      role
       isBanned
       isEmailVerified
     }
@@ -146,7 +144,6 @@ describe('User Mutations E2E', () => {
       expect(user.id).toEqual(expect.any(Number));
       expect(user.name).toBe(dto.name);
       expect(user.email).toBe(dto.email.toLowerCase());
-      expect(user.role).toBe(UserRole.USER);
       expect(user.isBanned).toBe(false);
       expect(user.isEmailVerified).toBe(false);
     });
@@ -231,7 +228,7 @@ describe('User Mutations E2E', () => {
   describe('updateUser', () => {
     it('should allow owner to update their own name, email, and password', async () => {
       // Assume
-      const user = await userFactory.create('active');
+      const user = await userFactory.createWithPermissions('active', [Permission.USER_UPDATE]);
       const { accessToken } = await authService.authenticateUser(user);
       const dto = { name: 'Updated Name', email: userFactory.generateEmail(), password: STRONG_PASSWORD };
 
@@ -250,7 +247,7 @@ describe('User Mutations E2E', () => {
 
     it('should allow admin to update any user', async () => {
       // Assume
-      const admin = await userFactory.create('active', { role: UserRole.ADMIN });
+      const admin = await userFactory.createWithAllPermissions();
       const target = await userFactory.create('active');
       const { accessToken } = await authService.authenticateUser(admin);
       const dto = { name: 'Admin Updated', email: userFactory.generateEmail(), password: STRONG_PASSWORD };
@@ -265,7 +262,7 @@ describe('User Mutations E2E', () => {
 
     it('should keep isEmailVerified: true and not call sendConfirmEmail when email is unchanged', async () => {
       // Assume
-      const user = await userFactory.create('active');
+      const user = await userFactory.createWithPermissions('active', [Permission.USER_UPDATE]);
       const { accessToken } = await authService.authenticateUser(user);
       const dto = { name: 'New Name', email: user.email, password: STRONG_PASSWORD };
 
@@ -283,7 +280,7 @@ describe('User Mutations E2E', () => {
 
     it('should set isEmailVerified: false and call sendConfirmEmail when owner changes email', async () => {
       // Assume
-      const user = await userFactory.create('active');
+      const user = await userFactory.createWithPermissions('active', [Permission.USER_UPDATE]);
       const { accessToken } = await authService.authenticateUser(user);
       const dto = { name: user.name, email: userFactory.generateEmail(), password: STRONG_PASSWORD };
 
@@ -298,7 +295,7 @@ describe('User Mutations E2E', () => {
 
     it('should set isEmailVerified: false and call sendConfirmEmail when admin changes another user email', async () => {
       // Assume
-      const admin = await userFactory.create('active', { role: UserRole.ADMIN });
+      const admin = await userFactory.createWithAllPermissions();
       const target = await userFactory.create('active');
       const { accessToken } = await authService.authenticateUser(admin);
       const dto = { name: target.name, email: userFactory.generateEmail(), password: STRONG_PASSWORD };
@@ -340,7 +337,7 @@ describe('User Mutations E2E', () => {
 
     it('should fail when target user does not exist', async () => {
       // Assume
-      const admin = await userFactory.create('active', { role: UserRole.ADMIN });
+      const admin = await userFactory.createWithAllPermissions();
       const { accessToken } = await authService.authenticateUser(admin);
       const dto = { name: 'X', email: userFactory.generateEmail(), password: STRONG_PASSWORD };
 
@@ -356,7 +353,7 @@ describe('User Mutations E2E', () => {
   describe('deleteUser', () => {
     it('should allow admin to delete a user', async () => {
       // Assume
-      const admin = await userFactory.create('active', { role: UserRole.ADMIN });
+      const admin = await userFactory.createWithAllPermissions();
       const target = await userFactory.create('active');
       const { accessToken } = await authService.authenticateUser(admin);
 
@@ -397,7 +394,7 @@ describe('User Mutations E2E', () => {
 
     it('should fail when target user does not exist', async () => {
       // Assume
-      const admin = await userFactory.create('active', { role: UserRole.ADMIN });
+      const admin = await userFactory.createWithAllPermissions();
       const { accessToken } = await authService.authenticateUser(admin);
 
       // Act
@@ -412,7 +409,7 @@ describe('User Mutations E2E', () => {
   describe('banUser', () => {
     it('should allow admin to ban an active user', async () => {
       // Assume
-      const admin = await userFactory.create('active', { role: UserRole.ADMIN });
+      const admin = await userFactory.createWithAllPermissions();
       const target = await userFactory.create('active');
       const { accessToken } = await authService.authenticateUser(admin);
 
@@ -427,7 +424,7 @@ describe('User Mutations E2E', () => {
 
     it('should fail when user is already banned', async () => {
       // Assume
-      const admin = await userFactory.create('active', { role: UserRole.ADMIN });
+      const admin = await userFactory.createWithAllPermissions();
       const target = await userFactory.create('banned');
       const { accessToken } = await authService.authenticateUser(admin);
 
@@ -465,7 +462,7 @@ describe('User Mutations E2E', () => {
 
     it('should fail when target user does not exist', async () => {
       // Assume
-      const admin = await userFactory.create('active', { role: UserRole.ADMIN });
+      const admin = await userFactory.createWithAllPermissions();
       const { accessToken } = await authService.authenticateUser(admin);
 
       // Act
@@ -480,7 +477,7 @@ describe('User Mutations E2E', () => {
   describe('unbanUser', () => {
     it('should allow admin to unban a banned user', async () => {
       // Assume
-      const admin = await userFactory.create('active', { role: UserRole.ADMIN });
+      const admin = await userFactory.createWithAllPermissions();
       const target = await userFactory.create('banned');
       const { accessToken } = await authService.authenticateUser(admin);
 
@@ -495,7 +492,7 @@ describe('User Mutations E2E', () => {
 
     it('should fail when user is not banned', async () => {
       // Assume
-      const admin = await userFactory.create('active', { role: UserRole.ADMIN });
+      const admin = await userFactory.createWithAllPermissions();
       const target = await userFactory.create('active');
       const { accessToken } = await authService.authenticateUser(admin);
 
@@ -533,7 +530,7 @@ describe('User Mutations E2E', () => {
 
     it('should fail when target user does not exist', async () => {
       // Assume
-      const admin = await userFactory.create('active', { role: UserRole.ADMIN });
+      const admin = await userFactory.createWithAllPermissions();
       const { accessToken } = await authService.authenticateUser(admin);
 
       // Act
@@ -591,7 +588,7 @@ describe('User Mutations E2E', () => {
     describe('updateUser', () => {
       it('should keep isEmailVerified: true after email change', async () => {
         // Assume
-        const user = await autoUserFactory.create('active');
+        const user = await autoUserFactory.createWithPermissions('active', [Permission.USER_UPDATE]);
         const { accessToken } = await autoAuthService.authenticateUser(user);
         const dto = { name: user.name, email: autoUserFactory.generateEmail(), password: STRONG_PASSWORD };
 

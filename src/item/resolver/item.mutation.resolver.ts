@@ -4,11 +4,11 @@ import { Prisma } from '../../../generated/prisma/client';
 import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
-import { AccessScope } from '../../access/interfaces';
+import { AccessScope, PermissionLevel } from '../../access/interfaces';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
 import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
-import { UserRole } from '../../user/entity/user-role.enum';
+import { Permission } from '../../access/interfaces';
 import User from '../../user/entity/user.entity';
 import { ItemInDto } from '../dto';
 import Item from '../entity/item.entity';
@@ -22,12 +22,13 @@ export class ItemMutationResolver {
 
   @Mutation(() => Item)
   @Access.allow([
-    { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
     {
-      role: [UserRole.USER],
-      targetId: fromArg('workspaceId'),
-      targetScope: AccessScope.WORKSPACE,
+      and: [
+        { targetId: fromArg('workspaceId'), targetScope: AccessScope.WORKSPACE },
+        { level: PermissionLevel.OWNER, permission: Permission.ITEM_CREATE },
+      ],
     },
+    { level: PermissionLevel.ADMIN, permission: Permission.ITEM_CREATE },
   ])
   async createItem(
     @Args('workspaceId', { type: () => Int }) workspaceId: number,
@@ -40,12 +41,13 @@ export class ItemMutationResolver {
 
   @Mutation(() => Item)
   @Access.allow([
-    { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
     {
-      role: [UserRole.USER],
-      targetId: fromArg('id'),
-      targetScope: AccessScope.ITEM,
+      and: [
+        { targetId: fromArg('id'), targetScope: AccessScope.ITEM },
+        { level: PermissionLevel.OWNER, permission: Permission.ITEM_UPDATE },
+      ],
     },
+    { level: PermissionLevel.ADMIN, permission: Permission.ITEM_UPDATE },
   ])
   async updateItem(
     @Args('id', { type: () => Int }) id: number,
@@ -58,12 +60,13 @@ export class ItemMutationResolver {
 
   @Mutation(() => Boolean)
   @Access.allow([
-    { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
     {
-      role: [UserRole.USER],
-      targetId: fromArg('id'),
-      targetScope: AccessScope.ITEM,
+      and: [
+        { targetId: fromArg('id'), targetScope: AccessScope.ITEM },
+        { level: PermissionLevel.OWNER, permission: Permission.ITEM_DELETE },
+      ],
     },
+    { level: PermissionLevel.ADMIN, permission: Permission.ITEM_DELETE },
   ])
   async deleteItem(
     @Args('id', { type: () => Int }) id: number,

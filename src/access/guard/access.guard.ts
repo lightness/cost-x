@@ -1,6 +1,7 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { GqlExecutionContext } from '@nestjs/graphql';
+import { PrismaService } from '../../prisma/prisma.service';
 import { AccessService } from '../access.service';
 import { ACCESS_METADATA_KEY, AccessMetadata } from '../decorator/access.decorator';
 import { NoAccessError } from '../error/no-access.error';
@@ -10,6 +11,7 @@ export class AccessGuard implements CanActivate {
   constructor(
     private reflector: Reflector,
     private accessService: AccessService,
+    private prisma: PrismaService,
   ) {}
 
   getCtx(context: ExecutionContext): GqlExecutionContext {
@@ -33,6 +35,10 @@ export class AccessGuard implements CanActivate {
     if (!req.user) {
       throw new NoAccessError();
     }
+
+    req.user.permissions = await this.prisma.userPermission.findMany({
+      where: { userId: req.user.id },
+    });
 
     const { ruleDef, action } = accessMetadata;
     const hasAccess = await this.accessService.hasAccess(action, ruleDef, ctx);

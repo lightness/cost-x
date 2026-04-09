@@ -3,12 +3,12 @@ import { Args, Context, Int, Mutation, Resolver } from '@nestjs/graphql';
 import { Prisma } from '../../../generated/prisma/client';
 import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
+import { fromReq } from '../../access/function/from-req.function';
 import { AccessGuard } from '../../access/guard/access.guard';
-import { AccessScope } from '../../access/interfaces';
+import { AccessScope, Permission, PermissionLevel } from '../../access/interfaces';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
 import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
-import { UserRole } from '../../user/entity/user-role.enum';
 import User from '../../user/entity/user.entity';
 import { WorkspaceInDto } from '../dto';
 import { Workspace } from '../entity/workspace.entity';
@@ -21,7 +21,15 @@ export class WorkspaceMutationResolver {
   constructor(private workspaceService: WorkspaceService) {}
 
   @Mutation(() => Workspace)
-  @Access.allow([{ role: [UserRole.USER, UserRole.ADMIN], targetScope: AccessScope.GLOBAL }])
+  @Access.allow([
+    {
+      and: [
+        { targetId: fromReq('user.id'), targetScope: AccessScope.USER },
+        { level: PermissionLevel.OWNER, permission: Permission.WORKSPACE_CREATE },
+      ],
+    },
+    { level: PermissionLevel.ADMIN, permission: Permission.WORKSPACE_CREATE },
+  ])
   async createWorkspace(
     @Args('dto') dto: WorkspaceInDto,
     @CurrentUser() currentUser: User,
@@ -33,11 +41,12 @@ export class WorkspaceMutationResolver {
   @Mutation(() => Workspace)
   @Access.allow([
     {
-      role: [UserRole.USER],
-      targetId: fromArg('id'),
-      targetScope: AccessScope.WORKSPACE,
+      and: [
+        { targetId: fromArg('id'), targetScope: AccessScope.WORKSPACE },
+        { level: PermissionLevel.OWNER, permission: Permission.WORKSPACE_UPDATE },
+      ],
     },
-    { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
+    { level: PermissionLevel.ADMIN, permission: Permission.WORKSPACE_UPDATE },
   ])
   async updateWorkspace(
     @Args('id', { type: () => Int }) id: number,
@@ -51,11 +60,12 @@ export class WorkspaceMutationResolver {
   @Mutation(() => Workspace)
   @Access.allow([
     {
-      role: [UserRole.USER],
-      targetId: fromArg('id'),
-      targetScope: AccessScope.WORKSPACE,
+      and: [
+        { targetId: fromArg('id'), targetScope: AccessScope.WORKSPACE },
+        { level: PermissionLevel.OWNER, permission: Permission.WORKSPACE_DELETE },
+      ],
     },
-    { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
+    { level: PermissionLevel.ADMIN, permission: Permission.WORKSPACE_DELETE },
   ])
   async deleteWorkspace(
     @Args('id', { type: () => Int }) id: number,

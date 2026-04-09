@@ -21,10 +21,7 @@ export class ItemMergeService {
     currentUser: User,
     tx: Prisma.TransactionClient = this.prisma,
   ) {
-    await this.consistencyService.itemsToSameWorkspace.ensureIsBelonging(
-      hostItem,
-      mergingItem,
-    );
+    await this.consistencyService.itemsToSameWorkspace.ensureIsBelonging(hostItem, mergingItem);
 
     const mergingPayments = await tx.payment.findMany({
       where: { itemId: mergingItem.id },

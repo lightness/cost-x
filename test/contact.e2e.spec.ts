@@ -9,11 +9,11 @@ import { ContactModule } from '../src/contact/contact.module';
 import { InviteStatus } from '../src/contact/entity/invite-status.enum';
 import { GraphqlModule } from '../src/graphql/graphql.module';
 import { PrismaService } from '../src/prisma/prisma.service';
-import { UserRole } from '../src/user/entity/user-role.enum';
 import { ContactFactoryService } from './factory/contact-factory.service';
 import { FactoryModule } from './factory/factory.module';
 import { InviteFactoryService } from './factory/invite-factory.service';
 import { UserBlockFactoryService } from './factory/user-block-factory.service';
+import { Permission } from '../generated/prisma/enums';
 import { UserFactoryService } from './factory/user-factory.service';
 import { TestGraphqlModule } from './graphql/test-graphql.module';
 import { TestConfigModule } from './test-config.module';
@@ -54,7 +54,7 @@ describe('Contact E2E', () => {
 
     it('should be possible to invite user', async () => {
       // Assume
-      const inviter = await userFactory.create('active');
+      const inviter = await userFactory.createWithPermissions('active', [Permission.INVITE_CREATE]);
       const invitee = await userFactory.create('active');
 
       // Act
@@ -88,7 +88,7 @@ describe('Contact E2E', () => {
 
     it('should not be possible to invite user, if pending invite exists', async () => {
       // Assume
-      const inviter = await userFactory.create('active');
+      const inviter = await userFactory.createWithPermissions('active', [Permission.INVITE_CREATE]);
       const invitee = await userFactory.create('active');
       await inviteFactory.create('pending', {
         inviteeId: invitee.id,
@@ -128,7 +128,7 @@ describe('Contact E2E', () => {
 
     it('should be possible to invite user, if non-pending invite exists', async () => {
       // Assume
-      const inviter = await userFactory.create('active');
+      const inviter = await userFactory.createWithPermissions('active', [Permission.INVITE_CREATE]);
       const invitee = await userFactory.create('active');
       await inviteFactory.create('rejected', {
         inviteeId: invitee.id,
@@ -166,7 +166,7 @@ describe('Contact E2E', () => {
 
     it('should not be possible to invite user, if pending invite exists (reverse)', async () => {
       // Assume
-      const inviter = await userFactory.create('active');
+      const inviter = await userFactory.createWithPermissions('active', [Permission.INVITE_CREATE]);
       const invitee = await userFactory.create('active');
       await inviteFactory.create('pending', {
         inviteeId: inviter.id,
@@ -206,7 +206,7 @@ describe('Contact E2E', () => {
 
     it('should be possible to invite user, if non-pending invite exists (reverse)', async () => {
       // Assume
-      const inviter = await userFactory.create('active');
+      const inviter = await userFactory.createWithPermissions('active', [Permission.INVITE_CREATE]);
       const invitee = await userFactory.create('active');
       await inviteFactory.create('rejected', {
         inviteeId: inviter.id,
@@ -244,7 +244,7 @@ describe('Contact E2E', () => {
 
     it('should not be possible to invite user, if contact exists', async () => {
       // Assume
-      const inviter = await userFactory.create('active');
+      const inviter = await userFactory.createWithPermissions('active', [Permission.INVITE_CREATE]);
       const invitee = await userFactory.create('active');
       const invite = await inviteFactory.create('accepted');
       await contactFactory.create('active', {
@@ -286,7 +286,7 @@ describe('Contact E2E', () => {
 
     it('should be possible to invite user, if removed contact exists', async () => {
       // Assume
-      const inviter = await userFactory.create('active');
+      const inviter = await userFactory.createWithPermissions('active', [Permission.INVITE_CREATE]);
       const invitee = await userFactory.create('active');
       const invite = await inviteFactory.create('accepted');
       await contactFactory.create('removed-by-source-user', {
@@ -326,7 +326,7 @@ describe('Contact E2E', () => {
 
     it('should not be possible to invite user, if invitee blocked inviter', async () => {
       // Assume
-      const inviter = await userFactory.create('active');
+      const inviter = await userFactory.createWithPermissions('active', [Permission.INVITE_CREATE]);
       const invitee = await userFactory.create('active');
       await userBlockFactory.create('active', {
         blockedId: inviter.id,
@@ -366,7 +366,7 @@ describe('Contact E2E', () => {
 
     it('should be possible to invite user, if invitee unblocked inviter', async () => {
       // Assume
-      const inviter = await userFactory.create('active');
+      const inviter = await userFactory.createWithPermissions('active', [Permission.INVITE_CREATE]);
       const invitee = await userFactory.create('active');
       await userBlockFactory.create('removed', {
         blockedId: inviter.id,
@@ -404,7 +404,7 @@ describe('Contact E2E', () => {
 
     it('should not be possible to invite user, if inviter blocked invitee', async () => {
       // Assume
-      const inviter = await userFactory.create('active');
+      const inviter = await userFactory.createWithPermissions('active', [Permission.INVITE_CREATE]);
       const invitee = await userFactory.create('active');
       await userBlockFactory.create('active', {
         blockedId: invitee.id,
@@ -444,7 +444,7 @@ describe('Contact E2E', () => {
 
     it('should be possible to invite user, if inviter unblocked invitee', async () => {
       // Assume
-      const inviter = await userFactory.create('active');
+      const inviter = await userFactory.createWithPermissions('active', [Permission.INVITE_CREATE]);
       const invitee = await userFactory.create('active');
       await userBlockFactory.create('removed', {
         blockedId: invitee.id,
@@ -485,7 +485,7 @@ describe('Contact E2E', () => {
     it('should be possible for invitee to accept invite', async () => {
       // Assume
       const inviter = await userFactory.create('active');
-      const invitee = await userFactory.create('active');
+      const invitee = await userFactory.createWithPermissions('active', [Permission.INVITE_ACCEPT]);
       const invite = await inviteFactory.create('pending', {
         inviteeId: invitee.id,
         inviterId: inviter.id,
@@ -521,7 +521,7 @@ describe('Contact E2E', () => {
     it('should not be possible for inviter to accept invite', async () => {
       // Assume
       const inviter = await userFactory.create('active');
-      const invitee = await userFactory.create('active');
+      const invitee = await userFactory.createWithPermissions('active', [Permission.INVITE_ACCEPT]);
       const invite = await inviteFactory.create('pending', {
         inviteeId: invitee.id,
         inviterId: inviter.id,
@@ -559,7 +559,7 @@ describe('Contact E2E', () => {
     it('should not be possible to accept invite, if contact exists', async () => {
       // Assume
       const inviter = await userFactory.create('active');
-      const invitee = await userFactory.create('active');
+      const invitee = await userFactory.createWithPermissions('active', [Permission.INVITE_ACCEPT]);
       const invite = await inviteFactory.create('pending', {
         inviteeId: invitee.id,
         inviterId: inviter.id,
@@ -601,7 +601,7 @@ describe('Contact E2E', () => {
     it('should be possible to accept invite, if removed contact exists', async () => {
       // Assume
       const inviter = await userFactory.create('active');
-      const invitee = await userFactory.create('active');
+      const invitee = await userFactory.createWithPermissions('active', [Permission.INVITE_ACCEPT]);
       const invite = await inviteFactory.create('pending', {
         inviteeId: invitee.id,
         inviterId: inviter.id,
@@ -641,7 +641,7 @@ describe('Contact E2E', () => {
     it('should not be possible to invite user, if invitee blocked inviter', async () => {
       // Assume
       const inviter = await userFactory.create('active');
-      const invitee = await userFactory.create('active');
+      const invitee = await userFactory.createWithPermissions('active', [Permission.INVITE_ACCEPT]);
       const invite = await inviteFactory.create('pending', {
         inviteeId: invitee.id,
         inviterId: inviter.id,
@@ -683,7 +683,7 @@ describe('Contact E2E', () => {
     it('should be possible to invite user, if invitee unblocked inviter', async () => {
       // Assume
       const inviter = await userFactory.create('active');
-      const invitee = await userFactory.create('active');
+      const invitee = await userFactory.createWithPermissions('active', [Permission.INVITE_ACCEPT]);
       const invite = await inviteFactory.create('pending', {
         inviteeId: invitee.id,
         inviterId: inviter.id,
@@ -723,7 +723,7 @@ describe('Contact E2E', () => {
     it('should not be possible to invite user, if inviter blocked invitee', async () => {
       // Assume
       const inviter = await userFactory.create('active');
-      const invitee = await userFactory.create('active');
+      const invitee = await userFactory.createWithPermissions('active', [Permission.INVITE_ACCEPT]);
       const invite = await inviteFactory.create('pending', {
         inviteeId: invitee.id,
         inviterId: inviter.id,
@@ -765,7 +765,7 @@ describe('Contact E2E', () => {
     it('should be possible to invite user, if inviter unblocked invitee', async () => {
       // Assume
       const inviter = await userFactory.create('active');
-      const invitee = await userFactory.create('active');
+      const invitee = await userFactory.createWithPermissions('active', [Permission.INVITE_ACCEPT]);
       const invite = await inviteFactory.create('pending', {
         inviteeId: invitee.id,
         inviterId: inviter.id,
@@ -807,7 +807,7 @@ describe('Contact E2E', () => {
     it('should be possible for invitee to reject invite', async () => {
       // Assume
       const inviter = await userFactory.create('active');
-      const invitee = await userFactory.create('active');
+      const invitee = await userFactory.createWithPermissions('active', [Permission.INVITE_REJECT]);
       const invite = await inviteFactory.create('pending', {
         inviteeId: invitee.id,
         inviterId: inviter.id,
@@ -843,7 +843,7 @@ describe('Contact E2E', () => {
     it('should not be possible for inviter to reject invite', async () => {
       // Assume
       const inviter = await userFactory.create('active');
-      const invitee = await userFactory.create('active');
+      const invitee = await userFactory.createWithPermissions('active', [Permission.INVITE_REJECT]);
       const invite = await inviteFactory.create('pending', {
         inviteeId: invitee.id,
         inviterId: inviter.id,
@@ -882,7 +882,7 @@ describe('Contact E2E', () => {
     it('should not be possible to reject invite, if contact exists', async () => {
       // Assume
       const inviter = await userFactory.create('active');
-      const invitee = await userFactory.create('active');
+      const invitee = await userFactory.createWithPermissions('active', [Permission.INVITE_REJECT]);
       const invite = await inviteFactory.create('pending', {
         inviteeId: invitee.id,
         inviterId: inviter.id,
@@ -925,7 +925,7 @@ describe('Contact E2E', () => {
     it('should be possible to reject invite, if removed contact exists', async () => {
       // Assume
       const inviter = await userFactory.create('active');
-      const invitee = await userFactory.create('active');
+      const invitee = await userFactory.createWithPermissions('active', [Permission.INVITE_REJECT]);
       const invite = await inviteFactory.create('pending', {
         inviteeId: invitee.id,
         inviterId: inviter.id,
@@ -965,7 +965,7 @@ describe('Contact E2E', () => {
     it('should not be possible to invite user, if invitee blocked inviter', async () => {
       // Assume
       const inviter = await userFactory.create('active');
-      const invitee = await userFactory.create('active');
+      const invitee = await userFactory.createWithPermissions('active', [Permission.INVITE_REJECT]);
       const invite = await inviteFactory.create('pending', {
         inviteeId: invitee.id,
         inviterId: inviter.id,
@@ -1008,7 +1008,7 @@ describe('Contact E2E', () => {
     it('should be possible to invite user, if invitee unblocked inviter', async () => {
       // Assume
       const inviter = await userFactory.create('active');
-      const invitee = await userFactory.create('active');
+      const invitee = await userFactory.createWithPermissions('active', [Permission.INVITE_REJECT]);
       const invite = await inviteFactory.create('pending', {
         inviteeId: invitee.id,
         inviterId: inviter.id,
@@ -1048,7 +1048,7 @@ describe('Contact E2E', () => {
     it('should not be possible to invite user, if inviter blocked invitee', async () => {
       // Assume
       const inviter = await userFactory.create('active');
-      const invitee = await userFactory.create('active');
+      const invitee = await userFactory.createWithPermissions('active', [Permission.INVITE_REJECT]);
       const invite = await inviteFactory.create('pending', {
         inviteeId: invitee.id,
         inviterId: inviter.id,
@@ -1091,7 +1091,7 @@ describe('Contact E2E', () => {
     it('should be possible to invite user, if inviter unblocked invitee', async () => {
       // Assume
       const inviter = await userFactory.create('active');
-      const invitee = await userFactory.create('active');
+      const invitee = await userFactory.createWithPermissions('active', [Permission.INVITE_REJECT]);
       const invite = await inviteFactory.create('pending', {
         inviteeId: invitee.id,
         inviterId: inviter.id,
@@ -1133,7 +1133,7 @@ describe('Contact E2E', () => {
     it('should be possible for invitee to reject invite and block inviter', async () => {
       // Assume
       const inviter = await userFactory.create('active');
-      const invitee = await userFactory.create('active');
+      const invitee = await userFactory.createWithPermissions('active', [Permission.INVITE_REJECT]);
       const invite = await inviteFactory.create('pending', {
         inviteeId: invitee.id,
         inviterId: inviter.id,
@@ -1170,7 +1170,7 @@ describe('Contact E2E', () => {
     it('should not be possible for inviter to reject invite', async () => {
       // Assume
       const inviter = await userFactory.create('active');
-      const invitee = await userFactory.create('active');
+      const invitee = await userFactory.createWithPermissions('active', [Permission.INVITE_REJECT]);
       const invite = await inviteFactory.create('pending', {
         inviteeId: invitee.id,
         inviterId: inviter.id,
@@ -1210,7 +1210,7 @@ describe('Contact E2E', () => {
     it('should not be possible to reject invite, if contact exists', async () => {
       // Assume
       const inviter = await userFactory.create('active');
-      const invitee = await userFactory.create('active');
+      const invitee = await userFactory.createWithPermissions('active', [Permission.INVITE_REJECT]);
       const invite = await inviteFactory.create('pending', {
         inviteeId: invitee.id,
         inviterId: inviter.id,
@@ -1254,7 +1254,7 @@ describe('Contact E2E', () => {
     it('should be possible to reject invite, if removed contact exists', async () => {
       // Assume
       const inviter = await userFactory.create('active');
-      const invitee = await userFactory.create('active');
+      const invitee = await userFactory.createWithPermissions('active', [Permission.INVITE_REJECT]);
       const invite = await inviteFactory.create('pending', {
         inviteeId: invitee.id,
         inviterId: inviter.id,
@@ -1295,7 +1295,7 @@ describe('Contact E2E', () => {
     it('should not be possible to reject invite, if invitee blocked inviter', async () => {
       // Assume
       const inviter = await userFactory.create('active');
-      const invitee = await userFactory.create('active');
+      const invitee = await userFactory.createWithPermissions('active', [Permission.INVITE_REJECT]);
       const invite = await inviteFactory.create('pending', {
         inviteeId: invitee.id,
         inviterId: inviter.id,
@@ -1339,7 +1339,7 @@ describe('Contact E2E', () => {
     it('should be possible to invite user, if invitee unblocked inviter', async () => {
       // Assume
       const inviter = await userFactory.create('active');
-      const invitee = await userFactory.create('active');
+      const invitee = await userFactory.createWithPermissions('active', [Permission.INVITE_REJECT]);
       const invite = await inviteFactory.create('pending', {
         inviteeId: invitee.id,
         inviterId: inviter.id,
@@ -1380,7 +1380,7 @@ describe('Contact E2E', () => {
     it('should not be possible to invite user, if inviter blocked invitee', async () => {
       // Assume
       const inviter = await userFactory.create('active');
-      const invitee = await userFactory.create('active');
+      const invitee = await userFactory.createWithPermissions('active', [Permission.INVITE_REJECT]);
       const invite = await inviteFactory.create('pending', {
         inviteeId: invitee.id,
         inviterId: inviter.id,
@@ -1424,7 +1424,7 @@ describe('Contact E2E', () => {
     it('should be possible to invite user, if inviter unblocked invitee', async () => {
       // Assume
       const inviter = await userFactory.create('active');
-      const invitee = await userFactory.create('active');
+      const invitee = await userFactory.createWithPermissions('active', [Permission.INVITE_REJECT]);
       const invite = await inviteFactory.create('pending', {
         inviteeId: invitee.id,
         inviterId: inviter.id,
@@ -1467,7 +1467,7 @@ describe('Contact E2E', () => {
     it('should be possible to delete contact by source user', async () => {
       // Assume
       const inviter = await userFactory.create('active');
-      const invitee = await userFactory.create('active');
+      const invitee = await userFactory.createWithPermissions('active', [Permission.CONTACT_DELETE]);
       const invite = await inviteFactory.create('accepted', {
         inviteeId: invitee.id,
         inviterId: inviter.id,
@@ -1518,7 +1518,7 @@ describe('Contact E2E', () => {
     it('should be possible to delete contact by admin', async () => {
       // Assume
       const inviter = await userFactory.create('active');
-      const invitee = await userFactory.create('active');
+      const invitee = await userFactory.createWithPermissions('active', [Permission.CONTACT_DELETE]);
       const invite = await inviteFactory.create('accepted', {
         inviteeId: invitee.id,
         inviterId: inviter.id,
@@ -1530,7 +1530,7 @@ describe('Contact E2E', () => {
         sourceUserId: sourceUser.id,
         targetUserId: targetUser.id,
       });
-      const admin = await userFactory.create('active', { role: UserRole.ADMIN });
+      const admin = await userFactory.createWithAllPermissions();
 
       // Act
       const query = `
@@ -1570,7 +1570,7 @@ describe('Contact E2E', () => {
     it('should not be possible to delete contact by target user', async () => {
       // Assume
       const inviter = await userFactory.create('active');
-      const invitee = await userFactory.create('active');
+      const invitee = await userFactory.createWithPermissions('active', [Permission.CONTACT_DELETE]);
       const invite = await inviteFactory.create('accepted', {
         inviteeId: invitee.id,
         inviterId: inviter.id,
@@ -1623,7 +1623,7 @@ describe('Contact E2E', () => {
     it(`should not be possible to delete contact by foreign user`, async () => {
       // Assume
       const inviter = await userFactory.create('active');
-      const invitee = await userFactory.create('active');
+      const invitee = await userFactory.createWithPermissions('active', [Permission.CONTACT_DELETE]);
       const invite = await inviteFactory.create('accepted', {
         inviteeId: invitee.id,
         inviterId: inviter.id,
@@ -1635,7 +1635,7 @@ describe('Contact E2E', () => {
         sourceUserId: sourceUser.id,
         targetUserId: targetUser.id,
       });
-      const admin = await userFactory.create('active', { role: UserRole.USER });
+      const admin = await userFactory.create('active');
 
       // Act
       const query = `
@@ -1677,7 +1677,7 @@ describe('Contact E2E', () => {
     it('should not be possible to delete deleted contact', async () => {
       // Assume
       const inviter = await userFactory.create('active');
-      const invitee = await userFactory.create('active');
+      const invitee = await userFactory.createWithPermissions('active', [Permission.CONTACT_DELETE]);
       const invite = await inviteFactory.create('accepted', {
         inviteeId: invitee.id,
         inviterId: inviter.id,
@@ -1732,7 +1732,7 @@ describe('Contact E2E', () => {
     it('should be possible to block user', async () => {
       // Assume
       const inviter = await userFactory.create('active');
-      const invitee = await userFactory.create('active');
+      const invitee = await userFactory.createWithPermissions('active', [Permission.USER_BLOCK_CREATE]);
       const invite = await inviteFactory.create('accepted', {
         inviteeId: invitee.id,
         inviterId: inviter.id,
@@ -1786,7 +1786,7 @@ describe('Contact E2E', () => {
     it('should be possible to block user by admin user', async () => {
       // Assume
       const inviter = await userFactory.create('active');
-      const invitee = await userFactory.create('active');
+      const invitee = await userFactory.createWithPermissions('active', [Permission.USER_BLOCK_CREATE]);
       const invite = await inviteFactory.create('accepted', {
         inviteeId: invitee.id,
         inviterId: inviter.id,
@@ -1798,7 +1798,7 @@ describe('Contact E2E', () => {
         sourceUserId: sourceUser.id,
         targetUserId: targetUser.id,
       });
-      const admin = await userFactory.create('active', { role: UserRole.ADMIN });
+      const admin = await userFactory.createWithAllPermissions();
 
       // Act
       const query = `
@@ -1841,7 +1841,7 @@ describe('Contact E2E', () => {
     it('should not be possible to block self', async () => {
       // Assume
       const inviter = await userFactory.create('active');
-      const invitee = await userFactory.create('active');
+      const invitee = await userFactory.createWithPermissions('active', [Permission.USER_BLOCK_CREATE]);
       const invite = await inviteFactory.create('accepted', {
         inviteeId: invitee.id,
         inviterId: inviter.id,
@@ -1899,7 +1899,7 @@ describe('Contact E2E', () => {
     it('should not be possible to block blocked user', async () => {
       // Assume
       const inviter = await userFactory.create('active');
-      const invitee = await userFactory.create('active');
+      const invitee = await userFactory.createWithPermissions('active', [Permission.USER_BLOCK_CREATE]);
       const invite = await inviteFactory.create('accepted', {
         inviteeId: invitee.id,
         inviterId: inviter.id,
@@ -1948,7 +1948,7 @@ describe('Contact E2E', () => {
     it('should be possible to block user again after unblocking', async () => {
       // Assume
       const inviter = await userFactory.create('active');
-      const invitee = await userFactory.create('active');
+      const invitee = await userFactory.createWithPermissions('active', [Permission.USER_BLOCK_CREATE]);
       const invite = await inviteFactory.create('accepted', {
         inviteeId: invitee.id,
         inviterId: inviter.id,
@@ -2009,7 +2009,7 @@ describe('Contact E2E', () => {
   describe('unblock user', () => {
     it('should be possible to unblock blocked user by blocker user', async () => {
       // Assume
-      const blocker = await userFactory.create('active');
+      const blocker = await userFactory.createWithPermissions('active', [Permission.USER_BLOCK_DELETE]);
       const blocked = await userFactory.create('active');
       await userBlockFactory.create('active', { blockedId: blocked.id, blockerId: blocker.id });
 
@@ -2047,10 +2047,10 @@ describe('Contact E2E', () => {
 
     it('should be possible to unblock blocked user by admin user', async () => {
       // Assume
-      const blocker = await userFactory.create('active');
+      const blocker = await userFactory.createWithPermissions('active', [Permission.USER_BLOCK_DELETE]);
       const blocked = await userFactory.create('active');
       await userBlockFactory.create('active', { blockedId: blocked.id, blockerId: blocker.id });
-      const admin = await userFactory.create('active', { role: UserRole.ADMIN });
+      const admin = await userFactory.createWithAllPermissions();
 
       // Act
       const query = `
@@ -2086,7 +2086,7 @@ describe('Contact E2E', () => {
 
     it('should not be possible to unblock user by blocked user', async () => {
       // Assume
-      const blocker = await userFactory.create('active');
+      const blocker = await userFactory.createWithPermissions('active', [Permission.USER_BLOCK_DELETE]);
       const blocked = await userFactory.create('active');
       await userBlockFactory.create('active', { blockedId: blocked.id, blockerId: blocker.id });
 
@@ -2127,7 +2127,7 @@ describe('Contact E2E', () => {
 
     it('should not be possible to unblock user, which was not blocked', async () => {
       // Assume
-      const blocker = await userFactory.create('active');
+      const blocker = await userFactory.createWithPermissions('active', [Permission.USER_BLOCK_DELETE]);
       const blocked = await userFactory.create('active');
 
       // Act
@@ -2167,7 +2167,7 @@ describe('Contact E2E', () => {
 
     it('should not be possible to unblock user, which was blocked by other user', async () => {
       // Assume
-      const blocker = await userFactory.create('active');
+      const blocker = await userFactory.createWithPermissions('active', [Permission.USER_BLOCK_DELETE]);
       const blocked = await userFactory.create('active');
       await userBlockFactory.create('active', { blockedId: blocked.id, blockerId: blocker.id });
       const nobody = await userFactory.create('active');

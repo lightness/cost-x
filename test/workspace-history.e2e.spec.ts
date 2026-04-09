@@ -14,6 +14,7 @@ import { ItemFactoryService } from './factory/item-factory.service';
 import { PaymentFactoryService } from './factory/payment-factory.service';
 import { TagFactoryService } from './factory/tag-factory.service';
 import { UserFactoryService } from './factory/user-factory.service';
+// All workspace-history tests are positive tests — users need full permissions
 import { WorkspaceFactoryService } from './factory/workspace-factory.service';
 import { TestConfigModule } from './test-config.module';
 
@@ -79,7 +80,7 @@ describe('WorkspaceHistory E2E', () => {
 
   describe('createWorkspace', () => {
     it('should create a WORKSPACE_CREATED history entry', async () => {
-      const user = await userFactory.create('active');
+      const user = await userFactory.createWithAllPermissions();
       const { accessToken } = await authService.authenticateUser(user);
 
       const response = await gql(app, accessToken)(
@@ -103,7 +104,7 @@ describe('WorkspaceHistory E2E', () => {
 
   describe('updateWorkspace', () => {
     it('should create a WORKSPACE_UPDATED history entry', async () => {
-      const user = await userFactory.create('active');
+      const user = await userFactory.createWithAllPermissions();
       const workspace = await workspaceFactory.create(user.id, { title: 'Old Title' });
       const { accessToken } = await authService.authenticateUser(user);
 
@@ -127,7 +128,7 @@ describe('WorkspaceHistory E2E', () => {
 
   describe('deleteWorkspace', () => {
     it('should succeed (history is cascade-deleted with workspace)', async () => {
-      const user = await userFactory.create('active');
+      const user = await userFactory.createWithAllPermissions();
       const workspace = await workspaceFactory.create(user.id);
       const { accessToken } = await authService.authenticateUser(user);
 
@@ -147,7 +148,7 @@ describe('WorkspaceHistory E2E', () => {
 
   describe('createItem', () => {
     it('should create an ITEM_CREATED history entry', async () => {
-      const user = await userFactory.create('active');
+      const user = await userFactory.createWithAllPermissions();
       const workspace = await workspaceFactory.create(user.id);
       const { accessToken } = await authService.authenticateUser(user);
 
@@ -171,7 +172,7 @@ describe('WorkspaceHistory E2E', () => {
 
   describe('updateItem', () => {
     it('should create an ITEM_UPDATED history entry', async () => {
-      const user = await userFactory.create('active');
+      const user = await userFactory.createWithAllPermissions();
       const workspace = await workspaceFactory.create(user.id);
       const item = await itemFactory.create(workspace.id, { title: 'Old Title' });
       const { accessToken } = await authService.authenticateUser(user);
@@ -196,7 +197,7 @@ describe('WorkspaceHistory E2E', () => {
 
   describe('deleteItem', () => {
     it('should create an ITEM_DELETED history entry', async () => {
-      const user = await userFactory.create('active');
+      const user = await userFactory.createWithAllPermissions();
       const workspace = await workspaceFactory.create(user.id);
       const item = await itemFactory.create(workspace.id, { title: 'Doomed Item' });
       const { accessToken } = await authService.authenticateUser(user);
@@ -223,7 +224,7 @@ describe('WorkspaceHistory E2E', () => {
 
   describe('createPayment', () => {
     it('should create a PAYMENT_CREATED history entry', async () => {
-      const user = await userFactory.create('active');
+      const user = await userFactory.createWithAllPermissions();
       const workspace = await workspaceFactory.create(user.id);
       const item = await itemFactory.create(workspace.id);
       const { accessToken } = await authService.authenticateUser(user);
@@ -248,7 +249,7 @@ describe('WorkspaceHistory E2E', () => {
 
   describe('updatePayment', () => {
     it('should create a PAYMENT_UPDATED history entry', async () => {
-      const user = await userFactory.create('active');
+      const user = await userFactory.createWithAllPermissions();
       const workspace = await workspaceFactory.create(user.id);
       const item = await itemFactory.create(workspace.id);
       const payment = await paymentFactory.create(item.id, { currency: 'USD' });
@@ -274,7 +275,7 @@ describe('WorkspaceHistory E2E', () => {
 
   describe('deletePayment', () => {
     it('should create a PAYMENT_DELETED history entry', async () => {
-      const user = await userFactory.create('active');
+      const user = await userFactory.createWithAllPermissions();
       const workspace = await workspaceFactory.create(user.id);
       const item = await itemFactory.create(workspace.id);
       const payment = await paymentFactory.create(item.id);
@@ -302,7 +303,7 @@ describe('WorkspaceHistory E2E', () => {
 
   describe('createTag', () => {
     it('should create a TAG_CREATED history entry', async () => {
-      const user = await userFactory.create('active');
+      const user = await userFactory.createWithAllPermissions();
       const workspace = await workspaceFactory.create(user.id);
       const { accessToken } = await authService.authenticateUser(user);
 
@@ -326,7 +327,7 @@ describe('WorkspaceHistory E2E', () => {
 
   describe('updateTag', () => {
     it('should create a TAG_UPDATED history entry', async () => {
-      const user = await userFactory.create('active');
+      const user = await userFactory.createWithAllPermissions();
       const workspace = await workspaceFactory.create(user.id);
       const tag = await tagFactory.create(workspace.id, { color: 'aaaaaa', title: 'Old Tag' });
       const { accessToken } = await authService.authenticateUser(user);
@@ -351,7 +352,7 @@ describe('WorkspaceHistory E2E', () => {
 
   describe('deleteTag', () => {
     it('should create a TAG_DELETED history entry', async () => {
-      const user = await userFactory.create('active');
+      const user = await userFactory.createWithAllPermissions();
       const workspace = await workspaceFactory.create(user.id);
       const tag = await tagFactory.create(workspace.id, { title: 'Doomed Tag' });
       const { accessToken } = await authService.authenticateUser(user);
@@ -378,7 +379,7 @@ describe('WorkspaceHistory E2E', () => {
 
   describe('assignTag', () => {
     it('should create an ITEM_TAG_ASSIGNED history entry', async () => {
-      const user = await userFactory.create('active');
+      const user = await userFactory.createWithAllPermissions();
       const workspace = await workspaceFactory.create(user.id);
       const item = await itemFactory.create(workspace.id);
       const tag = await tagFactory.create(workspace.id);
@@ -404,7 +405,7 @@ describe('WorkspaceHistory E2E', () => {
 
   describe('unassignTag', () => {
     it('should create an ITEM_TAG_UNASSIGNED history entry', async () => {
-      const user = await userFactory.create('active');
+      const user = await userFactory.createWithAllPermissions();
       const workspace = await workspaceFactory.create(user.id);
       const item = await itemFactory.create(workspace.id);
       const tag = await tagFactory.create(workspace.id);
@@ -433,7 +434,7 @@ describe('WorkspaceHistory E2E', () => {
 
   describe('mergeItems', () => {
     it('should create an ITEM_MERGED history entry', async () => {
-      const user = await userFactory.create('active');
+      const user = await userFactory.createWithAllPermissions();
       const workspace = await workspaceFactory.create(user.id);
       const hostItem = await itemFactory.create(workspace.id, { title: 'Host' });
       const mergingItem = await itemFactory.create(workspace.id, { title: 'Merging' });

@@ -1,9 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { v4 as uuid } from 'uuid';
+import { Permission } from '../../generated/prisma/enums';
 import { UserCreateInput, UserCreateManyInput } from '../../generated/prisma/models';
 import { PrismaService } from '../../src/prisma/prisma.service';
 import User from '../../src/user/entity/user.entity';
 import { KindBasedFactoryService } from './base-factory.service';
+
+const ALL_PERMISSIONS = Object.values(Permission);
 
 export type UserKind = 'active' | 'email_not_verified' | 'banned';
 
@@ -22,6 +25,32 @@ export class UserFactoryService
         ...(await this.generate(kind, overrides)),
       },
     });
+  }
+
+  async createWithPermissions(
+    kind: UserKind = 'active',
+    permissions: Permission[] = [],
+    accessLevel = 1,
+  ): Promise<User> {
+    const user = await this.create(kind);
+
+    if (permissions.length > 0) {
+      await this.prisma.userPermission.createMany({
+        data: permissions.map((permission) => ({ userId: user.id, permission, accessLevel })),
+      });
+    }
+
+    return user;
+  }
+
+  async createWithAllPermissions(kind: UserKind = 'active'): Promise<User> {
+    const user = await this.create(kind);
+
+    await this.prisma.userPermission.createMany({
+      data: ALL_PERMISSIONS.map((permission) => ({ userId: user.id, permission, accessLevel: 3 })),
+    });
+
+    return user;
   }
 
   async generate(

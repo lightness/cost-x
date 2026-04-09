@@ -3,9 +3,9 @@ import { Args, Int, Query, Resolver } from '@nestjs/graphql';
 import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
-import { AccessScope } from '../../access/interfaces';
+import { AccessScope, PermissionLevel } from '../../access/interfaces';
 import { AuthGuard } from '../../auth/guard/auth.guard';
-import { UserRole } from '../../user/entity/user-role.enum';
+import { Permission } from '../../access/interfaces';
 import { TagsFilter } from '../dto';
 import Tag from '../entity/tag.entity';
 import { TagService } from '../tag.service';
@@ -18,11 +18,12 @@ export class TagQueryResolver {
   @Query(() => [Tag])
   @Access.allow([
     {
-      role: [UserRole.USER],
-      targetId: fromArg('workspaceId'),
-      targetScope: AccessScope.WORKSPACE,
+      and: [
+        { targetId: fromArg('workspaceId'), targetScope: AccessScope.WORKSPACE },
+        { level: PermissionLevel.OWNER, permission: Permission.WORKSPACE_READ },
+      ],
     },
-    { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
+    { level: PermissionLevel.ADMIN, permission: Permission.WORKSPACE_READ },
   ])
   async tags(
     @Args('workspaceId', { type: () => Int }) workspaceId: number,
@@ -34,11 +35,12 @@ export class TagQueryResolver {
   @Query(() => Tag)
   @Access.allow([
     {
-      role: [UserRole.USER],
-      targetId: fromArg('id'),
-      targetScope: AccessScope.TAG,
+      and: [
+        { targetId: fromArg('id'), targetScope: AccessScope.TAG },
+        { level: PermissionLevel.OWNER, permission: Permission.WORKSPACE_READ },
+      ],
     },
-    { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
+    { level: PermissionLevel.ADMIN, permission: Permission.WORKSPACE_READ },
   ])
   async tag(@Args('id', { type: () => Int }) id: number): Promise<Tag> {
     return this.tagService.getById(id);

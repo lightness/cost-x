@@ -6,11 +6,7 @@ import { Workspace } from '../entity/workspace.entity';
 import { WorkspaceService } from '../workspace.service';
 
 @Injectable({ scope: Scope.REQUEST })
-export class WorkspacesByUserIdLoader extends NestedLoader<
-  number,
-  Workspace[],
-  WorkspacesFilter
-> {
+export class WorkspacesByUserIdLoader extends NestedLoader<number, Workspace[], WorkspacesFilter> {
   constructor(
     private workspaceService: WorkspaceService,
     private groupService: GroupService,
@@ -22,10 +18,7 @@ export class WorkspacesByUserIdLoader extends NestedLoader<
     userIds: number[],
     filter: WorkspacesFilter,
   ): Promise<Workspace[][]> {
-    const workspaces = await this.workspaceService.listByOwnerIds(
-      userIds,
-      filter,
-    );
+    const workspaces = await this.workspaceService.listByOwnerIds(userIds, filter);
 
     const workspacesByUserId = this.groupService.groupBy(workspaces, 'ownerId');
 

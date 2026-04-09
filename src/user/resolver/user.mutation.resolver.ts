@@ -4,13 +4,13 @@ import { Prisma } from '../../../generated/prisma/client';
 import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
-import { AccessScope } from '../../access/interfaces';
+import { AccessScope, PermissionLevel } from '../../access/interfaces';
 import { AuthGuard } from '../../auth/guard/auth.guard';
 import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
 import { UserByIdPipe } from '../../common/pipe/user-by-id.pipe';
 import { GqlLoggingInterceptor } from '../../graphql/interceptor/gql-logging.interceptor';
+import { Permission } from '../../access/interfaces';
 import { CreateUserInDto, UpdateUserInDto } from '../dto';
-import { UserRole } from '../entity/user-role.enum';
 import User from '../entity/user.entity';
 import { UserService } from '../user.service';
 
@@ -31,11 +31,12 @@ export class UserMutationResolver {
   @UseGuards(AuthGuard, AccessGuard)
   @Access.allow([
     {
-      role: UserRole.USER,
-      targetId: fromArg('id'),
-      targetScope: AccessScope.USER,
+      and: [
+        { targetId: fromArg('id'), targetScope: AccessScope.USER },
+        { level: PermissionLevel.OWNER, permission: Permission.USER_UPDATE },
+      ],
     },
-    { role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL },
+    { level: PermissionLevel.ADMIN, permission: Permission.USER_UPDATE },
   ])
   async updateUser(
     @Args('id', { type: () => Int }) id: number,
@@ -47,7 +48,7 @@ export class UserMutationResolver {
 
   @Mutation(() => Boolean)
   @UseGuards(AuthGuard, AccessGuard)
-  @Access.allow([{ role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL }])
+  @Access.allow([{ level: PermissionLevel.ADMIN, permission: Permission.USER_DELETE }])
   async deleteUser(
     @Args('id', { type: () => Int }, UserByIdPipe) user: User,
     @Context('tx') tx: Prisma.TransactionClient,
@@ -59,7 +60,7 @@ export class UserMutationResolver {
 
   @Mutation(() => User)
   @UseGuards(AuthGuard, AccessGuard)
-  @Access.allow([{ role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL }])
+  @Access.allow([{ level: PermissionLevel.ADMIN, permission: Permission.USER_BAN }])
   async banUser(
     @Args('id', { type: () => Int }, UserByIdPipe) user: User,
     @Context('tx') tx: Prisma.TransactionClient,
@@ -69,7 +70,7 @@ export class UserMutationResolver {
 
   @Mutation(() => User)
   @UseGuards(AuthGuard, AccessGuard)
-  @Access.allow([{ role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL }])
+  @Access.allow([{ level: PermissionLevel.ADMIN, permission: Permission.USER_UNBAN }])
   async unbanUser(
     @Args('id', { type: () => Int }, UserByIdPipe) user: User,
     @Context('tx') tx: Prisma.TransactionClient,

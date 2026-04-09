@@ -6,11 +6,7 @@ import Tag from '../entity/tag.entity';
 import { TagService } from '../tag.service';
 
 @Injectable({ scope: Scope.REQUEST })
-export class TagsByWorkspaceIdLoader extends NestedLoader<
-  number,
-  Tag[],
-  TagsFilter
-> {
+export class TagsByWorkspaceIdLoader extends NestedLoader<number, Tag[], TagsFilter> {
   constructor(
     private tagService: TagService,
     private groupService: GroupService,
@@ -26,8 +22,6 @@ export class TagsByWorkspaceIdLoader extends NestedLoader<
 
     const tagsByWorkspaceId = this.groupService.groupBy(tags, 'workspaceId');
 
-    return workspaceIds.map(
-      (workspaceId) => tagsByWorkspaceId.get(workspaceId) || [],
-    );
+    return workspaceIds.map((workspaceId) => tagsByWorkspaceId.get(workspaceId) || []);
   }
 }

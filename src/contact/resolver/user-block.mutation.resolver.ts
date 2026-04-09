@@ -4,12 +4,12 @@ import { Prisma } from '../../../generated/prisma/browser';
 import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
-import { AccessScope } from '../../access/interfaces';
+import { AccessScope, PermissionLevel } from '../../access/interfaces';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
 import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
 import { GqlLoggingInterceptor } from '../../graphql/interceptor/gql-logging.interceptor';
-import { UserRole } from '../../user/entity/user-role.enum';
+import { Permission } from '../../access/interfaces';
 import User from '../../user/entity/user.entity';
 import { CreateUserBlockInDto, RemoveUserBlockInDto } from '../dto';
 import { UserBlock } from '../entity/user-block.entity';
@@ -28,11 +28,12 @@ export class UserBlockMutationResolver {
   @Mutation(() => UserBlock)
   @Access.allow([
     {
-      role: UserRole.USER,
-      targetId: fromArg('dto.blockerId'),
-      targetScope: AccessScope.USER,
+      and: [
+        { targetId: fromArg('dto.blockerId'), targetScope: AccessScope.USER },
+        { level: PermissionLevel.OWNER, permission: Permission.USER_BLOCK_CREATE },
+      ],
     },
-    { role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL },
+    { level: PermissionLevel.ADMIN, permission: Permission.USER_BLOCK_CREATE },
   ])
   async blockUser(
     @Args('dto') dto: CreateUserBlockInDto,
@@ -47,11 +48,12 @@ export class UserBlockMutationResolver {
   @Mutation(() => UserBlock)
   @Access.allow([
     {
-      role: UserRole.USER,
-      targetId: fromArg('dto.blockerId'),
-      targetScope: AccessScope.USER,
+      and: [
+        { targetId: fromArg('dto.blockerId'), targetScope: AccessScope.USER },
+        { level: PermissionLevel.OWNER, permission: Permission.USER_BLOCK_DELETE },
+      ],
     },
-    { role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL },
+    { level: PermissionLevel.ADMIN, permission: Permission.USER_BLOCK_DELETE },
   ])
   async unblockUser(
     @Args('dto') dto: RemoveUserBlockInDto,

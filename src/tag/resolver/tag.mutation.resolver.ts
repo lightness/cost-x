@@ -4,12 +4,12 @@ import { Prisma } from '../../../generated/prisma/client';
 import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
-import { AccessScope } from '../../access/interfaces';
+import { AccessScope, PermissionLevel } from '../../access/interfaces';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
 import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
 import { GqlLoggingInterceptor } from '../../graphql/interceptor/gql-logging.interceptor';
-import { UserRole } from '../../user/entity/user-role.enum';
+import { Permission } from '../../access/interfaces';
 import User from '../../user/entity/user.entity';
 import { TagInDto } from '../dto';
 import Tag from '../entity/tag.entity';
@@ -24,11 +24,12 @@ export class TagMutationResolver {
   @Mutation(() => Tag)
   @Access.allow([
     {
-      role: [UserRole.USER],
-      targetId: fromArg('workspaceId'),
-      targetScope: AccessScope.WORKSPACE,
+      and: [
+        { targetId: fromArg('workspaceId'), targetScope: AccessScope.WORKSPACE },
+        { level: PermissionLevel.OWNER, permission: Permission.TAG_CREATE },
+      ],
     },
-    { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
+    { level: PermissionLevel.ADMIN, permission: Permission.TAG_CREATE },
   ])
   async createTag(
     @Args('workspaceId', { type: () => Int }) workspaceId: number,
@@ -42,11 +43,12 @@ export class TagMutationResolver {
   @Mutation(() => Tag)
   @Access.allow([
     {
-      role: [UserRole.USER],
-      targetId: fromArg('id'),
-      targetScope: AccessScope.TAG,
+      and: [
+        { targetId: fromArg('id'), targetScope: AccessScope.TAG },
+        { level: PermissionLevel.OWNER, permission: Permission.TAG_UPDATE },
+      ],
     },
-    { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
+    { level: PermissionLevel.ADMIN, permission: Permission.TAG_UPDATE },
   ])
   async updateTag(
     @Args('id', { type: () => Int }) id: number,
@@ -60,11 +62,12 @@ export class TagMutationResolver {
   @Mutation(() => Boolean)
   @Access.allow([
     {
-      role: [UserRole.USER],
-      targetId: fromArg('id'),
-      targetScope: AccessScope.TAG,
+      and: [
+        { targetId: fromArg('id'), targetScope: AccessScope.TAG },
+        { level: PermissionLevel.OWNER, permission: Permission.TAG_DELETE },
+      ],
     },
-    { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
+    { level: PermissionLevel.ADMIN, permission: Permission.TAG_DELETE },
   ])
   async deleteTag(
     @Args('id', { type: () => Int }) id: number,

@@ -4,14 +4,14 @@ import { Prisma } from '../../../generated/prisma/client';
 import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
-import { AccessScope } from '../../access/interfaces';
+import { AccessScope, PermissionLevel } from '../../access/interfaces';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
 import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
 import { ItemByIdPipe } from '../../common/pipe/item-by-id.pipe';
 import { DeepArgs } from '../../graphql/decorator/deep-args.decorator';
 import Item from '../../item/entity/item.entity';
-import { UserRole } from '../../user/entity/user-role.enum';
+import { Permission } from '../../access/interfaces';
 import User from '../../user/entity/user.entity';
 import { ExtractAsItemInDto } from '../dto';
 import { ItemExtractService } from '../item-extract.service';
@@ -24,12 +24,13 @@ export class ItemExtractMutationResolver {
 
   @Mutation(() => Item)
   @Access.allow([
-    { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
     {
-      role: [UserRole.USER],
-      targetId: fromArg('dto.itemId'),
-      targetScope: AccessScope.ITEM,
+      and: [
+        { targetId: fromArg('dto.itemId'), targetScope: AccessScope.ITEM },
+        { level: PermissionLevel.OWNER, permission: Permission.ITEM_UPDATE },
+      ],
     },
+    { level: PermissionLevel.ADMIN, permission: Permission.ITEM_UPDATE },
   ])
   async extractAsItem(
     @Args('dto') dto: ExtractAsItemInDto,
@@ -37,6 +38,12 @@ export class ItemExtractMutationResolver {
     @CurrentUser() currentUser: User,
     @Context('tx') tx: Prisma.TransactionClient,
   ) {
-    return this.itemExtractService.extractAsItem(sourceItem, dto.paymentIds, dto.title, currentUser, tx);
+    return this.itemExtractService.extractAsItem(
+      sourceItem,
+      dto.paymentIds,
+      dto.title,
+      currentUser,
+      tx,
+    );
   }
 }

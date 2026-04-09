@@ -1,10 +1,10 @@
 import { UseGuards, UseInterceptors } from '@nestjs/common';
 import { Args, Context, Int, Mutation, Resolver } from '@nestjs/graphql';
-import { Prisma, UserRole } from '../../../generated/prisma/browser';
+import { Prisma } from '../../../generated/prisma/browser';
 import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
-import { AccessScope } from '../../access/interfaces';
+import { AccessScope, Permission, PermissionLevel } from '../../access/interfaces';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
 import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
@@ -26,12 +26,16 @@ export class ContactMutationResolver {
   @Mutation(() => Contact)
   @Access.allow([
     {
-      metadata: { as: 'source-user' },
-      role: UserRole.USER,
-      targetId: fromArg('contactId'),
-      targetScope: AccessScope.CONTACT,
+      and: [
+        {
+          metadata: { as: 'source-user' },
+          targetId: fromArg('contactId'),
+          targetScope: AccessScope.CONTACT,
+        },
+        { level: PermissionLevel.OWNER, permission: Permission.CONTACT_DELETE },
+      ],
     },
-    { role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL },
+    { level: PermissionLevel.ADMIN, permission: Permission.CONTACT_DELETE },
   ])
   async deleteContact(
     @Args('contactId', { type: () => Int }) contactId: number,

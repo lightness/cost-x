@@ -4,12 +4,11 @@ import { Prisma } from '../../../generated/prisma/client';
 import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
-import { AccessScope } from '../../access/interfaces';
+import { AccessScope, Permission, PermissionLevel } from '../../access/interfaces';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
 import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
 import { GqlLoggingInterceptor } from '../../graphql/interceptor/gql-logging.interceptor';
-import { UserRole } from '../../user/entity/user-role.enum';
 import User from '../../user/entity/user.entity';
 import { CreateInviteByEmailInDto, CreateInviteInDto } from '../dto';
 import { EmailInviteService } from '../email-invite.service';
@@ -30,11 +29,12 @@ export class InviteMutationResolver {
   @Mutation(() => Invite)
   @Access.allow([
     {
-      role: UserRole.USER,
-      targetId: fromArg('dto.inviterUserId'),
-      targetScope: AccessScope.USER,
+      and: [
+        { targetId: fromArg('dto.inviterUserId'), targetScope: AccessScope.USER },
+        { level: PermissionLevel.OWNER, permission: Permission.INVITE_CREATE },
+      ],
     },
-    { role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL },
+    { level: PermissionLevel.ADMIN, permission: Permission.INVITE_CREATE },
   ])
   async createInviteByEmail(
     @Args('dto') dto: CreateInviteByEmailInDto,
@@ -46,11 +46,12 @@ export class InviteMutationResolver {
   @Mutation(() => Invite)
   @Access.allow([
     {
-      role: UserRole.USER,
-      targetId: fromArg('dto.inviterUserId'),
-      targetScope: AccessScope.USER,
+      and: [
+        { targetId: fromArg('dto.inviterUserId'), targetScope: AccessScope.USER },
+        { level: PermissionLevel.OWNER, permission: Permission.INVITE_CREATE },
+      ],
     },
-    { role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL },
+    { level: PermissionLevel.ADMIN, permission: Permission.INVITE_CREATE },
   ])
   async createInvite(
     @Args('dto') dto: CreateInviteInDto,
@@ -66,12 +67,16 @@ export class InviteMutationResolver {
   @Mutation(() => Invite)
   @Access.allow([
     {
-      metadata: { as: 'invitee' },
-      role: UserRole.USER,
-      targetId: fromArg('inviteId'),
-      targetScope: AccessScope.INVITE,
+      and: [
+        {
+          metadata: { as: 'invitee' },
+          targetId: fromArg('inviteId'),
+          targetScope: AccessScope.INVITE,
+        },
+        { level: PermissionLevel.OWNER, permission: Permission.INVITE_ACCEPT },
+      ],
     },
-    { role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL },
+    { level: PermissionLevel.ADMIN, permission: Permission.INVITE_ACCEPT },
   ])
   async acceptInvite(
     @Args('inviteId', { type: () => Int }) inviteId: number,
@@ -85,12 +90,16 @@ export class InviteMutationResolver {
   @Mutation(() => Invite)
   @Access.allow([
     {
-      metadata: { as: 'invitee' },
-      role: UserRole.USER,
-      targetId: fromArg('inviteId'),
-      targetScope: AccessScope.INVITE,
+      and: [
+        {
+          metadata: { as: 'invitee' },
+          targetId: fromArg('inviteId'),
+          targetScope: AccessScope.INVITE,
+        },
+        { level: PermissionLevel.OWNER, permission: Permission.INVITE_REJECT },
+      ],
     },
-    { role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL },
+    { level: PermissionLevel.ADMIN, permission: Permission.INVITE_REJECT },
   ])
   async rejectInvite(
     @Args('inviteId', { type: () => Int }) inviteId: number,
@@ -104,12 +113,16 @@ export class InviteMutationResolver {
   @Mutation(() => Invite)
   @Access.allow([
     {
-      metadata: { as: 'invitee' },
-      role: UserRole.USER,
-      targetId: fromArg('inviteId'),
-      targetScope: AccessScope.INVITE,
+      and: [
+        {
+          metadata: { as: 'invitee' },
+          targetId: fromArg('inviteId'),
+          targetScope: AccessScope.INVITE,
+        },
+        { level: PermissionLevel.OWNER, permission: Permission.INVITE_REJECT },
+      ],
     },
-    { role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL },
+    { level: PermissionLevel.ADMIN, permission: Permission.INVITE_REJECT },
   ])
   async rejectInviteAndBlockUser(
     @Args('inviteId', { type: () => Int }) inviteId: number,

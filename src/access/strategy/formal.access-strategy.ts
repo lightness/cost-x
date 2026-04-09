@@ -1,11 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { Rule } from '../interfaces';
-import { GlobalAccessStrategy } from './global.access-strategy';
 import { AccessStrategy } from './interface';
 
 @Injectable()
-export class FormalAccessStrategy extends GlobalAccessStrategy implements AccessStrategy {
+export class FormalAccessStrategy implements AccessStrategy {
   isApplicable(rule: Rule): boolean {
     return rule.targetScope === rule.sourceScope;
   }
@@ -16,10 +15,6 @@ export class FormalAccessStrategy extends GlobalAccessStrategy implements Access
     const sourceId = getSourceId(ctx);
     const targetId = getTargetId(ctx);
 
-    if (sourceId !== targetId) {
-      return false;
-    }
-
-    return super.executeRule(rule, ctx);
+    return sourceId === targetId;
   }
 }

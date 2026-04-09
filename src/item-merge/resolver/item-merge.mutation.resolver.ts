@@ -4,14 +4,14 @@ import { Prisma } from '../../../generated/prisma/client';
 import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
-import { AccessScope } from '../../access/interfaces';
+import { AccessScope, PermissionLevel } from '../../access/interfaces';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
 import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
 import { ItemByIdPipe } from '../../common/pipe/item-by-id.pipe';
 import { DeepArgs } from '../../graphql/decorator/deep-args.decorator';
 import Item from '../../item/entity/item.entity';
-import { UserRole } from '../../user/entity/user-role.enum';
+import { Permission } from '../../access/interfaces';
 import User from '../../user/entity/user.entity';
 import { MergeItemsInDto } from '../dto';
 import { ItemMergeService } from '../item-merge.service';
@@ -24,21 +24,14 @@ export class ItemMergeMutationResolver {
 
   @Mutation(() => Item)
   @Access.allow([
-    { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
     {
       and: [
-        {
-          role: [UserRole.USER],
-          targetId: fromArg('dto.hostItemId'),
-          targetScope: AccessScope.ITEM,
-        },
-        {
-          role: [UserRole.USER],
-          targetId: fromArg('dto.mergingItemId'),
-          targetScope: AccessScope.ITEM,
-        },
+        { targetId: fromArg('dto.hostItemId'), targetScope: AccessScope.ITEM },
+        { targetId: fromArg('dto.mergingItemId'), targetScope: AccessScope.ITEM },
+        { level: PermissionLevel.OWNER, permission: Permission.ITEM_UPDATE },
       ],
     },
+    { level: PermissionLevel.ADMIN, permission: Permission.ITEM_UPDATE },
   ])
   async mergeItems(
     @Args('dto') _: MergeItemsInDto,

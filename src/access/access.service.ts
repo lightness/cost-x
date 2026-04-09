@@ -20,7 +20,6 @@ export class AccessService {
       sourceId: fromReq('user.id'),
       sourceScope: AccessScope.USER,
       ...rule,
-      role: Array.isArray(rule.role) ? rule.role : [rule.role],
     };
   }
 
@@ -72,7 +71,7 @@ export class AccessService {
   }
 
   private isRule(ruleDef: RuleDef): ruleDef is Rule {
-    return 'targetScope' in ruleDef;
+    return !Array.isArray(ruleDef) && !('and' in ruleDef) && !('or' in ruleDef);
   }
 
   private isRuleOperatorOr(ruleDef: RuleDef): ruleDef is RuleOperationOr {

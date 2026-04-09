@@ -8,10 +8,7 @@ import { ItemWhereInput } from '../../generated/prisma/models';
 export class ItemsAggregationService {
   constructor(private prisma: PrismaService) {}
 
-  async getIds(
-    itemsFilter: ItemsFilter,
-    paymentsFilter: PaymentsFilter,
-  ): Promise<number[]> {
+  async getIds(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): Promise<number[]> {
     const rows = await this.prisma.item.findMany({
       select: {
         id: true,
@@ -60,9 +57,7 @@ export class ItemsAggregationService {
     return new Map(
       itemsFilter.tagIds.map((tagId) => {
         const itemIds = items
-          .filter((item) =>
-            item.itemTag.some((itemTag) => itemTag.tagId === tagId),
-          )
+          .filter((item) => item.itemTag.some((itemTag) => itemTag.tagId === tagId))
           .map((item) => item.id);
 
         return [tagId, itemIds];
@@ -72,10 +67,7 @@ export class ItemsAggregationService {
 
   // other
 
-  private getWhereClause(
-    itemsFilter: ItemsFilter,
-    paymentsFilter: PaymentsFilter,
-  ): ItemWhereInput {
+  private getWhereClause(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): ItemWhereInput {
     const { title, tagIds } = itemsFilter;
     const { dateFrom: paymentDateFrom, dateTo: paymentDateTo } = paymentsFilter;
 

@@ -3,22 +3,13 @@ import { GqlExecutionContext } from '@nestjs/graphql';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AccessScope, Rule } from '../interfaces';
 import { AccessStrategy } from './interface';
-import { GlobalAccessStrategy } from './global.access-strategy';
 
 @Injectable()
-export class UserToPaymentAccessStrategy
-  extends GlobalAccessStrategy
-  implements AccessStrategy
-{
-  constructor(private prisma: PrismaService) {
-    super();
-  }
+export class UserToPaymentAccessStrategy implements AccessStrategy {
+  constructor(private prisma: PrismaService) {}
 
   isApplicable(rule: Rule): boolean {
-    return (
-      rule.targetScope === AccessScope.PAYMENT &&
-      rule.sourceScope === AccessScope.USER
-    );
+    return rule.targetScope === AccessScope.PAYMENT && rule.sourceScope === AccessScope.USER;
   }
 
   async executeRule(rule: Rule, ctx: GqlExecutionContext): Promise<boolean> {
@@ -28,24 +19,10 @@ export class UserToPaymentAccessStrategy
     const paymentId = getTargetId(ctx);
 
     const payment = await this.prisma.payment.findUnique({
-      select: {
-        item: {
-          select: {
-            workspace: {
-              select: {
-                ownerId: true,
-              },
-            },
-          },
-        },
-      },
+      select: { item: { select: { workspace: { select: { ownerId: true } } } } },
       where: { id: paymentId },
     });
 
-    if (payment?.item?.workspace?.ownerId !== userId) {
-      return false;
-    }
-
-    return super.executeRule(rule, ctx);
+    return payment?.item?.workspace?.ownerId === userId;
   }
 }
