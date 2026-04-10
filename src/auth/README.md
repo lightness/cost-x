@@ -52,8 +52,8 @@ Authenticates a user and issues a new token pair.
 **Behavior**:
 - Email lookup is case-sensitive; use the exact email used at registration
 - Verifies the password against the stored bcrypt hash
-- Requires email to be confirmed (`isEmailVerified: true`) — unverified accounts cannot log in
-- Requires account to not be banned
+- Requires email to be confirmed (`isEmailVerified: true`) — unverified accounts cannot log in (see [Confirm Email](../confirm-email/README.md))
+- Requires account to not be banned (see [User](../user/README.md) — `banUser` / `unbanUser`)
 - Sets the refresh token as an `httpOnly` cookie automatically — no manual handling needed
 
 **Errors**:

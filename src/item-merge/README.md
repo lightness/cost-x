@@ -14,7 +14,7 @@ Merges two items by consolidating all payments from one item into another, then 
 
 ## Overview
 
-`mergeItems` combines two items into one. All payments from the **merging item** are copied into the **host item**, and the merging item is deleted. Tags are not transferred — the host item keeps its own tags and the merging item's tags are removed.
+`mergeItems` combines two [items](../item/README.md) into one. All [payments](../payment/README.md) from the **merging item** are copied into the **host item**, and the merging item is deleted. Tags are not transferred — the host item keeps its own tags and the merging item's tags are removed.
 
 Both items must belong to the same workspace.
 
@@ -59,4 +59,4 @@ mutation {
   - If a payment has no title, the merging item's title is used as the payment title
 - All tags are removed from the merging item before it is deleted
 - The merging item is permanently deleted
-- Records an `ITEM_MERGED` entry in the workspace audit history
+- Records an `ITEM_MERGED` entry in the [workspace audit history](../workspace-history/README.md)

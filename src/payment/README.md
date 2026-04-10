@@ -30,7 +30,7 @@ Manages individual expense records within an item.
 | `currency` | `Currency!` | `USD`, `EUR`, or `BYN` |
 | `date` | `Date!` | Date of the expense (YYYY-MM-DD) |
 | `itemId` | `Int!` | Owning item |
-| `item` | `Item` | Resolved: the owning item |
+| `item` | `Item` | Resolved: the owning item — see [Item](../item/README.md) |
 
 ---
 
@@ -124,7 +124,7 @@ mutation {
 | `title` | `String` | Optional label |
 
 **Behavior**:
-- Records a `PAYMENT_CREATED` entry in the workspace audit history
+- Records a `PAYMENT_CREATED` entry in the [workspace audit history](../workspace-history/README.md)
 
 ---
 
@@ -156,7 +156,7 @@ mutation {
 **Input**: same fields as `createPayment`, all required.
 
 **Behavior**:
-- Records a `PAYMENT_UPDATED` entry in the workspace audit history (old and new values both captured)
+- Records a `PAYMENT_UPDATED` entry in the [workspace audit history](../workspace-history/README.md) (old and new values both captured)
 
 ---
 
@@ -175,7 +175,7 @@ mutation {
 Returns `Boolean` (`true` on success).
 
 **Behavior**:
-- Records a `PAYMENT_DELETED` entry in the workspace audit history
+- Records a `PAYMENT_DELETED` entry in the [workspace audit history](../workspace-history/README.md)
 
 ---
 

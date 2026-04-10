@@ -16,8 +16,8 @@ Handles email address verification after account creation or email change.
 ## Overview
 
 Email confirmation is a **REST endpoint** (not GraphQL). It is triggered automatically by the system when:
-- A new user account is created via `createUser`
-- A user changes their email via `updateUser`
+- A new user account is created via [`createUser`](../user/README.md#createuser--registration)
+- A user changes their email via [`updateUser`](../user/README.md#updateuserid-int--update-profile)
 
 The system supports two confirmation strategies configured at the application level:
 - **Manual** — sends a confirmation link to the user's email; the user must click it to verify
@@ -73,4 +73,4 @@ User clicks link → GET /confirm-email?token=<JWT>
 isEmailVerified = true
 ```
 
-Until confirmed, the user **cannot log in** — the auth module rejects unverified accounts with `EMAIL_IS_NOT_VERIFIED`.
+Until confirmed, the user **cannot log in** — the [Auth module](../auth/README.md) rejects unverified accounts with `EMAIL_IS_NOT_VERIFIED`.

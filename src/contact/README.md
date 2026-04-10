@@ -54,8 +54,8 @@ The module also supports **email invites** — inviting users who are not yet re
 | `inviteId` | `Int!` | Originating invite |
 | `removedAt` | `DateIso` | When the contact was removed (null if active) |
 | `removedByUserId` | `Int` | Who removed the contact |
-| `sourceUser` | `User!` | Resolved: the initiating user |
-| `targetUser` | `User!` | Resolved: the accepting user |
+| `sourceUser` | `User!` | Resolved: the initiating user — see [User](../user/README.md) |
+| `targetUser` | `User!` | Resolved: the accepting user — see [User](../user/README.md) |
 | `invite` | `Invite!` | Resolved: the originating invite |
 
 ---
@@ -70,8 +70,8 @@ The module also supports **email invites** — inviting users who are not yet re
 | `status` | `InviteStatus!` | `PENDING`, `ACCEPTED`, or `REJECTED` |
 | `createdAt` | `DateIso!` | When the invite was sent |
 | `reactedAt` | `DateIso` | When the invite was accepted or rejected |
-| `inviter` | `User!` | Resolved: the sender |
-| `invitee` | `User!` | Resolved: the recipient |
+| `inviter` | `User!` | Resolved: the sender — see [User](../user/README.md) |
+| `invitee` | `User!` | Resolved: the recipient — see [User](../user/README.md) |
 
 ---
 
@@ -85,8 +85,8 @@ The module also supports **email invites** — inviting users who are not yet re
 | `blockedId` | `Int!` | User who was blocked |
 | `removedAt` | `DateIso` | When the block was lifted (null if active) |
 | `removedByUserId` | `Int` | Who lifted the block |
-| `blocker` | `User!` | Resolved: the blocking user |
-| `blocked` | `User!` | Resolved: the blocked user |
+| `blocker` | `User!` | Resolved: the blocking user — see [User](../user/README.md) |
+| `blocked` | `User!` | Resolved: the blocked user — see [User](../user/README.md) |
 
 ---
 

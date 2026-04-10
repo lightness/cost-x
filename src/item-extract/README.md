@@ -15,7 +15,7 @@ Splits selected payments out of an existing item into a new item.
 
 ## Overview
 
-`extractAsItem` is useful when an item has grown to contain payments that belong to a separate category. You pick a subset of payments and give the new item a title — those payments are moved and all tags from the source item are copied to the new one.
+`extractAsItem` is useful when an [item](../item/README.md) has grown to contain [payments](../payment/README.md) that belong to a separate category. You pick a subset of payments and give the new item a title — those payments are moved and all tags from the source item are copied to the new one.
 
 The source item is preserved with at least one payment remaining — extracting all payments from an item is not allowed.
 
@@ -67,7 +67,7 @@ mutation {
 - All specified payment IDs must belong to the source item
 - Must leave at least one payment in the source item — specifying all payments is rejected
 - All tags from the source item are copied to the new item
-- Records an `ITEM_EXTRACTED` entry in the workspace audit history
+- Records an `ITEM_EXTRACTED` entry in the [workspace audit history](../workspace-history/README.md)
 
 ---
 

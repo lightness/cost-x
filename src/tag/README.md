@@ -27,9 +27,9 @@ Manages labels (tags) that can be assigned to items within a workspace.
 | `title` | `String!` | Tag label |
 | `color` | `String` | Hex color code (e.g. `#FF5733`), optional |
 | `workspaceId` | `Int!` | Owning workspace |
-| `workspace` | `Workspace!` | Resolved: the owning workspace |
-| `items` | `[Item!]!` | Resolved: items with this tag (accepts `ItemsFilter`, `PaymentsFilter`) |
-| `itemsAggregation` | `ItemsAggregation` | Resolved: aggregated metrics for items with this tag |
+| `workspace` | `Workspace!` | Resolved: the owning workspace — see [Workspace](../workspace/README.md) |
+| `items` | `[Item!]!` | Resolved: items with this tag — see [Item](../item/README.md) (accepts `ItemsFilter`, `PaymentsFilter`) |
+| `itemsAggregation` | `ItemsAggregation` | Resolved: aggregated metrics — see [Items-Aggregation](../items-aggregation/README.md) |
 
 ---
 
@@ -111,7 +111,7 @@ mutation {
 | `color` | `String` | Optional hex color code (e.g. `#FF5733`) |
 
 **Behavior**:
-- Records a `TAG_CREATED` entry in the workspace audit history
+- Records a `TAG_CREATED` entry in the [workspace audit history](../workspace-history/README.md)
 
 ---
 
@@ -140,7 +140,7 @@ mutation {
 
 **Behavior**:
 - Fails with `400` if the tag does not exist
-- Records a `TAG_UPDATED` entry in the workspace audit history
+- Records a `TAG_UPDATED` entry in the [workspace audit history](../workspace-history/README.md)
 
 ---
 
@@ -160,4 +160,4 @@ Returns `Boolean` (`true` on success).
 
 **Behavior**:
 - Fails with `400` if the tag does not exist
-- Records a `TAG_DELETED` entry in the workspace audit history
+- Records a `TAG_DELETED` entry in the [workspace audit history](../workspace-history/README.md)

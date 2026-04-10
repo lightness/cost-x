@@ -24,8 +24,8 @@ Represents a single tag-to-item assignment.
 | `updatedAt` | `DateIso!` | Last update timestamp |
 | `itemId` | `Int!` | The item |
 | `tagId` | `Int!` | The tag |
-| `item` | `Item` | Resolved: the item |
-| `tag` | `Tag` | Resolved: the tag |
+| `item` | `Item` | Resolved: the item — see [Item](../item/README.md) |
+| `tag` | `Tag` | Resolved: the tag — see [Tag](../tag/README.md) |
 
 ---
 
@@ -57,7 +57,7 @@ mutation {
 **Behavior**:
 - The item and tag must belong to the same workspace — cross-workspace assignment is rejected
 - Fails if the tag is already assigned to the item
-- Records an `ITEM_TAG_ASSIGNED` entry in the workspace audit history
+- Records an `ITEM_TAG_ASSIGNED` entry in the [workspace audit history](../workspace-history/README.md)
 
 ---
 
@@ -85,4 +85,4 @@ Returns `Boolean` (`true` on success).
 **Behavior**:
 - The item and tag must belong to the same workspace
 - Fails if the tag is not currently assigned to the item
-- Records an `ITEM_TAG_UNASSIGNED` entry in the workspace audit history
+- Records an `ITEM_TAG_UNASSIGNED` entry in the [workspace audit history](../workspace-history/README.md)

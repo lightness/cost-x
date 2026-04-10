@@ -24,12 +24,12 @@ Manages workspaces — the top-level containers for expense tracking.
 | `title` | `String!` | Workspace name |
 | `ownerId` | `Int!` | User who owns this workspace |
 | `defaultCurrency` | `Currency!` | Default currency for cost display (`USD`, `EUR`, `BYN`) |
-| `items` | `[Item!]!` | Resolved: items in this workspace (accepts `ItemsFilter`, `PaymentsFilter`) |
-| `tags` | `[Tag!]!` | Resolved: tags in this workspace (accepts `TagsFilter`) |
-| `itemsAggregation` | `ItemsAggregation` | Resolved: aggregated metrics across items (accepts `ItemsFilter`, `PaymentsFilter`) |
-| `history` | `[WorkspaceHistory!]!` | Resolved: audit log for this workspace |
+| `items` | `[Item!]!` | Resolved: items in this workspace — see [Item](../item/README.md) (accepts `ItemsFilter`, `PaymentsFilter`) |
+| `tags` | `[Tag!]!` | Resolved: tags in this workspace — see [Tag](../tag/README.md) (accepts `TagsFilter`) |
+| `itemsAggregation` | `ItemsAggregation` | Resolved: aggregated metrics across items — see [Items-Aggregation](../items-aggregation/README.md) (accepts `ItemsFilter`, `PaymentsFilter`) |
+| `history` | `[WorkspaceHistory!]!` | Resolved: audit log — see [Workspace-History](../workspace-history/README.md) |
 
-Workspaces are accessed via the `User.workspaces` field — there is no standalone `workspace` query. Use `me { workspaces { ... } }` or `user(id: ...) { workspaces { ... } }`.
+Workspaces are accessed via the `User.workspaces` field — there is no standalone `workspace` query. Use `me { workspaces { ... } }` or `user(id: ...) { workspaces { ... } }` (see [User](../user/README.md)).
 
 ---
 
@@ -60,7 +60,7 @@ mutation {
 
 **Behavior**:
 - The current user becomes the workspace owner (`ownerId`)
-- Records a `WORKSPACE_CREATED` entry in the audit history
+- Records a `WORKSPACE_CREATED` entry in the [audit history](../workspace-history/README.md)
 
 ---
 
@@ -88,7 +88,7 @@ mutation {
 | `defaultCurrency` | `Currency!` | New default currency |
 
 **Behavior**:
-- Records a `WORKSPACE_UPDATED` entry in the audit history (old and new values captured)
+- Records a `WORKSPACE_UPDATED` entry in the [audit history](../workspace-history/README.md) (old and new values captured)
 
 ---
 
@@ -111,4 +111,4 @@ Returns the deleted `Workspace` object.
 
 **Behavior**:
 - Deletes the workspace and cascades to all items, payments, and tags within it
-- Records a `WORKSPACE_DELETED` entry in the audit history before deletion
+- Records a `WORKSPACE_DELETED` entry in the [audit history](../workspace-history/README.md) before deletion

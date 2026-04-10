@@ -58,28 +58,28 @@ Fields included in the diff vary by action type:
 
 | Action | Triggered by |
 |---|---|
-| `WORKSPACE_CREATED` | `createWorkspace` |
-| `WORKSPACE_UPDATED` | `updateWorkspace` |
-| `WORKSPACE_DELETED` | `deleteWorkspace` |
-| `ITEM_CREATED` | `createItem` |
-| `ITEM_UPDATED` | `updateItem` |
-| `ITEM_DELETED` | `deleteItem` |
-| `ITEM_MERGED` | `mergeItems` |
-| `ITEM_EXTRACTED` | `extractAsItem` |
-| `PAYMENT_CREATED` | `createPayment` |
-| `PAYMENT_UPDATED` | `updatePayment` |
-| `PAYMENT_DELETED` | `deletePayment` |
-| `TAG_CREATED` | `createTag` |
-| `TAG_UPDATED` | `updateTag` |
-| `TAG_DELETED` | `deleteTag` |
-| `ITEM_TAG_ASSIGNED` | `assignTag` |
-| `ITEM_TAG_UNASSIGNED` | `unassignTag` |
+| `WORKSPACE_CREATED` | [`createWorkspace`](../workspace/README.md#createworkspace) |
+| `WORKSPACE_UPDATED` | [`updateWorkspace`](../workspace/README.md#updateworkspaceid-int) |
+| `WORKSPACE_DELETED` | [`deleteWorkspace`](../workspace/README.md#deleteworkspaceid-int) |
+| `ITEM_CREATED` | [`createItem`](../item/README.md#createitemworkspaceid-int) |
+| `ITEM_UPDATED` | [`updateItem`](../item/README.md#updateitemid-int) |
+| `ITEM_DELETED` | [`deleteItem`](../item/README.md#deleteitemid-int) |
+| `ITEM_MERGED` | [`mergeItems`](../item-merge/README.md#mergeitems) |
+| `ITEM_EXTRACTED` | [`extractAsItem`](../item-extract/README.md#extractasitem) |
+| `PAYMENT_CREATED` | [`createPayment`](../payment/README.md#createpaymentitemid-int) |
+| `PAYMENT_UPDATED` | [`updatePayment`](../payment/README.md#updatepaymentpaymentid-int) |
+| `PAYMENT_DELETED` | [`deletePayment`](../payment/README.md#deletepaymentpaymentid-int) |
+| `TAG_CREATED` | [`createTag`](../tag/README.md#createtagworkspaceid-int) |
+| `TAG_UPDATED` | [`updateTag`](../tag/README.md#updatetagid-int) |
+| `TAG_DELETED` | [`deleteTag`](../tag/README.md#deletetagid-int) |
+| `ITEM_TAG_ASSIGNED` | [`assignTag`](../item-tag/README.md#assigntag) |
+| `ITEM_TAG_UNASSIGNED` | [`unassignTag`](../item-tag/README.md#unassigntag) |
 
 ---
 
 ## Where It Appears
 
-History is accessed via `Workspace.history`. Entries are ordered most-recent first.
+History is accessed via [`Workspace.history`](../workspace/README.md). Entries are ordered most-recent first.
 
 ```graphql
 query {

@@ -28,10 +28,10 @@ Manages expense categories (items) within a workspace.
 | `updatedAt` | `DateIso!` | Last update timestamp |
 | `title` | `String!` | Item name / category label |
 | `workspaceId` | `Int!` | Owning workspace |
-| `workspace` | `Workspace` | Resolved: the owning workspace |
-| `payments` | `[Payment!]` | Resolved: payments under this item (accepts `PaymentsFilter`) |
-| `paymentsAggregation` | `PaymentsAggregation` | Resolved: aggregated cost metrics for this item |
-| `tags` | `[Tag!]` | Resolved: tags assigned to this item |
+| `workspace` | `Workspace` | Resolved: the owning workspace — see [Workspace](../workspace/README.md) |
+| `payments` | `[Payment!]` | Resolved: payments under this item — see [Payment](../payment/README.md) (accepts `PaymentsFilter`) |
+| `paymentsAggregation` | `PaymentsAggregation` | Resolved: aggregated cost metrics — see [Payments-Aggregation](../payments-aggregation/README.md) |
+| `tags` | `[Tag!]` | Resolved: tags assigned to this item — see [Tag](../tag/README.md) |
 
 ---
 
@@ -114,7 +114,7 @@ mutation {
 | `title` | `String!` | Item name |
 
 **Behavior**:
-- Creates the item and records a `ITEM_CREATED` entry in the workspace audit history
+- Creates the item and records a `ITEM_CREATED` entry in the [workspace audit history](../workspace-history/README.md)
 
 ---
 
@@ -141,7 +141,7 @@ mutation {
 
 **Behavior**:
 - Fails with `ITEM_NOT_FOUND` if the item does not exist
-- Records an `ITEM_UPDATED` entry in the workspace audit history
+- Records an `ITEM_UPDATED` entry in the [workspace audit history](../workspace-history/README.md)
 
 ---
 
@@ -161,7 +161,7 @@ Returns `Boolean` (`true` on success).
 
 **Behavior**:
 - Fails with `ITEM_NOT_FOUND` if the item does not exist
-- Records an `ITEM_DELETED` entry in the workspace audit history
+- Records an `ITEM_DELETED` entry in the [workspace audit history](../workspace-history/README.md)
 
 ---
 
