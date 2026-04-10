@@ -7,7 +7,7 @@ import { AccessScope, PermissionLevel } from '../../access/interfaces';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
 import { GqlLoggingInterceptor } from '../../graphql/interceptor/gql-logging.interceptor';
-import { Permission } from '../../access/interfaces';
+import { Permission } from '../../access/entity/permission.enum';
 import User from '../entity/user.entity';
 import { UserService } from '../user.service';
 

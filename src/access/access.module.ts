@@ -13,6 +13,7 @@ import {
   UserToPaymentAccessStrategy,
   UserToTagAccessStrategy,
   UserToWorkspaceAccessStrategy,
+  UserToWorkspaceMemberAccessStrategy,
 } from './strategy';
 import { ACCESS_STRATEGIES } from './strategy/interface';
 
@@ -33,6 +34,7 @@ import { ACCESS_STRATEGIES } from './strategy/interface';
     UserToTagAccessStrategy,
     UserToPaymentAccessStrategy,
     UserToWorkspaceAccessStrategy,
+    UserToWorkspaceMemberAccessStrategy,
     {
       inject: [
         FormalAccessStrategy,
@@ -43,6 +45,7 @@ import { ACCESS_STRATEGIES } from './strategy/interface';
         UserToTagAccessStrategy,
         UserToPaymentAccessStrategy,
         UserToWorkspaceAccessStrategy,
+        UserToWorkspaceMemberAccessStrategy,
       ],
       provide: ACCESS_STRATEGIES,
       useFactory: (...strategies) => strategies,

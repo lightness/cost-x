@@ -6,3 +6,4 @@ export * from './user-to-item.access-strategy';
 export * from './user-to-payment.access-strategy';
 export * from './user-to-tag.access-strategy';
 export * from './user-to-workspace.access-strategy';
+export * from './user-to-workspace-member.access-strategy';

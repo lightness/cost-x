@@ -32,6 +32,7 @@ import { UserBlockService } from './user-block.service';
 @Module({
   controllers: [EmailInviteController],
   exports: [
+    ContactService,
     // loader
     IncomingInvitesByUserIdLoader,
     OutgoingInvitesByUserIdLoader,

@@ -6,7 +6,7 @@ import { AccessGuard } from '../../access/guard/access.guard';
 import { AccessScope, PermissionLevel } from '../../access/interfaces';
 import { AuthGuard } from '../../auth/guard/auth.guard';
 import { PaymentsFilter } from '../../payment/dto';
-import { Permission } from '../../access/interfaces';
+import { Permission } from '../../access/entity/permission.enum';
 import { ItemsFilter } from '../dto';
 import Item from '../entity/item.entity';
 import { ItemService } from '../item.service';

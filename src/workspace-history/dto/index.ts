@@ -14,4 +14,6 @@ export * from './on-item-extracted.event';
 export * from './on-workspace-created.event';
 export * from './on-workspace-updated.event';
 export * from './on-workspace-deleted.event';
+export * from './on-workspace-member-joined.event';
+export * from './on-workspace-member-removed.event';
 export * from './workspace-history-filter.type';

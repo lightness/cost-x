@@ -19,9 +19,24 @@ export class UserToWorkspaceAccessStrategy implements AccessStrategy {
     const workspaceId = getTargetId(ctx);
 
     const workspace = await this.prisma.workspace.findUnique({
+      select: { ownerId: true },
       where: { id: workspaceId },
     });
 
-    return workspace?.ownerId === userId;
+    if (workspace?.ownerId === userId) {
+      return true;
+    }
+
+    if (!rule.permission) {
+      return false;
+    }
+
+    const permission = Array.isArray(rule.permission) ? rule.permission[0] : rule.permission;
+    const member = await this.prisma.workspaceMember.findFirst({
+      select: { permissions: true },
+      where: { workspaceId, userId, leftAt: null },
+    });
+
+    return member?.permissions.includes(permission) ?? false;
   }
 }

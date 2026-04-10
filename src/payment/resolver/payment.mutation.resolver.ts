@@ -2,6 +2,7 @@ import { UseGuards, UseInterceptors } from '@nestjs/common';
 import { Args, Context, Int, Mutation, Resolver } from '@nestjs/graphql';
 import { Prisma } from '../../../generated/prisma/client';
 import { Access } from '../../access/decorator/access.decorator';
+import { Permission } from '../../access/entity/permission.enum';
 import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
 import { AccessScope, PermissionLevel } from '../../access/interfaces';
@@ -11,7 +12,6 @@ import { TransactionInterceptor } from '../../common/interceptor/transaction.int
 import { ItemByIdPipe } from '../../common/pipe/item-by-id.pipe';
 import { PaymentByIdPipe } from '../../common/pipe/payment-by-id.pipe';
 import Item from '../../item/entity/item.entity';
-import { Permission } from '../../access/interfaces';
 import User from '../../user/entity/user.entity';
 import { PaymentInDto } from '../dto';
 import Payment from '../entity/payment.entity';

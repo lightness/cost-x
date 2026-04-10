@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { Permission, PermissionLevel } from './interfaces';
-
+import { PermissionLevel } from './interfaces';
+import { Permission } from './entity/permission.enum';
 export interface UserPermissionRecord {
   permission: Permission;
   accessLevel: number;

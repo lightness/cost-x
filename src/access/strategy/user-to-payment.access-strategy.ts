@@ -19,10 +19,28 @@ export class UserToPaymentAccessStrategy implements AccessStrategy {
     const paymentId = getTargetId(ctx);
 
     const payment = await this.prisma.payment.findUnique({
-      select: { item: { select: { workspace: { select: { ownerId: true } } } } },
+      select: { item: { select: { workspaceId: true, workspace: { select: { ownerId: true } } } } },
       where: { id: paymentId },
     });
 
-    return payment?.item?.workspace?.ownerId === userId;
+    if (!payment?.item) {
+      return false;
+    }
+
+    if (payment.item.workspace?.ownerId === userId) {
+      return true;
+    }
+
+    if (!rule.permission) {
+      return false;
+    }
+
+    const permission = Array.isArray(rule.permission) ? rule.permission[0] : rule.permission;
+    const member = await this.prisma.workspaceMember.findFirst({
+      select: { permissions: true },
+      where: { workspaceId: payment.item.workspaceId, userId, leftAt: null },
+    });
+
+    return member?.permissions.includes(permission) ?? false;
   }
 }

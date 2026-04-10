@@ -19,10 +19,28 @@ export class UserToItemAccessStrategy implements AccessStrategy {
     const itemId = getTargetId(ctx);
 
     const item = await this.prisma.item.findUnique({
-      select: { workspace: { select: { ownerId: true } } },
+      select: { workspace: { select: { ownerId: true } }, workspaceId: true },
       where: { id: itemId },
     });
 
-    return item?.workspace?.ownerId === userId;
+    if (!item) {
+      return false;
+    }
+
+    if (item.workspace?.ownerId === userId) {
+      return true;
+    }
+
+    if (!rule.permission) {
+      return false;
+    }
+
+    const permission = Array.isArray(rule.permission) ? rule.permission[0] : rule.permission;
+    const member = await this.prisma.workspaceMember.findFirst({
+      select: { permissions: true },
+      where: { leftAt: null, userId, workspaceId: item.workspaceId },
+    });
+
+    return member?.permissions.includes(permission) ?? false;
   }
 }

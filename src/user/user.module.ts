@@ -7,6 +7,7 @@ import { GroupModule } from '../group/group.module';
 import { PasswordModule } from '../password/password.module';
 import { PrismaModule } from '../prisma/prisma.module';
 import { WorkspaceModule } from '../workspace/workspace.module';
+import { WorkspaceInviteModule } from '../workspace-invite/workspace-invite.module';
 import { UserFieldResolver } from './resolver/user.field.resolver';
 import { UserMutationResolver } from './resolver/user.mutation.resolver';
 import { UserQueryResolver } from './resolver/user.query.resolver';
@@ -22,6 +23,7 @@ import { UserService } from './user.service';
     AccessModule,
     ConfirmEmailModule,
     WorkspaceModule,
+    WorkspaceInviteModule,
     ContactModule,
     GroupModule,
     UserLoaderModule,

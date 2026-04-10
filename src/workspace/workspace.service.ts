@@ -21,6 +21,14 @@ export class WorkspaceService {
     });
   }
 
+  async listByMemberUserIds(memberUserIds: number[]): Promise<Workspace[]> {
+    return this.prisma.workspace.findMany({
+      where: {
+        members: { some: { userId: { in: memberUserIds } } },
+      },
+    });
+  }
+
   async create(
     dto: WorkspaceInDto,
     currentUser: User,

@@ -17,6 +17,8 @@ import {
   OnTagUpdatedEvent,
   OnWorkspaceCreatedEvent,
   OnWorkspaceDeletedEvent,
+  OnWorkspaceMemberJoinedEvent,
+  OnWorkspaceMemberRemovedEvent,
   OnWorkspaceUpdatedEvent,
 } from './dto';
 import { WorkspaceHistoryEvent } from './entity/workspace-history-event.enum';
@@ -173,5 +175,25 @@ export class WorkspaceHistoryEventListenerService {
   @OnEvent(WorkspaceHistoryEvent.WORKSPACE_DELETED)
   async onWorkspaceDeleted({ tx = this.prisma, ...dto }: OnWorkspaceDeletedEvent) {
     return this.workspaceHistoryService.createWorkspaceDeleted(dto.actorId, dto.workspace, tx);
+  }
+
+  @OnEvent(WorkspaceHistoryEvent.WORKSPACE_MEMBER_JOINED)
+  async onWorkspaceMemberJoined({ tx = this.prisma, ...dto }: OnWorkspaceMemberJoinedEvent) {
+    return this.workspaceHistoryService.createWorkspaceMemberJoined(
+      dto.workspaceId,
+      dto.actorId,
+      dto.inviteeId,
+      tx,
+    );
+  }
+
+  @OnEvent(WorkspaceHistoryEvent.WORKSPACE_MEMBER_REMOVED)
+  async onWorkspaceMemberRemoved({ tx = this.prisma, ...dto }: OnWorkspaceMemberRemovedEvent) {
+    return this.workspaceHistoryService.createWorkspaceMemberRemoved(
+      dto.workspaceId,
+      dto.actorId,
+      dto.removedUserId,
+      tx,
+    );
   }
 }

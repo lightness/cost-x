@@ -20,7 +20,11 @@
       "Bash(find:*)",
       "Bash(gh api:*)",
       "Bash(migration_name=add_permission_model npm run:*)",
-      "Bash(npx prisma:*)"
+      "Bash(npx prisma:*)",
+      "Bash(curl -s http://localhost:9998/graphql)",
+      "Bash(pkill -f \"nest start\")",
+      "Bash(sed -i '' \"s/import { AccessScope, Permission, PermissionLevel } from '\\\\.\\\\.\\\\/\\\\.\\\\.\\\\/access\\\\/interfaces'/import { AccessScope, PermissionLevel } from '..\\\\/..\\\\/access\\\\/interfaces'/\" src/payment/resolver/payment.mutation.resolver.ts)",
+      "Bash(sed -i '' '/import { AccessScope, PermissionLevel } from '\\\\''\\\\.\\\\.\\\\/\\\\.\\\\.\\\\/access\\\\/interfaces'\\\\''/a\\\\:*)"
     ]
   }
 }

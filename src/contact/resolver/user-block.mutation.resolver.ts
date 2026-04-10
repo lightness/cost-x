@@ -9,7 +9,7 @@ import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
 import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
 import { GqlLoggingInterceptor } from '../../graphql/interceptor/gql-logging.interceptor';
-import { Permission } from '../../access/interfaces';
+import { Permission } from '../../access/entity/permission.enum';
 import User from '../../user/entity/user.entity';
 import { CreateUserBlockInDto, RemoveUserBlockInDto } from '../dto';
 import { UserBlock } from '../entity/user-block.entity';

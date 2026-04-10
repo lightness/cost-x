@@ -1,7 +1,5 @@
 import { GqlExecutionContext } from '@nestjs/graphql';
-import { Permission } from '../../generated/prisma/enums';
-
-export { Permission };
+import { Permission } from './entity/permission.enum';
 
 export enum AccessAction {
   ALLOW = 'allow',
@@ -17,6 +15,7 @@ export enum AccessScope {
   PAYMENT = 'payment',
   INVITE = 'invite',
   USER_BLOCK = 'user-block',
+  WORKSPACE_MEMBER = 'workspace-member',
 }
 
 export enum PermissionLevel {

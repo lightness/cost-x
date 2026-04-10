@@ -13,7 +13,7 @@ import { TagByIdPipe } from '../../common/pipe/tag-by-id.pipe';
 import { DeepArgs } from '../../graphql/decorator/deep-args.decorator';
 import Item from '../../item/entity/item.entity';
 import Tag from '../../tag/entity/tag.entity';
-import { Permission } from '../../access/interfaces';
+import { Permission } from '../../access/entity/permission.enum';
 import User from '../../user/entity/user.entity';
 import { AssignTagInDto, UnassignTagInDto } from '../dto';
 import ItemTag from '../entity/item-tag.entity';

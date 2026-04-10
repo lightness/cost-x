@@ -11,6 +11,10 @@ import Tag from '../../tag/entity/tag.entity';
 import { WorkspaceHistoryFilter } from '../../workspace-history/dto/workspace-history-filter.type';
 import { WorkspaceHistory } from '../../workspace-history/entity/workspace-history.entity';
 import { WorkspaceHistoryService } from '../../workspace-history/workspace-history.service';
+import { WorkspaceMembersByWorkspaceIdLoader } from '../../workspace-invite/dataloader/workspace-members-by-workspace-id.loader';
+import { WorkspacePendingInvitesByWorkspaceIdLoader } from '../../workspace-invite/dataloader/workspace-pending-invites-by-workspace-id.loader';
+import { WorkspaceInvite } from '../../workspace-invite/entity/workspace-invite.entity';
+import { WorkspaceMember } from '../../workspace-invite/entity/workspace-member.entity';
 import { Workspace } from '../entity/workspace.entity';
 
 @Resolver(() => Workspace)
@@ -20,6 +24,8 @@ export class WorkspaceFieldResolver {
     private tagsByWorkspaceIdLoader: TagsByWorkspaceIdLoader,
     private itemsAggregationsByWorkspaceIdLoader: ItemsAggregationsByWorkspaceIdLoader,
     private workspaceHistoryService: WorkspaceHistoryService,
+    private workspaceMembersByWorkspaceIdLoader: WorkspaceMembersByWorkspaceIdLoader,
+    private workspacePendingInvitesByWorkspaceIdLoader: WorkspacePendingInvitesByWorkspaceIdLoader,
   ) {}
 
   @ResolveField(() => [Item])
@@ -59,5 +65,15 @@ export class WorkspaceFieldResolver {
     filter: WorkspaceHistoryFilter,
   ) {
     return this.workspaceHistoryService.listByWorkspaceId(workspace.id, filter);
+  }
+
+  @ResolveField(() => [WorkspaceMember])
+  async members(@Parent() workspace: Workspace) {
+    return this.workspaceMembersByWorkspaceIdLoader.load(workspace.id);
+  }
+
+  @ResolveField(() => [WorkspaceInvite])
+  async pendingInvites(@Parent() workspace: Workspace) {
+    return this.workspacePendingInvitesByWorkspaceIdLoader.load(workspace.id);
   }
 }

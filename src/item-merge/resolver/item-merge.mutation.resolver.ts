@@ -11,7 +11,7 @@ import { TransactionInterceptor } from '../../common/interceptor/transaction.int
 import { ItemByIdPipe } from '../../common/pipe/item-by-id.pipe';
 import { DeepArgs } from '../../graphql/decorator/deep-args.decorator';
 import Item from '../../item/entity/item.entity';
-import { Permission } from '../../access/interfaces';
+import { Permission } from '../../access/entity/permission.enum';
 import User from '../../user/entity/user.entity';
 import { MergeItemsInDto } from '../dto';
 import { ItemMergeService } from '../item-merge.service';

@@ -5,7 +5,7 @@ import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
 import { AccessScope, PermissionLevel } from '../../access/interfaces';
 import { AuthGuard } from '../../auth/guard/auth.guard';
-import { Permission } from '../../access/interfaces';
+import { Permission } from '../../access/entity/permission.enum';
 import { TagsFilter } from '../dto';
 import Tag from '../entity/tag.entity';
 import { TagService } from '../tag.service';

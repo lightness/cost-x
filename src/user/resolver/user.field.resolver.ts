@@ -8,10 +8,16 @@ import { Contact } from '../../contact/entity/contact.entity';
 import { InviteStatus } from '../../contact/entity/invite-status.enum';
 import { Invite } from '../../contact/entity/invite.entity';
 import { JsonScalar } from '../../graphql/scalar';
-import { PermissionsByUserIdLoader } from '../dataloader/permissions-by-user-id.loader';
+import { SharedWorkspacesByUserIdLoader } from '../../workspace/dataloader/shared-workspaces-by-user-id.loader';
 import { WorkspacesByUserIdLoader } from '../../workspace/dataloader/workspaces-by-user-id.loader';
 import { WorkspacesFilter } from '../../workspace/dto';
 import { Workspace } from '../../workspace/entity/workspace.entity';
+import {
+  WorkspaceInvitesByInviteeIdLoader,
+} from '../../workspace-invite/dataloader/workspace-invites-by-invitee-id.loader';
+import { WorkspaceInviteStatus } from '../../workspace-invite/entity/workspace-invite-status.enum';
+import { WorkspaceInvite } from '../../workspace-invite/entity/workspace-invite.entity';
+import { PermissionsByUserIdLoader } from '../dataloader/permissions-by-user-id.loader';
 import User from '../entity/user.entity';
 
 @Resolver(() => User)
@@ -19,6 +25,8 @@ export class UserFieldResolver {
   constructor(
     private permissionsByUserIdLoader: PermissionsByUserIdLoader,
     private workspacesByUserIdLoader: WorkspacesByUserIdLoader,
+    private sharedWorkspacesByUserIdLoader: SharedWorkspacesByUserIdLoader,
+    private workspaceInvitesByInviteeIdLoader: WorkspaceInvitesByInviteeIdLoader,
     private incomingInvitesByUserIdLoader: IncomingInvitesByUserIdLoader,
     private outgoingInvitesByUserIdLoader: OutgoingInvitesByUserIdLoader,
     private contactsByUserIdLoader: ContactsByUserIdLoader,
@@ -67,6 +75,18 @@ export class UserFieldResolver {
   @ResolveField(() => JsonScalar)
   async permissions(@Parent() user: User): Promise<Record<string, number>> {
     return this.permissionsByUserIdLoader.load(user.id);
+  }
+
+  @ResolveField(() => [Workspace])
+  async sharedWorkspaces(@Parent() user: User) {
+    return this.sharedWorkspacesByUserIdLoader.load(user.id);
+  }
+
+  @ResolveField(() => [WorkspaceInvite])
+  async pendingWorkspaceInvites(@Parent() user: User) {
+    return this.workspaceInvitesByInviteeIdLoader
+      .withOptions({ status: WorkspaceInviteStatus.PENDING })
+      .load(user.id);
   }
 
   @ResolveField(() => [Contact])

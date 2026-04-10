@@ -311,6 +311,42 @@ export class WorkspaceHistoryService {
     );
   }
 
+  async createWorkspaceMemberJoined(
+    workspaceId: number,
+    actorId: number,
+    inviteeId: number,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<WorkspaceHistory> {
+    return this.create(
+      {
+        action: WorkspaceHistoryAction.WORKSPACE_MEMBER_JOINED,
+        actorId,
+        newValue: { inviteeId } as unknown as JsonObject,
+        oldValue: null,
+        workspaceId,
+      },
+      tx,
+    );
+  }
+
+  async createWorkspaceMemberRemoved(
+    workspaceId: number,
+    actorId: number,
+    removedUserId: number,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<WorkspaceHistory> {
+    return this.create(
+      {
+        action: WorkspaceHistoryAction.WORKSPACE_MEMBER_REMOVED,
+        actorId,
+        newValue: null,
+        oldValue: { removedUserId } as unknown as JsonObject,
+        workspaceId,
+      },
+      tx,
+    );
+  }
+
   async createItemMerged(
     workspaceId: number,
     actorId: number,
