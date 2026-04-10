@@ -5,7 +5,7 @@ import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
 import { fromReq } from '../../access/function/from-req.function';
 import { AccessGuard } from '../../access/guard/access.guard';
-import { AccessScope, PermissionLevel } from '../../access/interfaces';
+import { AccessScope, PermissionLevel, WorkspaceRole } from '../../access/interfaces';
 import { Permission } from '../../access/entity/permission.enum';import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
 import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
@@ -40,12 +40,7 @@ export class WorkspaceMutationResolver {
 
   @Mutation(() => Workspace)
   @Access.allow([
-    {
-      and: [
-        { targetId: fromArg('id'), targetScope: AccessScope.WORKSPACE },
-        { level: PermissionLevel.OWNER, permission: Permission.WORKSPACE_UPDATE },
-      ],
-    },
+    { targetId: fromArg('id'), targetScope: AccessScope.WORKSPACE, workspaceRole: WorkspaceRole.OWNER },
     { level: PermissionLevel.ADMIN, permission: Permission.WORKSPACE_UPDATE },
   ])
   async updateWorkspace(
@@ -59,12 +54,7 @@ export class WorkspaceMutationResolver {
 
   @Mutation(() => Workspace)
   @Access.allow([
-    {
-      and: [
-        { targetId: fromArg('id'), targetScope: AccessScope.WORKSPACE },
-        { level: PermissionLevel.OWNER, permission: Permission.WORKSPACE_DELETE },
-      ],
-    },
+    { targetId: fromArg('id'), targetScope: AccessScope.WORKSPACE, workspaceRole: WorkspaceRole.OWNER },
     { level: PermissionLevel.ADMIN, permission: Permission.WORKSPACE_DELETE },
   ])
   async deleteWorkspace(

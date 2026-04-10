@@ -4,7 +4,7 @@ import { Prisma } from '../../../generated/prisma/client';
 import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
-import { AccessScope, PermissionLevel } from '../../access/interfaces';
+import { AccessScope, PermissionLevel, WorkspaceRole } from '../../access/interfaces';
 import { Permission } from '../../access/entity/permission.enum';import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
 import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
@@ -21,12 +21,8 @@ export class ItemMutationResolver {
 
   @Mutation(() => Item)
   @Access.allow([
-    {
-      and: [
-        { targetId: fromArg('workspaceId'), targetScope: AccessScope.WORKSPACE },
-        { level: PermissionLevel.OWNER, permission: Permission.ITEM_CREATE },
-      ],
-    },
+    { targetId: fromArg('workspaceId'), targetScope: AccessScope.WORKSPACE, workspaceRole: WorkspaceRole.OWNER },
+    { targetId: fromArg('workspaceId'), targetScope: AccessScope.WORKSPACE, workspaceRole: WorkspaceRole.MEMBER, permission: Permission.ITEM_CREATE },
     { level: PermissionLevel.ADMIN, permission: Permission.ITEM_CREATE },
   ])
   async createItem(
@@ -40,12 +36,8 @@ export class ItemMutationResolver {
 
   @Mutation(() => Item)
   @Access.allow([
-    {
-      and: [
-        { targetId: fromArg('id'), targetScope: AccessScope.ITEM },
-        { level: PermissionLevel.OWNER, permission: Permission.ITEM_UPDATE },
-      ],
-    },
+    { targetId: fromArg('id'), targetScope: AccessScope.ITEM, workspaceRole: WorkspaceRole.OWNER },
+    { targetId: fromArg('id'), targetScope: AccessScope.ITEM, workspaceRole: WorkspaceRole.MEMBER, permission: Permission.ITEM_UPDATE },
     { level: PermissionLevel.ADMIN, permission: Permission.ITEM_UPDATE },
   ])
   async updateItem(
@@ -59,12 +51,8 @@ export class ItemMutationResolver {
 
   @Mutation(() => Boolean)
   @Access.allow([
-    {
-      and: [
-        { targetId: fromArg('id'), targetScope: AccessScope.ITEM },
-        { level: PermissionLevel.OWNER, permission: Permission.ITEM_DELETE },
-      ],
-    },
+    { targetId: fromArg('id'), targetScope: AccessScope.ITEM, workspaceRole: WorkspaceRole.OWNER },
+    { targetId: fromArg('id'), targetScope: AccessScope.ITEM, workspaceRole: WorkspaceRole.MEMBER, permission: Permission.ITEM_DELETE },
     { level: PermissionLevel.ADMIN, permission: Permission.ITEM_DELETE },
   ])
   async deleteItem(

@@ -23,13 +23,19 @@ export enum PermissionLevel {
   ADMIN = 2,
 }
 
+export enum WorkspaceRole {
+  OWNER = 'owner',
+  MEMBER = 'member',
+}
+
 export interface Rule {
   sourceScope?: AccessScope; // Default 'user'
   sourceId?: GetId; // Default ctx.getContext().req.user.id
   targetScope?: AccessScope;
   targetId?: GetId;
   permission?: Permission | Permission[];
-  level?: PermissionLevel;
+  level?: PermissionLevel; // for global rules only (no targetScope)
+  workspaceRole?: WorkspaceRole; // for workspace-scoped rules (targetScope set)
   metadata?: Record<string, unknown>;
 }
 

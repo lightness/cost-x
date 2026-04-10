@@ -4,7 +4,7 @@ import { Prisma } from '../../../generated/prisma/client';
 import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
-import { AccessScope, PermissionLevel } from '../../access/interfaces';
+import { AccessScope, PermissionLevel, WorkspaceRole } from '../../access/interfaces';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
 import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
@@ -23,12 +23,8 @@ export class TagMutationResolver {
 
   @Mutation(() => Tag)
   @Access.allow([
-    {
-      and: [
-        { targetId: fromArg('workspaceId'), targetScope: AccessScope.WORKSPACE },
-        { level: PermissionLevel.OWNER, permission: Permission.TAG_CREATE },
-      ],
-    },
+    { targetId: fromArg('workspaceId'), targetScope: AccessScope.WORKSPACE, workspaceRole: WorkspaceRole.OWNER },
+    { targetId: fromArg('workspaceId'), targetScope: AccessScope.WORKSPACE, workspaceRole: WorkspaceRole.MEMBER, permission: Permission.TAG_CREATE },
     { level: PermissionLevel.ADMIN, permission: Permission.TAG_CREATE },
   ])
   async createTag(
@@ -42,12 +38,8 @@ export class TagMutationResolver {
 
   @Mutation(() => Tag)
   @Access.allow([
-    {
-      and: [
-        { targetId: fromArg('id'), targetScope: AccessScope.TAG },
-        { level: PermissionLevel.OWNER, permission: Permission.TAG_UPDATE },
-      ],
-    },
+    { targetId: fromArg('id'), targetScope: AccessScope.TAG, workspaceRole: WorkspaceRole.OWNER },
+    { targetId: fromArg('id'), targetScope: AccessScope.TAG, workspaceRole: WorkspaceRole.MEMBER, permission: Permission.TAG_UPDATE },
     { level: PermissionLevel.ADMIN, permission: Permission.TAG_UPDATE },
   ])
   async updateTag(
@@ -61,12 +53,8 @@ export class TagMutationResolver {
 
   @Mutation(() => Boolean)
   @Access.allow([
-    {
-      and: [
-        { targetId: fromArg('id'), targetScope: AccessScope.TAG },
-        { level: PermissionLevel.OWNER, permission: Permission.TAG_DELETE },
-      ],
-    },
+    { targetId: fromArg('id'), targetScope: AccessScope.TAG, workspaceRole: WorkspaceRole.OWNER },
+    { targetId: fromArg('id'), targetScope: AccessScope.TAG, workspaceRole: WorkspaceRole.MEMBER, permission: Permission.TAG_DELETE },
     { level: PermissionLevel.ADMIN, permission: Permission.TAG_DELETE },
   ])
   async deleteTag(

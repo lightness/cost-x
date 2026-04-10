@@ -3,7 +3,7 @@ import { Args, Int, Query, Resolver } from '@nestjs/graphql';
 import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
-import { AccessScope, PermissionLevel } from '../../access/interfaces';
+import { AccessScope, PermissionLevel, WorkspaceRole } from '../../access/interfaces';
 import { AuthGuard } from '../../auth/guard/auth.guard';
 import { Permission } from '../../access/entity/permission.enum';
 import { PaymentsFilter } from '../dto';
@@ -21,12 +21,8 @@ export class PaymentQueryResolver {
 
   @Query(() => Payment)
   @Access.allow([
-    {
-      and: [
-        { targetId: fromArg('id'), targetScope: AccessScope.PAYMENT },
-        { level: PermissionLevel.OWNER, permission: Permission.PAYMENT_READ },
-      ],
-    },
+    { targetId: fromArg('id'), targetScope: AccessScope.PAYMENT, workspaceRole: WorkspaceRole.OWNER },
+    { targetId: fromArg('id'), targetScope: AccessScope.PAYMENT, workspaceRole: WorkspaceRole.MEMBER, permission: Permission.PAYMENT_READ },
     { level: PermissionLevel.ADMIN, permission: Permission.PAYMENT_READ },
   ])
   async payment(@Args('id', { type: () => Int }) id: number) {
@@ -41,12 +37,8 @@ export class PaymentQueryResolver {
 
   @Query(() => [Payment])
   @Access.allow([
-    {
-      and: [
-        { targetId: fromArg('itemId'), targetScope: AccessScope.ITEM },
-        { level: PermissionLevel.OWNER, permission: Permission.PAYMENT_READ },
-      ],
-    },
+    { targetId: fromArg('itemId'), targetScope: AccessScope.ITEM, workspaceRole: WorkspaceRole.OWNER },
+    { targetId: fromArg('itemId'), targetScope: AccessScope.ITEM, workspaceRole: WorkspaceRole.MEMBER, permission: Permission.PAYMENT_READ },
     { level: PermissionLevel.ADMIN, permission: Permission.PAYMENT_READ },
   ])
   async payments(

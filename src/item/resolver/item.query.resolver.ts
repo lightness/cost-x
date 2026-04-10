@@ -3,7 +3,7 @@ import { Args, Int, Query, Resolver } from '@nestjs/graphql';
 import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
-import { AccessScope, PermissionLevel } from '../../access/interfaces';
+import { AccessScope, PermissionLevel, WorkspaceRole } from '../../access/interfaces';
 import { AuthGuard } from '../../auth/guard/auth.guard';
 import { PaymentsFilter } from '../../payment/dto';
 import { Permission } from '../../access/entity/permission.enum';
@@ -18,12 +18,8 @@ export class ItemQueryResolver {
 
   @Query(() => Item)
   @Access.allow([
-    {
-      and: [
-        { targetId: fromArg('id'), targetScope: AccessScope.ITEM },
-        { level: PermissionLevel.OWNER, permission: Permission.ITEM_READ },
-      ],
-    },
+    { targetId: fromArg('id'), targetScope: AccessScope.ITEM, workspaceRole: WorkspaceRole.OWNER },
+    { targetId: fromArg('id'), targetScope: AccessScope.ITEM, workspaceRole: WorkspaceRole.MEMBER, permission: Permission.ITEM_READ },
     { level: PermissionLevel.ADMIN, permission: Permission.ITEM_READ },
   ])
   async item(@Args('id', { type: () => Int }) id: number) {
@@ -32,12 +28,8 @@ export class ItemQueryResolver {
 
   @Query(() => [Item])
   @Access.allow([
-    {
-      and: [
-        { targetId: fromArg('workspaceId'), targetScope: AccessScope.WORKSPACE },
-        { level: PermissionLevel.OWNER, permission: Permission.ITEM_READ },
-      ],
-    },
+    { targetId: fromArg('workspaceId'), targetScope: AccessScope.WORKSPACE, workspaceRole: WorkspaceRole.OWNER },
+    { targetId: fromArg('workspaceId'), targetScope: AccessScope.WORKSPACE, workspaceRole: WorkspaceRole.MEMBER, permission: Permission.ITEM_READ },
     { level: PermissionLevel.ADMIN, permission: Permission.ITEM_READ },
   ])
   async items(

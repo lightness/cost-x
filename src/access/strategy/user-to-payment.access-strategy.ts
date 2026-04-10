@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { PrismaService } from '../../prisma/prisma.service';
-import { AccessScope, Rule } from '../interfaces';
+import { AccessScope, Rule, WorkspaceRole } from '../interfaces';
 import { AccessStrategy } from './interface';
 
 @Injectable()
@@ -27,20 +27,20 @@ export class UserToPaymentAccessStrategy implements AccessStrategy {
       return false;
     }
 
-    if (payment.item.workspace?.ownerId === userId) {
-      return true;
+    if (rule.workspaceRole === WorkspaceRole.OWNER) {
+      return payment.item.workspace?.ownerId === userId;
     }
 
-    if (!rule.permission) {
-      return false;
+    if (rule.workspaceRole === WorkspaceRole.MEMBER) {
+      const permission = Array.isArray(rule.permission) ? rule.permission[0] : rule.permission;
+      const member = await this.prisma.workspaceMember.findFirst({
+        select: { permissions: true },
+        where: { userId, workspaceId: payment.item.workspaceId, leftAt: null },
+      });
+
+      return member?.permissions.includes(permission) ?? false;
     }
 
-    const permission = Array.isArray(rule.permission) ? rule.permission[0] : rule.permission;
-    const member = await this.prisma.workspaceMember.findFirst({
-      select: { permissions: true },
-      where: { workspaceId: payment.item.workspaceId, userId, leftAt: null },
-    });
-
-    return member?.permissions.includes(permission) ?? false;
+    return false;
   }
 }

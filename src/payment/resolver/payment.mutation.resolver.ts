@@ -5,7 +5,7 @@ import { Access } from '../../access/decorator/access.decorator';
 import { Permission } from '../../access/entity/permission.enum';
 import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
-import { AccessScope, PermissionLevel } from '../../access/interfaces';
+import { AccessScope, PermissionLevel, WorkspaceRole } from '../../access/interfaces';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
 import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
@@ -25,12 +25,8 @@ export class PaymentMutationResolver {
 
   @Mutation(() => Payment)
   @Access.allow([
-    {
-      and: [
-        { targetId: fromArg('itemId'), targetScope: AccessScope.ITEM },
-        { level: PermissionLevel.OWNER, permission: Permission.PAYMENT_CREATE },
-      ],
-    },
+    { targetId: fromArg('itemId'), targetScope: AccessScope.ITEM, workspaceRole: WorkspaceRole.OWNER },
+    { targetId: fromArg('itemId'), targetScope: AccessScope.ITEM, workspaceRole: WorkspaceRole.MEMBER, permission: Permission.PAYMENT_CREATE },
     { level: PermissionLevel.ADMIN, permission: Permission.PAYMENT_CREATE },
   ])
   async createPayment(
@@ -44,12 +40,8 @@ export class PaymentMutationResolver {
 
   @Mutation(() => Payment)
   @Access.allow([
-    {
-      and: [
-        { targetId: fromArg('paymentId'), targetScope: AccessScope.PAYMENT },
-        { level: PermissionLevel.OWNER, permission: Permission.PAYMENT_UPDATE },
-      ],
-    },
+    { targetId: fromArg('paymentId'), targetScope: AccessScope.PAYMENT, workspaceRole: WorkspaceRole.OWNER },
+    { targetId: fromArg('paymentId'), targetScope: AccessScope.PAYMENT, workspaceRole: WorkspaceRole.MEMBER, permission: Permission.PAYMENT_UPDATE },
     { level: PermissionLevel.ADMIN, permission: Permission.PAYMENT_UPDATE },
   ])
   async updatePayment(
@@ -63,12 +55,8 @@ export class PaymentMutationResolver {
 
   @Mutation(() => Boolean)
   @Access.allow([
-    {
-      and: [
-        { targetId: fromArg('paymentId'), targetScope: AccessScope.PAYMENT },
-        { level: PermissionLevel.OWNER, permission: Permission.PAYMENT_DELETE },
-      ],
-    },
+    { targetId: fromArg('paymentId'), targetScope: AccessScope.PAYMENT, workspaceRole: WorkspaceRole.OWNER },
+    { targetId: fromArg('paymentId'), targetScope: AccessScope.PAYMENT, workspaceRole: WorkspaceRole.MEMBER, permission: Permission.PAYMENT_DELETE },
     { level: PermissionLevel.ADMIN, permission: Permission.PAYMENT_DELETE },
   ])
   async deletePayment(

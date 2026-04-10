@@ -4,7 +4,7 @@ import { Prisma } from '../../../generated/prisma/client';
 import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
-import { AccessScope, PermissionLevel } from '../../access/interfaces';
+import { AccessScope, PermissionLevel, WorkspaceRole } from '../../access/interfaces';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
 import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
@@ -26,9 +26,14 @@ export class ItemMergeMutationResolver {
   @Access.allow([
     {
       and: [
-        { targetId: fromArg('dto.hostItemId'), targetScope: AccessScope.ITEM },
-        { targetId: fromArg('dto.mergingItemId'), targetScope: AccessScope.ITEM },
-        { level: PermissionLevel.OWNER, permission: Permission.ITEM_UPDATE },
+        { targetId: fromArg('dto.hostItemId'), targetScope: AccessScope.ITEM, workspaceRole: WorkspaceRole.OWNER },
+        { targetId: fromArg('dto.mergingItemId'), targetScope: AccessScope.ITEM, workspaceRole: WorkspaceRole.OWNER },
+      ],
+    },
+    {
+      and: [
+        { targetId: fromArg('dto.hostItemId'), targetScope: AccessScope.ITEM, workspaceRole: WorkspaceRole.MEMBER, permission: Permission.ITEM_UPDATE },
+        { targetId: fromArg('dto.mergingItemId'), targetScope: AccessScope.ITEM, workspaceRole: WorkspaceRole.MEMBER, permission: Permission.ITEM_UPDATE },
       ],
     },
     { level: PermissionLevel.ADMIN, permission: Permission.ITEM_UPDATE },

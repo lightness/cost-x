@@ -3,7 +3,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { Permission } from '../generated/prisma/enums';
 import { AuthService } from '../src/auth/auth.service';
-import { PermissionLevel } from '../src/access/interfaces';
 import { ApplicationErrorCode } from '../src/common/error/coded-application.error';
 import { configureApp } from '../src/configure-app';
 import { GraphqlModule } from '../src/graphql/graphql.module';
@@ -79,7 +78,26 @@ describe('Workspace-Scoped Mutations — Access E2E', () => {
     expect(response.body?.errors?.[0]?.code).toBe(ApplicationErrorCode.NO_ACCESS);
   }
 
+  /** Creates a workspace member with given permissions in the given workspace. */
+  async function addMember(userId: number, workspaceId: number, permissions: Permission[]) {
+    return prisma.workspaceMember.create({
+      data: { permissions, userId, workspaceId },
+    });
+  }
+
+  /** Global admin: UserPermission records with accessLevel = ADMIN (2) for every requested permission. */
+  async function createAdmin(permissions: Permission[]) {
+    const admin = await userFactory.create('active');
+
+    await prisma.userPermission.createMany({
+      data: permissions.map((permission) => ({ accessLevel: 2, permission, userId: admin.id })),
+    });
+
+    return admin;
+  }
+
   // ─── createWorkspace ──────────────────────────────────────────────────────
+  // createWorkspace is global (no workspace context), uses UserPermission.
 
   describe('createWorkspace', () => {
     const mutation = `
@@ -89,39 +107,25 @@ describe('Workspace-Scoped Mutations — Access E2E', () => {
     `;
     const variables = { dto: { defaultCurrency: 'USD', title: 'Test' } };
 
-    it('should allow a user with OWNER-level WORKSPACE_CREATE permission', async () => {
-      const user = await userFactory.createWithPermissions(
-        'active',
-        [Permission.WORKSPACE_CREATE],
-        PermissionLevel.OWNER,
-      );
+    it('should allow a user with OWNER-level WORKSPACE_CREATE UserPermission', async () => {
+      const user = await userFactory.createWithPermissions('active', [Permission.WORKSPACE_CREATE], 1);
       const { accessToken } = await authService.authenticateUser(user);
 
-      const response = await gql(accessToken)(mutation, variables);
-
-      expectAllowed(response);
+      expectAllowed(await gql(accessToken)(mutation, variables));
     });
 
-    it('should allow a user with ADMIN-level WORKSPACE_CREATE permission', async () => {
-      const user = await userFactory.createWithPermissions(
-        'active',
-        [Permission.WORKSPACE_CREATE],
-        PermissionLevel.ADMIN,
-      );
-      const { accessToken } = await authService.authenticateUser(user);
+    it('should allow a global admin', async () => {
+      const admin = await createAdmin([Permission.WORKSPACE_CREATE]);
+      const { accessToken } = await authService.authenticateUser(admin);
 
-      const response = await gql(accessToken)(mutation, variables);
-
-      expectAllowed(response);
+      expectAllowed(await gql(accessToken)(mutation, variables));
     });
 
-    it('should deny a user without WORKSPACE_CREATE permission', async () => {
+    it('should deny a user without WORKSPACE_CREATE UserPermission', async () => {
       const user = await userFactory.create('active');
       const { accessToken } = await authService.authenticateUser(user);
 
-      const response = await gql(accessToken)(mutation, variables);
-
-      expectDenied(response);
+      expectDenied(await gql(accessToken)(mutation, variables));
     });
   });
 
@@ -134,66 +138,40 @@ describe('Workspace-Scoped Mutations — Access E2E', () => {
       }
     `;
 
-    it('should allow the workspace owner with OWNER-level WORKSPACE_UPDATE permission', async () => {
-      const owner = await userFactory.createWithPermissions(
-        'active',
-        [Permission.WORKSPACE_UPDATE],
-        PermissionLevel.OWNER,
-      );
+    it('should allow the workspace owner', async () => {
+      const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
       const { accessToken } = await authService.authenticateUser(owner);
 
-      const response = await gql(accessToken)(mutation, {
-        dto: { defaultCurrency: 'USD', title: 'Updated' },
-        id: workspace.id,
-      });
-
-      expectAllowed(response);
+      expectAllowed(await gql(accessToken)(mutation, { dto: { defaultCurrency: 'USD', title: 'Updated' }, id: workspace.id }));
     });
 
-    it('should allow a user with ADMIN-level WORKSPACE_UPDATE permission', async () => {
+    it('should allow a global admin', async () => {
       const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
-      const admin = await userFactory.createWithPermissions(
-        'active',
-        [Permission.WORKSPACE_UPDATE],
-        PermissionLevel.ADMIN,
-      );
+      const admin = await createAdmin([Permission.WORKSPACE_UPDATE]);
       const { accessToken } = await authService.authenticateUser(admin);
 
-      const response = await gql(accessToken)(mutation, {
-        dto: { defaultCurrency: 'USD', title: 'Updated' },
-        id: workspace.id,
-      });
-
-      expectAllowed(response);
+      expectAllowed(await gql(accessToken)(mutation, { dto: { defaultCurrency: 'USD', title: 'Updated' }, id: workspace.id }));
     });
 
-    it('should deny the workspace owner without global WORKSPACE_UPDATE permission', async () => {
+    it('should deny a workspace member', async () => {
       const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
-      const { accessToken } = await authService.authenticateUser(owner);
+      const member = await userFactory.create('active');
+      await addMember(member.id, workspace.id, [Permission.WORKSPACE_UPDATE]);
+      const { accessToken } = await authService.authenticateUser(member);
 
-      const response = await gql(accessToken)(mutation, {
-        dto: { defaultCurrency: 'USD', title: 'Updated' },
-        id: workspace.id,
-      });
-
-      expectDenied(response);
+      expectDenied(await gql(accessToken)(mutation, { dto: { defaultCurrency: 'USD', title: 'Updated' }, id: workspace.id }));
     });
 
-    it('should deny a non-owner without permissions', async () => {
+    it('should deny an unrelated user', async () => {
       const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
       const other = await userFactory.create('active');
       const { accessToken } = await authService.authenticateUser(other);
 
-      const response = await gql(accessToken)(mutation, {
-        dto: { defaultCurrency: 'USD', title: 'Updated' },
-        id: workspace.id,
-      });
-
-      expectDenied(response);
+      expectDenied(await gql(accessToken)(mutation, { dto: { defaultCurrency: 'USD', title: 'Updated' }, id: workspace.id }));
     });
   });
 
@@ -206,43 +184,31 @@ describe('Workspace-Scoped Mutations — Access E2E', () => {
       }
     `;
 
-    it('should allow the workspace owner with OWNER-level WORKSPACE_DELETE permission', async () => {
-      const owner = await userFactory.createWithPermissions(
-        'active',
-        [Permission.WORKSPACE_DELETE],
-        PermissionLevel.OWNER,
-      );
+    it('should allow the workspace owner', async () => {
+      const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
       const { accessToken } = await authService.authenticateUser(owner);
 
-      const response = await gql(accessToken)(mutation, { id: workspace.id });
-
-      expectAllowed(response);
+      expectAllowed(await gql(accessToken)(mutation, { id: workspace.id }));
     });
 
-    it('should allow a user with ADMIN-level WORKSPACE_DELETE permission', async () => {
+    it('should allow a global admin', async () => {
       const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
-      const admin = await userFactory.createWithPermissions(
-        'active',
-        [Permission.WORKSPACE_DELETE],
-        PermissionLevel.ADMIN,
-      );
+      const admin = await createAdmin([Permission.WORKSPACE_DELETE]);
       const { accessToken } = await authService.authenticateUser(admin);
 
-      const response = await gql(accessToken)(mutation, { id: workspace.id });
-
-      expectAllowed(response);
+      expectAllowed(await gql(accessToken)(mutation, { id: workspace.id }));
     });
 
-    it('should deny the workspace owner without global WORKSPACE_DELETE permission', async () => {
+    it('should deny a workspace member', async () => {
       const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
-      const { accessToken } = await authService.authenticateUser(owner);
+      const member = await userFactory.create('active');
+      await addMember(member.id, workspace.id, [Permission.WORKSPACE_DELETE]);
+      const { accessToken } = await authService.authenticateUser(member);
 
-      const response = await gql(accessToken)(mutation, { id: workspace.id });
-
-      expectDenied(response);
+      expectDenied(await gql(accessToken)(mutation, { id: workspace.id }));
     });
   });
 
@@ -255,70 +221,50 @@ describe('Workspace-Scoped Mutations — Access E2E', () => {
       }
     `;
 
-    it('should allow the workspace owner with OWNER-level ITEM_CREATE permission', async () => {
-      const owner = await userFactory.createWithPermissions(
-        'active',
-        [Permission.ITEM_CREATE],
-        PermissionLevel.OWNER,
-      );
+    it('should allow the workspace owner', async () => {
+      const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
       const { accessToken } = await authService.authenticateUser(owner);
 
-      const response = await gql(accessToken)(mutation, {
-        dto: { title: 'Item' },
-        workspaceId: workspace.id,
-      });
-
-      expectAllowed(response);
+      expectAllowed(await gql(accessToken)(mutation, { dto: { title: 'Item' }, workspaceId: workspace.id }));
     });
 
-    it('should allow a user with ADMIN-level ITEM_CREATE permission', async () => {
+    it('should allow a workspace member with ITEM_CREATE permission', async () => {
       const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
-      const admin = await userFactory.createWithPermissions(
-        'active',
-        [Permission.ITEM_CREATE],
-        PermissionLevel.ADMIN,
-      );
+      const member = await userFactory.create('active');
+      await addMember(member.id, workspace.id, [Permission.ITEM_CREATE]);
+      const { accessToken } = await authService.authenticateUser(member);
+
+      expectAllowed(await gql(accessToken)(mutation, { dto: { title: 'Item' }, workspaceId: workspace.id }));
+    });
+
+    it('should allow a global admin', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+      const admin = await createAdmin([Permission.ITEM_CREATE]);
       const { accessToken } = await authService.authenticateUser(admin);
 
-      const response = await gql(accessToken)(mutation, {
-        dto: { title: 'Item' },
-        workspaceId: workspace.id,
-      });
-
-      expectAllowed(response);
+      expectAllowed(await gql(accessToken)(mutation, { dto: { title: 'Item' }, workspaceId: workspace.id }));
     });
 
-    it('should deny the workspace owner without global ITEM_CREATE permission', async () => {
+    it('should deny a workspace member without ITEM_CREATE permission', async () => {
       const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
-      const { accessToken } = await authService.authenticateUser(owner);
+      const member = await userFactory.create('active');
+      await addMember(member.id, workspace.id, [Permission.TAG_CREATE]);
+      const { accessToken } = await authService.authenticateUser(member);
 
-      const response = await gql(accessToken)(mutation, {
-        dto: { title: 'Item' },
-        workspaceId: workspace.id,
-      });
-
-      expectDenied(response);
+      expectDenied(await gql(accessToken)(mutation, { dto: { title: 'Item' }, workspaceId: workspace.id }));
     });
 
-    it('should deny a non-owner without permissions', async () => {
+    it('should deny an unrelated user', async () => {
       const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
-      const other = await userFactory.createWithPermissions(
-        'active',
-        [Permission.ITEM_CREATE],
-        PermissionLevel.OWNER,
-      );
+      const other = await userFactory.create('active');
       const { accessToken } = await authService.authenticateUser(other);
 
-      const response = await gql(accessToken)(mutation, {
-        dto: { title: 'Item' },
-        workspaceId: workspace.id,
-      });
-
-      expectDenied(response);
+      expectDenied(await gql(accessToken)(mutation, { dto: { title: 'Item' }, workspaceId: workspace.id }));
     });
   });
 
@@ -331,55 +277,45 @@ describe('Workspace-Scoped Mutations — Access E2E', () => {
       }
     `;
 
-    it('should allow the workspace owner with OWNER-level ITEM_UPDATE permission', async () => {
-      const owner = await userFactory.createWithPermissions(
-        'active',
-        [Permission.ITEM_UPDATE],
-        PermissionLevel.OWNER,
-      );
+    it('should allow the workspace owner', async () => {
+      const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
       const item = await itemFactory.create(workspace.id);
       const { accessToken } = await authService.authenticateUser(owner);
 
-      const response = await gql(accessToken)(mutation, {
-        dto: { title: 'Updated' },
-        id: item.id,
-      });
-
-      expectAllowed(response);
+      expectAllowed(await gql(accessToken)(mutation, { dto: { title: 'Updated' }, id: item.id }));
     });
 
-    it('should allow a user with ADMIN-level ITEM_UPDATE permission', async () => {
+    it('should allow a workspace member with ITEM_UPDATE permission', async () => {
       const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
       const item = await itemFactory.create(workspace.id);
-      const admin = await userFactory.createWithPermissions(
-        'active',
-        [Permission.ITEM_UPDATE],
-        PermissionLevel.ADMIN,
-      );
+      const member = await userFactory.create('active');
+      await addMember(member.id, workspace.id, [Permission.ITEM_UPDATE]);
+      const { accessToken } = await authService.authenticateUser(member);
+
+      expectAllowed(await gql(accessToken)(mutation, { dto: { title: 'Updated' }, id: item.id }));
+    });
+
+    it('should allow a global admin', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+      const item = await itemFactory.create(workspace.id);
+      const admin = await createAdmin([Permission.ITEM_UPDATE]);
       const { accessToken } = await authService.authenticateUser(admin);
 
-      const response = await gql(accessToken)(mutation, {
-        dto: { title: 'Updated' },
-        id: item.id,
-      });
-
-      expectAllowed(response);
+      expectAllowed(await gql(accessToken)(mutation, { dto: { title: 'Updated' }, id: item.id }));
     });
 
-    it('should deny the workspace owner without global ITEM_UPDATE permission', async () => {
+    it('should deny a workspace member without ITEM_UPDATE permission', async () => {
       const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
       const item = await itemFactory.create(workspace.id);
-      const { accessToken } = await authService.authenticateUser(owner);
+      const member = await userFactory.create('active');
+      await addMember(member.id, workspace.id, [Permission.ITEM_READ]);
+      const { accessToken } = await authService.authenticateUser(member);
 
-      const response = await gql(accessToken)(mutation, {
-        dto: { title: 'Updated' },
-        id: item.id,
-      });
-
-      expectDenied(response);
+      expectDenied(await gql(accessToken)(mutation, { dto: { title: 'Updated' }, id: item.id }));
     });
   });
 
@@ -392,46 +328,45 @@ describe('Workspace-Scoped Mutations — Access E2E', () => {
       }
     `;
 
-    it('should allow the workspace owner with OWNER-level ITEM_DELETE permission', async () => {
-      const owner = await userFactory.createWithPermissions(
-        'active',
-        [Permission.ITEM_DELETE],
-        PermissionLevel.OWNER,
-      );
+    it('should allow the workspace owner', async () => {
+      const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
       const item = await itemFactory.create(workspace.id);
       const { accessToken } = await authService.authenticateUser(owner);
 
-      const response = await gql(accessToken)(mutation, { id: item.id });
-
-      expectAllowed(response);
+      expectAllowed(await gql(accessToken)(mutation, { id: item.id }));
     });
 
-    it('should allow a user with ADMIN-level ITEM_DELETE permission', async () => {
+    it('should allow a workspace member with ITEM_DELETE permission', async () => {
       const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
       const item = await itemFactory.create(workspace.id);
-      const admin = await userFactory.createWithPermissions(
-        'active',
-        [Permission.ITEM_DELETE],
-        PermissionLevel.ADMIN,
-      );
+      const member = await userFactory.create('active');
+      await addMember(member.id, workspace.id, [Permission.ITEM_DELETE]);
+      const { accessToken } = await authService.authenticateUser(member);
+
+      expectAllowed(await gql(accessToken)(mutation, { id: item.id }));
+    });
+
+    it('should allow a global admin', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+      const item = await itemFactory.create(workspace.id);
+      const admin = await createAdmin([Permission.ITEM_DELETE]);
       const { accessToken } = await authService.authenticateUser(admin);
 
-      const response = await gql(accessToken)(mutation, { id: item.id });
-
-      expectAllowed(response);
+      expectAllowed(await gql(accessToken)(mutation, { id: item.id }));
     });
 
-    it('should deny the workspace owner without global ITEM_DELETE permission', async () => {
+    it('should deny a workspace member without ITEM_DELETE permission', async () => {
       const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
       const item = await itemFactory.create(workspace.id);
-      const { accessToken } = await authService.authenticateUser(owner);
+      const member = await userFactory.create('active');
+      await addMember(member.id, workspace.id, [Permission.ITEM_READ]);
+      const { accessToken } = await authService.authenticateUser(member);
 
-      const response = await gql(accessToken)(mutation, { id: item.id });
-
-      expectDenied(response);
+      expectDenied(await gql(accessToken)(mutation, { id: item.id }));
     });
   });
 
@@ -444,70 +379,41 @@ describe('Workspace-Scoped Mutations — Access E2E', () => {
       }
     `;
 
-    it('should allow the workspace owner with OWNER-level TAG_CREATE permission', async () => {
-      const owner = await userFactory.createWithPermissions(
-        'active',
-        [Permission.TAG_CREATE],
-        PermissionLevel.OWNER,
-      );
+    it('should allow the workspace owner', async () => {
+      const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
       const { accessToken } = await authService.authenticateUser(owner);
 
-      const response = await gql(accessToken)(mutation, {
-        dto: { color: 'ff0000', title: 'Tag' },
-        workspaceId: workspace.id,
-      });
-
-      expectAllowed(response);
+      expectAllowed(await gql(accessToken)(mutation, { dto: { color: 'ff0000', title: 'Tag' }, workspaceId: workspace.id }));
     });
 
-    it('should allow a user with ADMIN-level TAG_CREATE permission', async () => {
+    it('should allow a workspace member with TAG_CREATE permission', async () => {
       const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
-      const admin = await userFactory.createWithPermissions(
-        'active',
-        [Permission.TAG_CREATE],
-        PermissionLevel.ADMIN,
-      );
+      const member = await userFactory.create('active');
+      await addMember(member.id, workspace.id, [Permission.TAG_CREATE]);
+      const { accessToken } = await authService.authenticateUser(member);
+
+      expectAllowed(await gql(accessToken)(mutation, { dto: { color: 'ff0000', title: 'Tag' }, workspaceId: workspace.id }));
+    });
+
+    it('should allow a global admin', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+      const admin = await createAdmin([Permission.TAG_CREATE]);
       const { accessToken } = await authService.authenticateUser(admin);
 
-      const response = await gql(accessToken)(mutation, {
-        dto: { color: 'ff0000', title: 'Tag' },
-        workspaceId: workspace.id,
-      });
-
-      expectAllowed(response);
+      expectAllowed(await gql(accessToken)(mutation, { dto: { color: 'ff0000', title: 'Tag' }, workspaceId: workspace.id }));
     });
 
-    it('should deny the workspace owner without global TAG_CREATE permission', async () => {
+    it('should deny a workspace member without TAG_CREATE permission', async () => {
       const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
-      const { accessToken } = await authService.authenticateUser(owner);
+      const member = await userFactory.create('active');
+      await addMember(member.id, workspace.id, [Permission.ITEM_CREATE]);
+      const { accessToken } = await authService.authenticateUser(member);
 
-      const response = await gql(accessToken)(mutation, {
-        dto: { color: 'ff0000', title: 'Tag' },
-        workspaceId: workspace.id,
-      });
-
-      expectDenied(response);
-    });
-
-    it('should deny a non-owner with OWNER-level TAG_CREATE permission', async () => {
-      const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
-      const other = await userFactory.createWithPermissions(
-        'active',
-        [Permission.TAG_CREATE],
-        PermissionLevel.OWNER,
-      );
-      const { accessToken } = await authService.authenticateUser(other);
-
-      const response = await gql(accessToken)(mutation, {
-        dto: { color: 'ff0000', title: 'Tag' },
-        workspaceId: workspace.id,
-      });
-
-      expectDenied(response);
+      expectDenied(await gql(accessToken)(mutation, { dto: { color: 'ff0000', title: 'Tag' }, workspaceId: workspace.id }));
     });
   });
 
@@ -520,55 +426,45 @@ describe('Workspace-Scoped Mutations — Access E2E', () => {
       }
     `;
 
-    it('should allow the workspace owner with OWNER-level TAG_UPDATE permission', async () => {
-      const owner = await userFactory.createWithPermissions(
-        'active',
-        [Permission.TAG_UPDATE],
-        PermissionLevel.OWNER,
-      );
+    it('should allow the workspace owner', async () => {
+      const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
       const tag = await tagFactory.create(workspace.id);
       const { accessToken } = await authService.authenticateUser(owner);
 
-      const response = await gql(accessToken)(mutation, {
-        dto: { color: '00ff00', title: 'Updated' },
-        id: tag.id,
-      });
-
-      expectAllowed(response);
+      expectAllowed(await gql(accessToken)(mutation, { dto: { color: '00ff00', title: 'Updated' }, id: tag.id }));
     });
 
-    it('should allow a user with ADMIN-level TAG_UPDATE permission', async () => {
+    it('should allow a workspace member with TAG_UPDATE permission', async () => {
       const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
       const tag = await tagFactory.create(workspace.id);
-      const admin = await userFactory.createWithPermissions(
-        'active',
-        [Permission.TAG_UPDATE],
-        PermissionLevel.ADMIN,
-      );
+      const member = await userFactory.create('active');
+      await addMember(member.id, workspace.id, [Permission.TAG_UPDATE]);
+      const { accessToken } = await authService.authenticateUser(member);
+
+      expectAllowed(await gql(accessToken)(mutation, { dto: { color: '00ff00', title: 'Updated' }, id: tag.id }));
+    });
+
+    it('should allow a global admin', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+      const tag = await tagFactory.create(workspace.id);
+      const admin = await createAdmin([Permission.TAG_UPDATE]);
       const { accessToken } = await authService.authenticateUser(admin);
 
-      const response = await gql(accessToken)(mutation, {
-        dto: { color: '00ff00', title: 'Updated' },
-        id: tag.id,
-      });
-
-      expectAllowed(response);
+      expectAllowed(await gql(accessToken)(mutation, { dto: { color: '00ff00', title: 'Updated' }, id: tag.id }));
     });
 
-    it('should deny the workspace owner without global TAG_UPDATE permission', async () => {
+    it('should deny a workspace member without TAG_UPDATE permission', async () => {
       const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
       const tag = await tagFactory.create(workspace.id);
-      const { accessToken } = await authService.authenticateUser(owner);
+      const member = await userFactory.create('active');
+      await addMember(member.id, workspace.id, [Permission.TAG_CREATE]);
+      const { accessToken } = await authService.authenticateUser(member);
 
-      const response = await gql(accessToken)(mutation, {
-        dto: { color: '00ff00', title: 'Updated' },
-        id: tag.id,
-      });
-
-      expectDenied(response);
+      expectDenied(await gql(accessToken)(mutation, { dto: { color: '00ff00', title: 'Updated' }, id: tag.id }));
     });
   });
 
@@ -581,46 +477,45 @@ describe('Workspace-Scoped Mutations — Access E2E', () => {
       }
     `;
 
-    it('should allow the workspace owner with OWNER-level TAG_DELETE permission', async () => {
-      const owner = await userFactory.createWithPermissions(
-        'active',
-        [Permission.TAG_DELETE],
-        PermissionLevel.OWNER,
-      );
+    it('should allow the workspace owner', async () => {
+      const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
       const tag = await tagFactory.create(workspace.id);
       const { accessToken } = await authService.authenticateUser(owner);
 
-      const response = await gql(accessToken)(mutation, { id: tag.id });
-
-      expectAllowed(response);
+      expectAllowed(await gql(accessToken)(mutation, { id: tag.id }));
     });
 
-    it('should allow a user with ADMIN-level TAG_DELETE permission', async () => {
+    it('should allow a workspace member with TAG_DELETE permission', async () => {
       const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
       const tag = await tagFactory.create(workspace.id);
-      const admin = await userFactory.createWithPermissions(
-        'active',
-        [Permission.TAG_DELETE],
-        PermissionLevel.ADMIN,
-      );
+      const member = await userFactory.create('active');
+      await addMember(member.id, workspace.id, [Permission.TAG_DELETE]);
+      const { accessToken } = await authService.authenticateUser(member);
+
+      expectAllowed(await gql(accessToken)(mutation, { id: tag.id }));
+    });
+
+    it('should allow a global admin', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+      const tag = await tagFactory.create(workspace.id);
+      const admin = await createAdmin([Permission.TAG_DELETE]);
       const { accessToken } = await authService.authenticateUser(admin);
 
-      const response = await gql(accessToken)(mutation, { id: tag.id });
-
-      expectAllowed(response);
+      expectAllowed(await gql(accessToken)(mutation, { id: tag.id }));
     });
 
-    it('should deny the workspace owner without global TAG_DELETE permission', async () => {
+    it('should deny a workspace member without TAG_DELETE permission', async () => {
       const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
       const tag = await tagFactory.create(workspace.id);
-      const { accessToken } = await authService.authenticateUser(owner);
+      const member = await userFactory.create('active');
+      await addMember(member.id, workspace.id, [Permission.TAG_CREATE]);
+      const { accessToken } = await authService.authenticateUser(member);
 
-      const response = await gql(accessToken)(mutation, { id: tag.id });
-
-      expectDenied(response);
+      expectDenied(await gql(accessToken)(mutation, { id: tag.id }));
     });
   });
 
@@ -633,55 +528,45 @@ describe('Workspace-Scoped Mutations — Access E2E', () => {
       }
     `;
 
-    it('should allow the workspace owner with OWNER-level PAYMENT_CREATE permission', async () => {
-      const owner = await userFactory.createWithPermissions(
-        'active',
-        [Permission.PAYMENT_CREATE],
-        PermissionLevel.OWNER,
-      );
+    it('should allow the workspace owner', async () => {
+      const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
       const item = await itemFactory.create(workspace.id);
       const { accessToken } = await authService.authenticateUser(owner);
 
-      const response = await gql(accessToken)(mutation, {
-        dto: { cost: '10.00', currency: 'USD', date: '2024-01-01' },
-        itemId: item.id,
-      });
-
-      expectAllowed(response);
+      expectAllowed(await gql(accessToken)(mutation, { dto: { cost: '10.00', currency: 'USD', date: '2024-01-01' }, itemId: item.id }));
     });
 
-    it('should allow a user with ADMIN-level PAYMENT_CREATE permission', async () => {
+    it('should allow a workspace member with PAYMENT_CREATE permission', async () => {
       const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
       const item = await itemFactory.create(workspace.id);
-      const admin = await userFactory.createWithPermissions(
-        'active',
-        [Permission.PAYMENT_CREATE],
-        PermissionLevel.ADMIN,
-      );
+      const member = await userFactory.create('active');
+      await addMember(member.id, workspace.id, [Permission.PAYMENT_CREATE]);
+      const { accessToken } = await authService.authenticateUser(member);
+
+      expectAllowed(await gql(accessToken)(mutation, { dto: { cost: '10.00', currency: 'USD', date: '2024-01-01' }, itemId: item.id }));
+    });
+
+    it('should allow a global admin', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+      const item = await itemFactory.create(workspace.id);
+      const admin = await createAdmin([Permission.PAYMENT_CREATE]);
       const { accessToken } = await authService.authenticateUser(admin);
 
-      const response = await gql(accessToken)(mutation, {
-        dto: { cost: '10.00', currency: 'USD', date: '2024-01-01' },
-        itemId: item.id,
-      });
-
-      expectAllowed(response);
+      expectAllowed(await gql(accessToken)(mutation, { dto: { cost: '10.00', currency: 'USD', date: '2024-01-01' }, itemId: item.id }));
     });
 
-    it('should deny the workspace owner without global PAYMENT_CREATE permission', async () => {
+    it('should deny a workspace member without PAYMENT_CREATE permission', async () => {
       const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
       const item = await itemFactory.create(workspace.id);
-      const { accessToken } = await authService.authenticateUser(owner);
+      const member = await userFactory.create('active');
+      await addMember(member.id, workspace.id, [Permission.PAYMENT_READ]);
+      const { accessToken } = await authService.authenticateUser(member);
 
-      const response = await gql(accessToken)(mutation, {
-        dto: { cost: '10.00', currency: 'USD', date: '2024-01-01' },
-        itemId: item.id,
-      });
-
-      expectDenied(response);
+      expectDenied(await gql(accessToken)(mutation, { dto: { cost: '10.00', currency: 'USD', date: '2024-01-01' }, itemId: item.id }));
     });
   });
 
@@ -694,58 +579,49 @@ describe('Workspace-Scoped Mutations — Access E2E', () => {
       }
     `;
 
-    it('should allow the workspace owner with OWNER-level PAYMENT_UPDATE permission', async () => {
-      const owner = await userFactory.createWithPermissions(
-        'active',
-        [Permission.PAYMENT_UPDATE],
-        PermissionLevel.OWNER,
-      );
+    it('should allow the workspace owner', async () => {
+      const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
       const item = await itemFactory.create(workspace.id);
       const payment = await paymentFactory.create(item.id);
       const { accessToken } = await authService.authenticateUser(owner);
 
-      const response = await gql(accessToken)(mutation, {
-        dto: { cost: '20.00', currency: 'EUR', date: '2024-01-01' },
-        paymentId: payment.id,
-      });
-
-      expectAllowed(response);
+      expectAllowed(await gql(accessToken)(mutation, { dto: { cost: '20.00', currency: 'EUR', date: '2024-01-01' }, paymentId: payment.id }));
     });
 
-    it('should allow a user with ADMIN-level PAYMENT_UPDATE permission', async () => {
+    it('should allow a workspace member with PAYMENT_UPDATE permission', async () => {
       const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
       const item = await itemFactory.create(workspace.id);
       const payment = await paymentFactory.create(item.id);
-      const admin = await userFactory.createWithPermissions(
-        'active',
-        [Permission.PAYMENT_UPDATE],
-        PermissionLevel.ADMIN,
-      );
+      const member = await userFactory.create('active');
+      await addMember(member.id, workspace.id, [Permission.PAYMENT_UPDATE]);
+      const { accessToken } = await authService.authenticateUser(member);
+
+      expectAllowed(await gql(accessToken)(mutation, { dto: { cost: '20.00', currency: 'EUR', date: '2024-01-01' }, paymentId: payment.id }));
+    });
+
+    it('should allow a global admin', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+      const item = await itemFactory.create(workspace.id);
+      const payment = await paymentFactory.create(item.id);
+      const admin = await createAdmin([Permission.PAYMENT_UPDATE]);
       const { accessToken } = await authService.authenticateUser(admin);
 
-      const response = await gql(accessToken)(mutation, {
-        dto: { cost: '20.00', currency: 'EUR', date: '2024-01-01' },
-        paymentId: payment.id,
-      });
-
-      expectAllowed(response);
+      expectAllowed(await gql(accessToken)(mutation, { dto: { cost: '20.00', currency: 'EUR', date: '2024-01-01' }, paymentId: payment.id }));
     });
 
-    it('should deny the workspace owner without global PAYMENT_UPDATE permission', async () => {
+    it('should deny a workspace member without PAYMENT_UPDATE permission', async () => {
       const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
       const item = await itemFactory.create(workspace.id);
       const payment = await paymentFactory.create(item.id);
-      const { accessToken } = await authService.authenticateUser(owner);
+      const member = await userFactory.create('active');
+      await addMember(member.id, workspace.id, [Permission.PAYMENT_READ]);
+      const { accessToken } = await authService.authenticateUser(member);
 
-      const response = await gql(accessToken)(mutation, {
-        dto: { cost: '20.00', currency: 'EUR', date: '2024-01-01' },
-        paymentId: payment.id,
-      });
-
-      expectDenied(response);
+      expectDenied(await gql(accessToken)(mutation, { dto: { cost: '20.00', currency: 'EUR', date: '2024-01-01' }, paymentId: payment.id }));
     });
   });
 
@@ -758,49 +634,49 @@ describe('Workspace-Scoped Mutations — Access E2E', () => {
       }
     `;
 
-    it('should allow the workspace owner with OWNER-level PAYMENT_DELETE permission', async () => {
-      const owner = await userFactory.createWithPermissions(
-        'active',
-        [Permission.PAYMENT_DELETE],
-        PermissionLevel.OWNER,
-      );
+    it('should allow the workspace owner', async () => {
+      const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
       const item = await itemFactory.create(workspace.id);
       const payment = await paymentFactory.create(item.id);
       const { accessToken } = await authService.authenticateUser(owner);
 
-      const response = await gql(accessToken)(mutation, { paymentId: payment.id });
-
-      expectAllowed(response);
+      expectAllowed(await gql(accessToken)(mutation, { paymentId: payment.id }));
     });
 
-    it('should allow a user with ADMIN-level PAYMENT_DELETE permission', async () => {
+    it('should allow a workspace member with PAYMENT_DELETE permission', async () => {
       const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
       const item = await itemFactory.create(workspace.id);
       const payment = await paymentFactory.create(item.id);
-      const admin = await userFactory.createWithPermissions(
-        'active',
-        [Permission.PAYMENT_DELETE],
-        PermissionLevel.ADMIN,
-      );
+      const member = await userFactory.create('active');
+      await addMember(member.id, workspace.id, [Permission.PAYMENT_DELETE]);
+      const { accessToken } = await authService.authenticateUser(member);
+
+      expectAllowed(await gql(accessToken)(mutation, { paymentId: payment.id }));
+    });
+
+    it('should allow a global admin', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+      const item = await itemFactory.create(workspace.id);
+      const payment = await paymentFactory.create(item.id);
+      const admin = await createAdmin([Permission.PAYMENT_DELETE]);
       const { accessToken } = await authService.authenticateUser(admin);
 
-      const response = await gql(accessToken)(mutation, { paymentId: payment.id });
-
-      expectAllowed(response);
+      expectAllowed(await gql(accessToken)(mutation, { paymentId: payment.id }));
     });
 
-    it('should deny the workspace owner without global PAYMENT_DELETE permission', async () => {
+    it('should deny a workspace member without PAYMENT_DELETE permission', async () => {
       const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
       const item = await itemFactory.create(workspace.id);
       const payment = await paymentFactory.create(item.id);
-      const { accessToken } = await authService.authenticateUser(owner);
+      const member = await userFactory.create('active');
+      await addMember(member.id, workspace.id, [Permission.PAYMENT_READ]);
+      const { accessToken } = await authService.authenticateUser(member);
 
-      const response = await gql(accessToken)(mutation, { paymentId: payment.id });
-
-      expectDenied(response);
+      expectDenied(await gql(accessToken)(mutation, { paymentId: payment.id }));
     });
   });
 
@@ -813,55 +689,49 @@ describe('Workspace-Scoped Mutations — Access E2E', () => {
       }
     `;
 
-    it('should allow the workspace owner with OWNER-level ITEM_TAG_MANAGE permission', async () => {
-      const owner = await userFactory.createWithPermissions(
-        'active',
-        [Permission.ITEM_TAG_MANAGE],
-        PermissionLevel.OWNER,
-      );
+    it('should allow the workspace owner', async () => {
+      const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
       const item = await itemFactory.create(workspace.id);
       const tag = await tagFactory.create(workspace.id);
       const { accessToken } = await authService.authenticateUser(owner);
 
-      const response = await gql(accessToken)(mutation, {
-        dto: { itemId: item.id, tagId: tag.id },
-      });
-
-      expectAllowed(response);
+      expectAllowed(await gql(accessToken)(mutation, { dto: { itemId: item.id, tagId: tag.id } }));
     });
 
-    it('should allow a user with ADMIN-level ITEM_TAG_MANAGE permission', async () => {
+    it('should allow a workspace member with ITEM_TAG_MANAGE permission', async () => {
       const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
       const item = await itemFactory.create(workspace.id);
       const tag = await tagFactory.create(workspace.id);
-      const admin = await userFactory.createWithPermissions(
-        'active',
-        [Permission.ITEM_TAG_MANAGE],
-        PermissionLevel.ADMIN,
-      );
+      const member = await userFactory.create('active');
+      await addMember(member.id, workspace.id, [Permission.ITEM_TAG_MANAGE]);
+      const { accessToken } = await authService.authenticateUser(member);
+
+      expectAllowed(await gql(accessToken)(mutation, { dto: { itemId: item.id, tagId: tag.id } }));
+    });
+
+    it('should allow a global admin', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+      const item = await itemFactory.create(workspace.id);
+      const tag = await tagFactory.create(workspace.id);
+      const admin = await createAdmin([Permission.ITEM_TAG_MANAGE]);
       const { accessToken } = await authService.authenticateUser(admin);
 
-      const response = await gql(accessToken)(mutation, {
-        dto: { itemId: item.id, tagId: tag.id },
-      });
-
-      expectAllowed(response);
+      expectAllowed(await gql(accessToken)(mutation, { dto: { itemId: item.id, tagId: tag.id } }));
     });
 
-    it('should deny the workspace owner without global ITEM_TAG_MANAGE permission', async () => {
+    it('should deny a workspace member without ITEM_TAG_MANAGE permission', async () => {
       const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
       const item = await itemFactory.create(workspace.id);
       const tag = await tagFactory.create(workspace.id);
-      const { accessToken } = await authService.authenticateUser(owner);
+      const member = await userFactory.create('active');
+      await addMember(member.id, workspace.id, [Permission.ITEM_READ]);
+      const { accessToken } = await authService.authenticateUser(member);
 
-      const response = await gql(accessToken)(mutation, {
-        dto: { itemId: item.id, tagId: tag.id },
-      });
-
-      expectDenied(response);
+      expectDenied(await gql(accessToken)(mutation, { dto: { itemId: item.id, tagId: tag.id } }));
     });
   });
 
@@ -874,58 +744,53 @@ describe('Workspace-Scoped Mutations — Access E2E', () => {
       }
     `;
 
-    it('should allow the workspace owner with OWNER-level ITEM_TAG_MANAGE permission', async () => {
-      const owner = await userFactory.createWithPermissions(
-        'active',
-        [Permission.ITEM_TAG_MANAGE],
-        PermissionLevel.OWNER,
-      );
+    it('should allow the workspace owner', async () => {
+      const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
       const item = await itemFactory.create(workspace.id);
       const tag = await tagFactory.create(workspace.id);
       await prisma.itemTag.create({ data: { itemId: item.id, tagId: tag.id } });
       const { accessToken } = await authService.authenticateUser(owner);
 
-      const response = await gql(accessToken)(mutation, {
-        dto: { itemId: item.id, tagId: tag.id },
-      });
-
-      expectAllowed(response);
+      expectAllowed(await gql(accessToken)(mutation, { dto: { itemId: item.id, tagId: tag.id } }));
     });
 
-    it('should allow a user with ADMIN-level ITEM_TAG_MANAGE permission', async () => {
+    it('should allow a workspace member with ITEM_TAG_MANAGE permission', async () => {
       const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
       const item = await itemFactory.create(workspace.id);
       const tag = await tagFactory.create(workspace.id);
       await prisma.itemTag.create({ data: { itemId: item.id, tagId: tag.id } });
-      const admin = await userFactory.createWithPermissions(
-        'active',
-        [Permission.ITEM_TAG_MANAGE],
-        PermissionLevel.ADMIN,
-      );
+      const member = await userFactory.create('active');
+      await addMember(member.id, workspace.id, [Permission.ITEM_TAG_MANAGE]);
+      const { accessToken } = await authService.authenticateUser(member);
+
+      expectAllowed(await gql(accessToken)(mutation, { dto: { itemId: item.id, tagId: tag.id } }));
+    });
+
+    it('should allow a global admin', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+      const item = await itemFactory.create(workspace.id);
+      const tag = await tagFactory.create(workspace.id);
+      await prisma.itemTag.create({ data: { itemId: item.id, tagId: tag.id } });
+      const admin = await createAdmin([Permission.ITEM_TAG_MANAGE]);
       const { accessToken } = await authService.authenticateUser(admin);
 
-      const response = await gql(accessToken)(mutation, {
-        dto: { itemId: item.id, tagId: tag.id },
-      });
-
-      expectAllowed(response);
+      expectAllowed(await gql(accessToken)(mutation, { dto: { itemId: item.id, tagId: tag.id } }));
     });
 
-    it('should deny the workspace owner without global ITEM_TAG_MANAGE permission', async () => {
+    it('should deny a workspace member without ITEM_TAG_MANAGE permission', async () => {
       const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
       const item = await itemFactory.create(workspace.id);
       const tag = await tagFactory.create(workspace.id);
       await prisma.itemTag.create({ data: { itemId: item.id, tagId: tag.id } });
-      const { accessToken } = await authService.authenticateUser(owner);
+      const member = await userFactory.create('active');
+      await addMember(member.id, workspace.id, [Permission.ITEM_READ]);
+      const { accessToken } = await authService.authenticateUser(member);
 
-      const response = await gql(accessToken)(mutation, {
-        dto: { itemId: item.id, tagId: tag.id },
-      });
-
-      expectDenied(response);
+      expectDenied(await gql(accessToken)(mutation, { dto: { itemId: item.id, tagId: tag.id } }));
     });
   });
 
@@ -938,55 +803,49 @@ describe('Workspace-Scoped Mutations — Access E2E', () => {
       }
     `;
 
-    it('should allow the workspace owner with OWNER-level ITEM_UPDATE permission', async () => {
-      const owner = await userFactory.createWithPermissions(
-        'active',
-        [Permission.ITEM_UPDATE],
-        PermissionLevel.OWNER,
-      );
+    it('should allow the workspace owner', async () => {
+      const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
       const hostItem = await itemFactory.create(workspace.id);
       const mergingItem = await itemFactory.create(workspace.id);
       const { accessToken } = await authService.authenticateUser(owner);
 
-      const response = await gql(accessToken)(mutation, {
-        dto: { hostItemId: hostItem.id, mergingItemId: mergingItem.id },
-      });
-
-      expectAllowed(response);
+      expectAllowed(await gql(accessToken)(mutation, { dto: { hostItemId: hostItem.id, mergingItemId: mergingItem.id } }));
     });
 
-    it('should allow a user with ADMIN-level ITEM_UPDATE permission', async () => {
+    it('should allow a workspace member with ITEM_UPDATE permission', async () => {
       const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
       const hostItem = await itemFactory.create(workspace.id);
       const mergingItem = await itemFactory.create(workspace.id);
-      const admin = await userFactory.createWithPermissions(
-        'active',
-        [Permission.ITEM_UPDATE],
-        PermissionLevel.ADMIN,
-      );
+      const member = await userFactory.create('active');
+      await addMember(member.id, workspace.id, [Permission.ITEM_UPDATE]);
+      const { accessToken } = await authService.authenticateUser(member);
+
+      expectAllowed(await gql(accessToken)(mutation, { dto: { hostItemId: hostItem.id, mergingItemId: mergingItem.id } }));
+    });
+
+    it('should allow a global admin', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+      const hostItem = await itemFactory.create(workspace.id);
+      const mergingItem = await itemFactory.create(workspace.id);
+      const admin = await createAdmin([Permission.ITEM_UPDATE]);
       const { accessToken } = await authService.authenticateUser(admin);
 
-      const response = await gql(accessToken)(mutation, {
-        dto: { hostItemId: hostItem.id, mergingItemId: mergingItem.id },
-      });
-
-      expectAllowed(response);
+      expectAllowed(await gql(accessToken)(mutation, { dto: { hostItemId: hostItem.id, mergingItemId: mergingItem.id } }));
     });
 
-    it('should deny the workspace owner without global ITEM_UPDATE permission', async () => {
+    it('should deny a workspace member without ITEM_UPDATE permission', async () => {
       const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
       const hostItem = await itemFactory.create(workspace.id);
       const mergingItem = await itemFactory.create(workspace.id);
-      const { accessToken } = await authService.authenticateUser(owner);
+      const member = await userFactory.create('active');
+      await addMember(member.id, workspace.id, [Permission.ITEM_READ]);
+      const { accessToken } = await authService.authenticateUser(member);
 
-      const response = await gql(accessToken)(mutation, {
-        dto: { hostItemId: hostItem.id, mergingItemId: mergingItem.id },
-      });
-
-      expectDenied(response);
+      expectDenied(await gql(accessToken)(mutation, { dto: { hostItemId: hostItem.id, mergingItemId: mergingItem.id } }));
     });
   });
 
@@ -999,57 +858,52 @@ describe('Workspace-Scoped Mutations — Access E2E', () => {
       }
     `;
 
-    it('should allow the workspace owner with OWNER-level ITEM_UPDATE permission', async () => {
-      const owner = await userFactory.createWithPermissions(
-        'active',
-        [Permission.ITEM_UPDATE],
-        PermissionLevel.OWNER,
-      );
-      const workspace = await workspaceFactory.create(owner.id);
-      const item = await itemFactory.create(workspace.id);
-      const payment = await paymentFactory.create(item.id);
-      await paymentFactory.create(item.id); // second payment so extraction is not of all payments
-      const { accessToken } = await authService.authenticateUser(owner);
-
-      const response = await gql(accessToken)(mutation, {
-        dto: { itemId: item.id, paymentIds: [payment.id], title: 'Extracted' },
-      });
-
-      expectAllowed(response);
-    });
-
-    it('should allow a user with ADMIN-level ITEM_UPDATE permission', async () => {
+    it('should allow the workspace owner', async () => {
       const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
       const item = await itemFactory.create(workspace.id);
       const payment = await paymentFactory.create(item.id);
-      await paymentFactory.create(item.id); // second payment so extraction is not of all payments
-      const admin = await userFactory.createWithPermissions(
-        'active',
-        [Permission.ITEM_UPDATE],
-        PermissionLevel.ADMIN,
-      );
+      await paymentFactory.create(item.id);
+      const { accessToken } = await authService.authenticateUser(owner);
+
+      expectAllowed(await gql(accessToken)(mutation, { dto: { itemId: item.id, paymentIds: [payment.id], title: 'Extracted' } }));
+    });
+
+    it('should allow a workspace member with ITEM_UPDATE permission', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+      const item = await itemFactory.create(workspace.id);
+      const payment = await paymentFactory.create(item.id);
+      await paymentFactory.create(item.id);
+      const member = await userFactory.create('active');
+      await addMember(member.id, workspace.id, [Permission.ITEM_UPDATE]);
+      const { accessToken } = await authService.authenticateUser(member);
+
+      expectAllowed(await gql(accessToken)(mutation, { dto: { itemId: item.id, paymentIds: [payment.id], title: 'Extracted' } }));
+    });
+
+    it('should allow a global admin', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+      const item = await itemFactory.create(workspace.id);
+      const payment = await paymentFactory.create(item.id);
+      await paymentFactory.create(item.id);
+      const admin = await createAdmin([Permission.ITEM_UPDATE]);
       const { accessToken } = await authService.authenticateUser(admin);
 
-      const response = await gql(accessToken)(mutation, {
-        dto: { itemId: item.id, paymentIds: [payment.id], title: 'Extracted' },
-      });
-
-      expectAllowed(response);
+      expectAllowed(await gql(accessToken)(mutation, { dto: { itemId: item.id, paymentIds: [payment.id], title: 'Extracted' } }));
     });
 
-    it('should deny the workspace owner without global ITEM_UPDATE permission', async () => {
+    it('should deny a workspace member without ITEM_UPDATE permission', async () => {
       const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
       const item = await itemFactory.create(workspace.id);
       const payment = await paymentFactory.create(item.id);
-      const { accessToken } = await authService.authenticateUser(owner);
+      const member = await userFactory.create('active');
+      await addMember(member.id, workspace.id, [Permission.ITEM_READ]);
+      const { accessToken } = await authService.authenticateUser(member);
 
-      const response = await gql(accessToken)(mutation, {
-        dto: { itemId: item.id, paymentIds: [payment.id], title: 'Extracted' },
-      });
-
-      expectDenied(response);
+      expectDenied(await gql(accessToken)(mutation, { dto: { itemId: item.id, paymentIds: [payment.id], title: 'Extracted' } }));
     });
   });
 });

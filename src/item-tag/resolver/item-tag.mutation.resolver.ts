@@ -2,9 +2,10 @@ import { UseGuards, UseInterceptors } from '@nestjs/common';
 import { Args, Context, Mutation, Resolver } from '@nestjs/graphql';
 import { Prisma } from '../../../generated/prisma/client';
 import { Access } from '../../access/decorator/access.decorator';
+import { Permission } from '../../access/entity/permission.enum';
 import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
-import { AccessScope, PermissionLevel } from '../../access/interfaces';
+import { AccessScope, PermissionLevel, WorkspaceRole } from '../../access/interfaces';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
 import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
@@ -13,7 +14,6 @@ import { TagByIdPipe } from '../../common/pipe/tag-by-id.pipe';
 import { DeepArgs } from '../../graphql/decorator/deep-args.decorator';
 import Item from '../../item/entity/item.entity';
 import Tag from '../../tag/entity/tag.entity';
-import { Permission } from '../../access/entity/permission.enum';
 import User from '../../user/entity/user.entity';
 import { AssignTagInDto, UnassignTagInDto } from '../dto';
 import ItemTag from '../entity/item-tag.entity';
@@ -29,9 +29,32 @@ export class ItemTagMutationResolver {
   @Access.allow([
     {
       and: [
-        { targetId: fromArg('dto.itemId'), targetScope: AccessScope.ITEM },
-        { targetId: fromArg('dto.tagId'), targetScope: AccessScope.TAG },
-        { level: PermissionLevel.OWNER, permission: Permission.ITEM_TAG_MANAGE },
+        {
+          targetId: fromArg('dto.itemId'),
+          targetScope: AccessScope.ITEM,
+          workspaceRole: WorkspaceRole.OWNER,
+        },
+        {
+          targetId: fromArg('dto.tagId'),
+          targetScope: AccessScope.TAG,
+          workspaceRole: WorkspaceRole.OWNER,
+        },
+      ],
+    },
+    {
+      and: [
+        {
+          permission: Permission.ITEM_TAG_MANAGE,
+          targetId: fromArg('dto.itemId'),
+          targetScope: AccessScope.ITEM,
+          workspaceRole: WorkspaceRole.MEMBER,
+        },
+        {
+          permission: Permission.ITEM_TAG_MANAGE,
+          targetId: fromArg('dto.tagId'),
+          targetScope: AccessScope.TAG,
+          workspaceRole: WorkspaceRole.MEMBER,
+        },
       ],
     },
     { level: PermissionLevel.ADMIN, permission: Permission.ITEM_TAG_MANAGE },
@@ -50,9 +73,32 @@ export class ItemTagMutationResolver {
   @Access.allow([
     {
       and: [
-        { targetId: fromArg('dto.itemId'), targetScope: AccessScope.ITEM },
-        { targetId: fromArg('dto.tagId'), targetScope: AccessScope.TAG },
-        { level: PermissionLevel.OWNER, permission: Permission.ITEM_TAG_MANAGE },
+        {
+          targetId: fromArg('dto.itemId'),
+          targetScope: AccessScope.ITEM,
+          workspaceRole: WorkspaceRole.OWNER,
+        },
+        {
+          targetId: fromArg('dto.tagId'),
+          targetScope: AccessScope.TAG,
+          workspaceRole: WorkspaceRole.OWNER,
+        },
+      ],
+    },
+    {
+      and: [
+        {
+          permission: Permission.ITEM_TAG_MANAGE,
+          targetId: fromArg('dto.itemId'),
+          targetScope: AccessScope.ITEM,
+          workspaceRole: WorkspaceRole.MEMBER,
+        },
+        {
+          permission: Permission.ITEM_TAG_MANAGE,
+          targetId: fromArg('dto.tagId'),
+          targetScope: AccessScope.TAG,
+          workspaceRole: WorkspaceRole.MEMBER,
+        },
       ],
     },
     { level: PermissionLevel.ADMIN, permission: Permission.ITEM_TAG_MANAGE },

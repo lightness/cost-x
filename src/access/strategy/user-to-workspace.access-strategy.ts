@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { PrismaService } from '../../prisma/prisma.service';
-import { AccessScope, Rule } from '../interfaces';
+import { AccessScope, Rule, WorkspaceRole } from '../interfaces';
 import { AccessStrategy } from './interface';
 
 @Injectable()
@@ -18,25 +18,25 @@ export class UserToWorkspaceAccessStrategy implements AccessStrategy {
     const userId = getSourceId(ctx);
     const workspaceId = getTargetId(ctx);
 
-    const workspace = await this.prisma.workspace.findUnique({
-      select: { ownerId: true },
-      where: { id: workspaceId },
-    });
+    if (rule.workspaceRole === WorkspaceRole.OWNER) {
+      const workspace = await this.prisma.workspace.findUnique({
+        select: { ownerId: true },
+        where: { id: workspaceId },
+      });
 
-    if (workspace?.ownerId === userId) {
-      return true;
+      return workspace?.ownerId === userId;
     }
 
-    if (!rule.permission) {
-      return false;
+    if (rule.workspaceRole === WorkspaceRole.MEMBER) {
+      const permission = Array.isArray(rule.permission) ? rule.permission[0] : rule.permission;
+      const member = await this.prisma.workspaceMember.findFirst({
+        select: { permissions: true },
+        where: { userId, workspaceId, leftAt: null },
+      });
+
+      return member?.permissions.includes(permission) ?? false;
     }
 
-    const permission = Array.isArray(rule.permission) ? rule.permission[0] : rule.permission;
-    const member = await this.prisma.workspaceMember.findFirst({
-      select: { permissions: true },
-      where: { workspaceId, userId, leftAt: null },
-    });
-
-    return member?.permissions.includes(permission) ?? false;
+    return false;
   }
 }
