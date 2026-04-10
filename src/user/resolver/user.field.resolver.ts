@@ -7,6 +7,8 @@ import { InvitesFilter } from '../../contact/dto/invite-filter.type';
 import { Contact } from '../../contact/entity/contact.entity';
 import { InviteStatus } from '../../contact/entity/invite-status.enum';
 import { Invite } from '../../contact/entity/invite.entity';
+import { JsonScalar } from '../../graphql/scalar';
+import { PermissionsByUserIdLoader } from '../dataloader/permissions-by-user-id.loader';
 import { WorkspacesByUserIdLoader } from '../../workspace/dataloader/workspaces-by-user-id.loader';
 import { WorkspacesFilter } from '../../workspace/dto';
 import { Workspace } from '../../workspace/entity/workspace.entity';
@@ -15,6 +17,7 @@ import User from '../entity/user.entity';
 @Resolver(() => User)
 export class UserFieldResolver {
   constructor(
+    private permissionsByUserIdLoader: PermissionsByUserIdLoader,
     private workspacesByUserIdLoader: WorkspacesByUserIdLoader,
     private incomingInvitesByUserIdLoader: IncomingInvitesByUserIdLoader,
     private outgoingInvitesByUserIdLoader: OutgoingInvitesByUserIdLoader,
@@ -59,6 +62,11 @@ export class UserFieldResolver {
   @ResolveField(() => Boolean)
   isEmailVerified(@Parent() user: User): boolean {
     return user.confirmEmailTempCode === null;
+  }
+
+  @ResolveField(() => JsonScalar)
+  async permissions(@Parent() user: User): Promise<Record<string, number>> {
+    return this.permissionsByUserIdLoader.load(user.id);
   }
 
   @ResolveField(() => [Contact])

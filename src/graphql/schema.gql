@@ -303,6 +303,7 @@ type User {
   isEmailVerified: Boolean!
   name: String!
   outgoingInvites(invitesFilter: InvitesFilter): [Invite!]!
+  permissions: Json
   updatedAt: DateIso!
   workspaces(workspacesFilter: WorkspacesFilter): [Workspace!]!
 }

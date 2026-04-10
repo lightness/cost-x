@@ -1,6 +1,6 @@
 import { Field, HideField, Int, ObjectType } from '@nestjs/graphql';
 import { type User as PrismaUser } from '../../../generated/prisma/client';
-import { DateIsoScalar } from '../../graphql/scalar';
+import { DateIsoScalar, JsonScalar } from '../../graphql/scalar';
 
 @ObjectType()
 class User implements PrismaUser {
@@ -24,6 +24,9 @@ class User implements PrismaUser {
 
   @Field(() => Boolean)
   isBanned: boolean;
+
+  @Field(() => JsonScalar, { nullable: true })
+  permissions?: Record<string, number>;
 
   @HideField()
   password: string;
