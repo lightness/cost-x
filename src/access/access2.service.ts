@@ -35,13 +35,29 @@ export class Access2Service {
     entries: InferEntry[],
     ctx: GqlExecutionContext,
   ): Promise<Map<string, unknown>> {
-    const map = new Map<string, unknown>();
+    const entryByKey = new Map(entries.map((e) => [e.key, e]));
+    const inFlight = new Map<string, Promise<unknown>>();
 
-    await Promise.all(
-      entries.map(async ({ key, options }) => {
-        let value: unknown = options.from(ctx);
+    const resolve = (key: string): Promise<unknown> => {
+      if (inFlight.has(key)) {
+        return inFlight.get(key);
+      }
 
-        for (const PipeClass of options.pipes) {
+      const entry = entryByKey.get(key);
+
+      if (!entry) {
+        throw new InternalServerErrorException(
+          `@Infer key "${key}" referenced but not defined`,
+        );
+      }
+
+      const promise = (async () => {
+        let value: unknown =
+          typeof entry.options.from === 'string'
+            ? await resolve(entry.options.from)
+            : entry.options.from(ctx);
+
+        for (const PipeClass of entry.options.pipes) {
           const pipe = await this.moduleRef.create(PipeClass);
           value = await pipe.transform(value as never, {
             data: undefined,
@@ -50,11 +66,18 @@ export class Access2Service {
           });
         }
 
-        map.set(key, value);
-      }),
-    );
+        return value;
+      })();
 
-    return map;
+      inFlight.set(key, promise);
+
+      return promise;
+    };
+
+    const values = await Promise.all(entries.map(({ key }) => resolve(key)));
+    const resolved = new Map(entries.map(({ key }, i) => [key, values[i]]));
+
+    return resolved;
   }
 
   private async isRuleMatch(

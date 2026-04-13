@@ -4,7 +4,7 @@ import type { GqlExecutionContext } from '@nestjs/graphql';
 export const INFER_METADATA_KEY = 'infer';
 
 export interface InferOptions {
-  from: (ctx: GqlExecutionContext) => unknown;
+  from: string | ((ctx: GqlExecutionContext) => unknown);
   pipes: Type<PipeTransform>[];
 }
 
