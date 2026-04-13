@@ -1,13 +1,16 @@
 import { UseGuards, UseInterceptors } from '@nestjs/common';
 import { Args, Context, Int, Mutation, Resolver } from '@nestjs/graphql';
 import { Prisma, UserRole } from '../../../generated/prisma/browser';
-import { Access } from '../../access/decorator/access.decorator';
+import { Access2 } from '../../access/decorator/access2.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
-import { AccessGuard } from '../../access/guard/access.guard';
+import { Access2Guard } from '../../access/guard/access2.guard';
 import { AccessScope } from '../../access/interfaces';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
+import { Infer } from '../../common/decorator/infer.decorator';
 import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
+import { ContactByIdPipe } from '../../common/pipe/contact-by-id.pipe';
+import { SourceUserByContactPipe } from '../../common/pipe/source-user-by-contact.pipe';
 import { GqlLoggingInterceptor } from '../../graphql/interceptor/gql-logging.interceptor';
 import User from '../../user/entity/user.entity';
 import { ContactValidationService } from '../contact-validation.service';
@@ -16,7 +19,7 @@ import { Contact } from '../entity/contact.entity';
 
 @Resolver()
 @UseInterceptors(GqlLoggingInterceptor, TransactionInterceptor)
-@UseGuards(AuthGuard, AccessGuard)
+@UseGuards(AuthGuard, Access2Guard)
 export class ContactMutationResolver {
   constructor(
     private contactService: ContactService,
@@ -24,24 +27,31 @@ export class ContactMutationResolver {
   ) {}
 
   @Mutation(() => Contact)
-  @Access.allow([
-    {
-      metadata: { as: 'source-user' },
-      role: UserRole.USER,
-      targetId: fromArg('contactId'),
-      targetScope: AccessScope.CONTACT,
-    },
-    { role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL },
-  ])
+  @Access2.allow({
+    or: [
+      {
+        role: UserRole.USER,
+        target: 'sourceUser',
+        targetScope: AccessScope.USER,
+      },
+      { role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL },
+    ],
+  })
+  @Infer('contact', { from: fromArg('contactId'), pipes: [ContactByIdPipe] })
+  @Infer('sourceUser', { from: 'contact', pipes: [SourceUserByContactPipe] })
   async deleteContact(
-    @Args('contactId', { type: () => Int }) contactId: number,
+    @Args('contactId', { type: () => Int }, ContactByIdPipe) contact: Contact,
     @Context('tx') tx: Prisma.TransactionClient,
     @CurrentUser() currentUser: User,
   ) {
-    await this.contactValidationService.validateDeleteContact(contactId, tx);
+    await this.contactValidationService.validateDeleteContact(contact, tx);
 
-    const [contact] = await this.contactService.removeContactPair(contactId, currentUser.id, tx);
+    const [removedContact] = await this.contactService.removeContactPair(
+      contact,
+      currentUser.id,
+      tx,
+    );
 
-    return contact;
+    return removedContact;
   }
 }

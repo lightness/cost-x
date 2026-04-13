@@ -1726,6 +1726,31 @@ describe('Contact E2E', () => {
       await expectNoActiveUserBlock(sourceUser, targetUser);
       await expectNoActiveUserBlock(targetUser, sourceUser);
     });
+
+    it('should not be possible to delete contact when not authenticated', async () => {
+      // Assume
+      const [contact] = await contactFactory.createActivePair();
+
+      // Act
+      const query = `
+        mutation DeleteContact ($contactId: Int!) {
+          deleteContact(contactId: $contactId) {
+            id
+          }
+        }
+      `;
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query, variables: { contactId: contact.id } })
+        .set('Content-Type', 'application/json');
+
+      // Assert
+      expectResponseError(response, {
+        code: ApplicationErrorCode.NO_ACCESS,
+        status: 'FORBIDDEN',
+      });
+    });
   });
 
   describe('block user', () => {
