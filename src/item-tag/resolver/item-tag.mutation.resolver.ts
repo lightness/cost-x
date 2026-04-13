@@ -1,11 +1,9 @@
 import { UseGuards, UseInterceptors } from '@nestjs/common';
 import { Args, Context, Mutation, Resolver } from '@nestjs/graphql';
 import { Prisma } from '../../../generated/prisma/client';
-import { Access } from '../../access/decorator/access.decorator';
 import { Access2 } from '../../access/decorator/access2.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
 import { Access2Guard } from '../../access/guard/access2.guard';
-import { AccessGuard } from '../../access/guard/access.guard';
 import { AccessScope } from '../../access/interfaces';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
@@ -25,29 +23,12 @@ import ItemTag from '../entity/item-tag.entity';
 import { ItemTagService } from '../item-tag.service';
 
 @Resolver()
-@UseGuards(AuthGuard, AccessGuard, Access2Guard)
+@UseGuards(AuthGuard, Access2Guard)
 @UseInterceptors(TransactionInterceptor)
 export class ItemTagMutationResolver {
   constructor(private itemTagService: ItemTagService) {}
 
   @Mutation(() => ItemTag)
-  @Access.allow([
-    { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
-    {
-      and: [
-        {
-          role: [UserRole.USER],
-          targetId: fromArg('dto.itemId'),
-          targetScope: AccessScope.ITEM,
-        },
-        {
-          role: [UserRole.USER],
-          targetId: fromArg('dto.tagId'),
-          targetScope: AccessScope.TAG,
-        },
-      ],
-    },
-  ])
   @Access2.allow({
     or: [
       { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
@@ -83,23 +64,6 @@ export class ItemTagMutationResolver {
   }
 
   @Mutation(() => Boolean)
-  @Access.allow([
-    { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
-    {
-      and: [
-        {
-          role: [UserRole.USER],
-          targetId: fromArg('dto.itemId'),
-          targetScope: AccessScope.ITEM,
-        },
-        {
-          role: [UserRole.USER],
-          targetId: fromArg('dto.tagId'),
-          targetScope: AccessScope.TAG,
-        },
-      ],
-    },
-  ])
   @Access2.allow({
     or: [
       { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
