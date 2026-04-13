@@ -26,16 +26,14 @@ export class ItemMergeService {
       mergingItem,
     );
 
-    const mergingPayments = await tx.payment.findMany({
-      where: { itemId: mergingItem.id },
+    await tx.payment.updateMany({
+      data: { title: mergingItem.title },
+      where: { itemId: mergingItem.id, title: null },
     });
 
-    await tx.payment.createMany({
-      data: mergingPayments.map(({ id, ...payment }) => ({
-        ...payment,
-        itemId: hostItem.id,
-        title: payment.title || mergingItem.title,
-      })),
+    await tx.payment.updateMany({
+      data: { itemId: hostItem.id },
+      where: { itemId: mergingItem.id },
     });
 
     await tx.itemTag.deleteMany({
