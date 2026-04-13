@@ -4,6 +4,7 @@ import { Prisma } from '../../../generated/prisma/client';
 import { Access } from '../../access/decorator/access.decorator';
 import { Access2 } from '../../access/decorator/access2.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
+import { Access2Guard } from '../../access/guard/access2.guard';
 import { AccessGuard } from '../../access/guard/access.guard';
 import { AccessScope } from '../../access/interfaces';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
@@ -24,7 +25,7 @@ import ItemTag from '../entity/item-tag.entity';
 import { ItemTagService } from '../item-tag.service';
 
 @Resolver()
-@UseGuards(AuthGuard, AccessGuard)
+@UseGuards(AuthGuard, AccessGuard, Access2Guard)
 @UseInterceptors(TransactionInterceptor)
 export class ItemTagMutationResolver {
   constructor(private itemTagService: ItemTagService) {}
