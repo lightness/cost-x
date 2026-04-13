@@ -10,6 +10,7 @@ import { PrismaService } from '../src/prisma/prisma.service';
 import { UserRole } from '../src/user/entity/user-role.enum';
 import { FactoryModule } from './factory/factory.module';
 import { ItemFactoryService } from './factory/item-factory.service';
+import { ItemTagFactoryService } from './factory/item-tag-factory.service';
 import { TagFactoryService } from './factory/tag-factory.service';
 import { UserFactoryService } from './factory/user-factory.service';
 import { WorkspaceFactoryService } from './factory/workspace-factory.service';
@@ -40,6 +41,7 @@ describe('ItemTag E2E', () => {
   let userFactory: UserFactoryService;
   let workspaceFactory: WorkspaceFactoryService;
   let itemFactory: ItemFactoryService;
+  let itemTagFactory: ItemTagFactoryService;
   let tagFactory: TagFactoryService;
 
   beforeAll(async () => {
@@ -56,6 +58,7 @@ describe('ItemTag E2E', () => {
     userFactory = moduleRef.get(UserFactoryService);
     workspaceFactory = moduleRef.get(WorkspaceFactoryService);
     itemFactory = moduleRef.get(ItemFactoryService);
+    itemTagFactory = moduleRef.get(ItemTagFactoryService);
     tagFactory = moduleRef.get(TagFactoryService);
   });
 
@@ -153,7 +156,7 @@ describe('ItemTag E2E', () => {
       const workspace = await workspaceFactory.create(owner.id);
       const item = await itemFactory.create(workspace.id);
       const tag = await tagFactory.create(workspace.id);
-      await prisma.itemTag.create({ data: { itemId: item.id, tagId: tag.id } });
+      await itemTagFactory.create(item.id, tag.id);
 
       // Act
       const { accessToken } = await authService.authenticateUser(owner);
@@ -201,7 +204,7 @@ describe('ItemTag E2E', () => {
       const workspace = await workspaceFactory.create(owner.id);
       const item = await itemFactory.create(workspace.id);
       const tag = await tagFactory.create(workspace.id);
-      await prisma.itemTag.create({ data: { itemId: item.id, tagId: tag.id } });
+      await itemTagFactory.create(item.id, tag.id);
 
       // Act
       const { accessToken } = await authService.authenticateUser(owner);
@@ -242,7 +245,7 @@ describe('ItemTag E2E', () => {
       const workspace = await workspaceFactory.create(owner.id);
       const item = await itemFactory.create(workspace.id);
       const tag = await tagFactory.create(workspace.id);
-      await prisma.itemTag.create({ data: { itemId: item.id, tagId: tag.id } });
+      await itemTagFactory.create(item.id, tag.id);
 
       // Act
       const { accessToken } = await authService.authenticateUser(stranger);
@@ -264,7 +267,7 @@ describe('ItemTag E2E', () => {
       const workspace = await workspaceFactory.create(owner.id);
       const item = await itemFactory.create(workspace.id);
       const tag = await tagFactory.create(workspace.id);
-      await prisma.itemTag.create({ data: { itemId: item.id, tagId: tag.id } });
+      await itemTagFactory.create(item.id, tag.id);
 
       // Act
       const { accessToken } = await authService.authenticateUser(admin);
