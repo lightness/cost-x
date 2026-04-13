@@ -7,6 +7,7 @@ import { GroupModule } from '../group/group.module';
 import { PasswordModule } from '../password/password.module';
 import { PrismaModule } from '../prisma/prisma.module';
 import { WorkspaceModule } from '../workspace/workspace.module';
+import { PublicUserMutationResolver } from './resolver/public-user.mutation.resolver';
 import { UserFieldResolver } from './resolver/user.field.resolver';
 import { UserMutationResolver } from './resolver/user.mutation.resolver';
 import { UserQueryResolver } from './resolver/user.query.resolver';
@@ -30,6 +31,7 @@ import { UserService } from './user.service';
     // services
     UserService,
     // resolvers
+    PublicUserMutationResolver,
     UserMutationResolver,
     UserQueryResolver,
     UserFieldResolver,

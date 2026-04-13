@@ -9,26 +9,18 @@ import { AuthGuard } from '../../auth/guard/auth.guard';
 import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
 import { UserByIdPipe } from '../../common/pipe/user-by-id.pipe';
 import { GqlLoggingInterceptor } from '../../graphql/interceptor/gql-logging.interceptor';
-import { CreateUserInDto, UpdateUserInDto } from '../dto';
+import { UpdateUserInDto } from '../dto';
 import { UserRole } from '../entity/user-role.enum';
 import User from '../entity/user.entity';
 import { UserService } from '../user.service';
 
 @Resolver()
+@UseGuards(AuthGuard, AccessGuard)
 @UseInterceptors(GqlLoggingInterceptor, TransactionInterceptor)
 export class UserMutationResolver {
   constructor(private userService: UserService) {}
 
   @Mutation(() => User)
-  async createUser(
-    @Args('dto', { type: () => CreateUserInDto }) dto: CreateUserInDto,
-    @Context('tx') tx: Prisma.TransactionClient,
-  ) {
-    return this.userService.create(dto, tx);
-  }
-
-  @Mutation(() => User)
-  @UseGuards(AuthGuard, AccessGuard)
   @Access.allow([
     {
       role: UserRole.USER,
@@ -46,7 +38,6 @@ export class UserMutationResolver {
   }
 
   @Mutation(() => Boolean)
-  @UseGuards(AuthGuard, AccessGuard)
   @Access.allow([{ role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL }])
   async deleteUser(
     @Args('id', { type: () => Int }, UserByIdPipe) user: User,
@@ -58,7 +49,6 @@ export class UserMutationResolver {
   }
 
   @Mutation(() => User)
-  @UseGuards(AuthGuard, AccessGuard)
   @Access.allow([{ role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL }])
   async banUser(
     @Args('id', { type: () => Int }, UserByIdPipe) user: User,
@@ -68,7 +58,6 @@ export class UserMutationResolver {
   }
 
   @Mutation(() => User)
-  @UseGuards(AuthGuard, AccessGuard)
   @Access.allow([{ role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL }])
   async unbanUser(
     @Args('id', { type: () => Int }, UserByIdPipe) user: User,
