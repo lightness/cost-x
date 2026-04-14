@@ -1,13 +1,17 @@
 import { UseGuards, UseInterceptors } from '@nestjs/common';
 import { Args, Context, Int, Mutation, Resolver } from '@nestjs/graphql';
 import { Prisma } from '../../../generated/prisma/client';
-import { Access } from '../../access/decorator/access.decorator';
+import { Access2 } from '../../access/decorator/access2.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
-import { AccessGuard } from '../../access/guard/access.guard';
+import { Access2Guard } from '../../access/guard/access2.guard';
 import { AccessScope } from '../../access/interfaces';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
+import { Infer } from '../../common/decorator/infer.decorator';
 import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
+import { InviteByIdPipe } from '../../common/pipe/invite-by-id.pipe';
+import { InviteeByInvitePipe } from '../../common/pipe/invitee-by-invite.pipe';
+import { UserByIdPipe } from '../../common/pipe/user-by-id.pipe';
 import { GqlLoggingInterceptor } from '../../graphql/interceptor/gql-logging.interceptor';
 import { UserRole } from '../../user/entity/user-role.enum';
 import User from '../../user/entity/user.entity';
@@ -19,7 +23,7 @@ import { InviteService } from '../invite.service';
 
 @Resolver()
 @UseInterceptors(GqlLoggingInterceptor, TransactionInterceptor)
-@UseGuards(AuthGuard, AccessGuard)
+@UseGuards(AuthGuard, Access2Guard)
 export class InviteMutationResolver {
   constructor(
     private inviteService: InviteService,
@@ -28,14 +32,13 @@ export class InviteMutationResolver {
   ) {}
 
   @Mutation(() => Invite)
-  @Access.allow([
-    {
-      role: UserRole.USER,
-      targetId: fromArg('dto.inviterUserId'),
-      targetScope: AccessScope.USER,
-    },
-    { role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL },
-  ])
+  @Access2.allow({
+    or: [
+      { role: UserRole.USER, target: 'inviterUser', targetScope: AccessScope.USER },
+      { role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL },
+    ],
+  })
+  @Infer('inviterUser', { from: fromArg('dto.inviterUserId'), pipes: [UserByIdPipe] })
   async createInviteByEmail(
     @Args('dto') dto: CreateInviteByEmailInDto,
     @Context('tx') tx: Prisma.TransactionClient,
@@ -44,14 +47,13 @@ export class InviteMutationResolver {
   }
 
   @Mutation(() => Invite)
-  @Access.allow([
-    {
-      role: UserRole.USER,
-      targetId: fromArg('dto.inviterUserId'),
-      targetScope: AccessScope.USER,
-    },
-    { role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL },
-  ])
+  @Access2.allow({
+    or: [
+      { role: UserRole.USER, target: 'inviterUser', targetScope: AccessScope.USER },
+      { role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL },
+    ],
+  })
+  @Infer('inviterUser', { from: fromArg('dto.inviterUserId'), pipes: [UserByIdPipe] })
   async createInvite(
     @Args('dto') dto: CreateInviteInDto,
     @Context('tx') tx: Prisma.TransactionClient,
@@ -64,15 +66,18 @@ export class InviteMutationResolver {
   }
 
   @Mutation(() => Invite)
-  @Access.allow([
-    {
-      metadata: { as: 'invitee' },
-      role: UserRole.USER,
-      targetId: fromArg('inviteId'),
-      targetScope: AccessScope.INVITE,
-    },
-    { role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL },
-  ])
+  @Access2.allow({
+    or: [
+      {
+        role: UserRole.USER,
+        target: 'inviteeUser',
+        targetScope: AccessScope.USER,
+      },
+      { role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL },
+    ],
+  })
+  @Infer('invite', { from: fromArg('inviteId'), pipes: [InviteByIdPipe] })
+  @Infer('inviteeUser', { from: 'invite', pipes: [InviteeByInvitePipe] })
   async acceptInvite(
     @Args('inviteId', { type: () => Int }) inviteId: number,
     @Context('tx') tx: Prisma.TransactionClient,
@@ -83,15 +88,18 @@ export class InviteMutationResolver {
   }
 
   @Mutation(() => Invite)
-  @Access.allow([
-    {
-      metadata: { as: 'invitee' },
-      role: UserRole.USER,
-      targetId: fromArg('inviteId'),
-      targetScope: AccessScope.INVITE,
-    },
-    { role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL },
-  ])
+  @Access2.allow({
+    or: [
+      {
+        role: UserRole.USER,
+        target: 'inviteeUser',
+        targetScope: AccessScope.USER,
+      },
+      { role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL },
+    ],
+  })
+  @Infer('invite', { from: fromArg('inviteId'), pipes: [InviteByIdPipe] })
+  @Infer('inviteeUser', { from: 'invite', pipes: [InviteeByInvitePipe] })
   async rejectInvite(
     @Args('inviteId', { type: () => Int }) inviteId: number,
     @Context('tx') tx: Prisma.TransactionClient,
@@ -102,15 +110,18 @@ export class InviteMutationResolver {
   }
 
   @Mutation(() => Invite)
-  @Access.allow([
-    {
-      metadata: { as: 'invitee' },
-      role: UserRole.USER,
-      targetId: fromArg('inviteId'),
-      targetScope: AccessScope.INVITE,
-    },
-    { role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL },
-  ])
+  @Access2.allow({
+    or: [
+      {
+        role: UserRole.USER,
+        target: 'inviteeUser',
+        targetScope: AccessScope.USER,
+      },
+      { role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL },
+    ],
+  })
+  @Infer('invite', { from: fromArg('inviteId'), pipes: [InviteByIdPipe] })
+  @Infer('inviteeUser', { from: 'invite', pipes: [InviteeByInvitePipe] })
   async rejectInviteAndBlockUser(
     @Args('inviteId', { type: () => Int }) inviteId: number,
     @Context('tx') tx: Prisma.TransactionClient,

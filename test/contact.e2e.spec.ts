@@ -479,6 +479,43 @@ describe('Contact E2E', () => {
       expectResponseSuccess(response);
       await expectInvitePending(getInviteId(response), { invitee, inviter });
     });
+
+    it('should not be possible to create invite as a different user', async () => {
+      // Assume
+      const inviter = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const otherUser = await userFactory.create('active');
+
+      // Act
+      const query = `
+        mutation CreateInvite($dto: CreateInviteInDto!) {
+          createInvite(dto: $dto) {
+            id
+          }
+        }
+      `;
+
+      const variables = {
+        dto: {
+          inviteeUserId: invitee.id,
+          inviterUserId: inviter.id,
+        },
+      };
+
+      const { accessToken } = await authService.authenticateUser(otherUser);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query, variables })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseError(response, {
+        code: ApplicationErrorCode.NO_ACCESS,
+        status: 'FORBIDDEN',
+      });
+    });
   });
 
   describe('accept invite', () => {
