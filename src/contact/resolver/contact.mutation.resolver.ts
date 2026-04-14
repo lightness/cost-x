@@ -1,9 +1,9 @@
 import { UseGuards, UseInterceptors } from '@nestjs/common';
 import { Args, Context, Int, Mutation, Resolver } from '@nestjs/graphql';
 import { Prisma, UserRole } from '../../../generated/prisma/browser';
-import { Access2 } from '../../access/decorator/access2.decorator';
+import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
-import { Access2Guard } from '../../access/guard/access2.guard';
+import { AccessGuard } from '../../access/guard/access.guard';
 import { AccessScope } from '../../access/interfaces';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
@@ -19,7 +19,7 @@ import { Contact } from '../entity/contact.entity';
 
 @Resolver()
 @UseInterceptors(GqlLoggingInterceptor, TransactionInterceptor)
-@UseGuards(AuthGuard, Access2Guard)
+@UseGuards(AuthGuard, AccessGuard)
 export class ContactMutationResolver {
   constructor(
     private contactService: ContactService,
@@ -27,7 +27,7 @@ export class ContactMutationResolver {
   ) {}
 
   @Mutation(() => Contact)
-  @Access2.allow({
+  @Access.allow({
     or: [
       {
         role: UserRole.USER,

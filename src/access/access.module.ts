@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '../prisma/prisma.module';
-import { Access2Service } from './access2.service';
-import { Access2Guard } from './guard/access2.guard';
+import { AccessService } from './access.service';
+import { AccessGuard } from './guard/access.guard';
 import { RuleEngineService } from './rule-engine.service';
 import {
   FormalAccessStrategy,
@@ -16,11 +16,11 @@ import {
 import { ACCESS_STRATEGIES } from './strategy/interface';
 
 @Module({
-  exports: [Access2Service, Access2Guard],
+  exports: [AccessService, AccessGuard],
   imports: [PrismaModule],
   providers: [
-    Access2Service,
-    Access2Guard,
+    AccessService,
+    AccessGuard,
     RuleEngineService,
     // access strategies
     FormalAccessStrategy,

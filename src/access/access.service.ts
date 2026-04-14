@@ -3,17 +3,17 @@ import { ModuleRef } from '@nestjs/core';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { InferEntry } from '../common/decorator/infer.decorator';
 import {
-  Rule2,
-  RuleDef2,
-  RuleOperationAnd2,
-  RuleOperationOr2,
-} from './decorator/access2.decorator';
+  Rule,
+  RuleDef,
+  RuleOperationAnd,
+  RuleOperationOr,
+} from './decorator/access.decorator';
 import { fromReq } from './function/from-req.function';
-import { AccessAction, AccessScope, Rule } from './interfaces';
+import { AccessAction, AccessScope, ResolvedRule } from './interfaces';
 import { RuleEngineService } from './rule-engine.service';
 
 @Injectable()
-export class Access2Service {
+export class AccessService {
   constructor(
     private moduleRef: ModuleRef,
     private ruleEngineService: RuleEngineService,
@@ -21,7 +21,7 @@ export class Access2Service {
 
   async hasAccess(
     action: AccessAction,
-    ruleDef: RuleDef2,
+    ruleDef: RuleDef,
     inferEntries: InferEntry[],
     ctx: GqlExecutionContext,
   ): Promise<boolean> {
@@ -81,7 +81,7 @@ export class Access2Service {
   }
 
   private async isRuleMatch(
-    ruleDef: RuleDef2,
+    ruleDef: RuleDef,
     ctx: GqlExecutionContext,
     inferredEntities: Map<string, unknown>,
   ): Promise<boolean> {
@@ -109,21 +109,21 @@ export class Access2Service {
       return results.every((r) => r);
     }
 
-    if (this.isRule2(ruleDef)) {
-      return this.executeRule2(ruleDef, ctx, inferredEntities);
+    if (this.isRule(ruleDef)) {
+      return this.executeRule(ruleDef, ctx, inferredEntities);
     }
 
-    throw new InternalServerErrorException(`Access2 rule is malformed: ${JSON.stringify(ruleDef)}`);
+    throw new InternalServerErrorException(`Access rule is malformed: ${JSON.stringify(ruleDef)}`);
   }
 
-  private async executeRule2(
-    rule: Rule2,
+  private async executeRule(
+    rule: Rule,
     ctx: GqlExecutionContext,
     inferredEntities: Map<string, unknown>,
   ): Promise<boolean> {
     const { target, ...rest } = rule;
 
-    const normalizedRule: Rule = {
+    const normalizedRule: ResolvedRule = {
       sourceId: fromReq('user.id'),
       sourceScope: AccessScope.USER,
       ...rest,
@@ -136,15 +136,15 @@ export class Access2Service {
     return this.ruleEngineService.executeRule(normalizedRule, ctx);
   }
 
-  private isRule2(ruleDef: RuleDef2): ruleDef is Rule2 {
+  private isRule(ruleDef: RuleDef): ruleDef is Rule {
     return 'targetScope' in ruleDef;
   }
 
-  private isOperatorOr(ruleDef: RuleDef2): ruleDef is RuleOperationOr2 {
+  private isOperatorOr(ruleDef: RuleDef): ruleDef is RuleOperationOr {
     return 'or' in ruleDef;
   }
 
-  private isOperatorAnd(ruleDef: RuleDef2): ruleDef is RuleOperationAnd2 {
+  private isOperatorAnd(ruleDef: RuleDef): ruleDef is RuleOperationAnd {
     return 'and' in ruleDef;
   }
 }

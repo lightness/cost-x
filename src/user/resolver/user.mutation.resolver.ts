@@ -1,9 +1,9 @@
 import { UseGuards, UseInterceptors } from '@nestjs/common';
 import { Args, Context, Int, Mutation, Resolver } from '@nestjs/graphql';
 import { Prisma } from '../../../generated/prisma/client';
-import { Access2 } from '../../access/decorator/access2.decorator';
+import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
-import { Access2Guard } from '../../access/guard/access2.guard';
+import { AccessGuard } from '../../access/guard/access.guard';
 import { AccessScope } from '../../access/interfaces';
 import { AuthGuard } from '../../auth/guard/auth.guard';
 import { Infer } from '../../common/decorator/infer.decorator';
@@ -16,13 +16,13 @@ import User from '../entity/user.entity';
 import { UserService } from '../user.service';
 
 @Resolver()
-@UseGuards(AuthGuard, Access2Guard)
+@UseGuards(AuthGuard, AccessGuard)
 @UseInterceptors(GqlLoggingInterceptor, TransactionInterceptor)
 export class UserMutationResolver {
   constructor(private userService: UserService) {}
 
   @Mutation(() => User)
-  @Access2.allow({
+  @Access.allow({
     or: [
       { role: UserRole.USER, target: 'user', targetScope: AccessScope.USER },
       { role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL },
@@ -38,7 +38,7 @@ export class UserMutationResolver {
   }
 
   @Mutation(() => Boolean)
-  @Access2.allow({ role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL })
+  @Access.allow({ role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL })
   async deleteUser(
     @Args('id', { type: () => Int }, UserByIdPipe) user: User,
     @Context('tx') tx: Prisma.TransactionClient,
@@ -49,7 +49,7 @@ export class UserMutationResolver {
   }
 
   @Mutation(() => User)
-  @Access2.allow({ role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL })
+  @Access.allow({ role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL })
   async banUser(
     @Args('id', { type: () => Int }, UserByIdPipe) user: User,
     @Context('tx') tx: Prisma.TransactionClient,
@@ -58,7 +58,7 @@ export class UserMutationResolver {
   }
 
   @Mutation(() => User)
-  @Access2.allow({ role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL })
+  @Access.allow({ role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL })
   async unbanUser(
     @Args('id', { type: () => Int }, UserByIdPipe) user: User,
     @Context('tx') tx: Prisma.TransactionClient,

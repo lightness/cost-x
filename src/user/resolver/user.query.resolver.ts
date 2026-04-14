@@ -1,8 +1,8 @@
 import { UseGuards, UseInterceptors } from '@nestjs/common';
 import { Args, Int, Query, Resolver } from '@nestjs/graphql';
-import { Access2 } from '../../access/decorator/access2.decorator';
+import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
-import { Access2Guard } from '../../access/guard/access2.guard';
+import { AccessGuard } from '../../access/guard/access.guard';
 import { AccessScope } from '../../access/interfaces';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
@@ -14,19 +14,19 @@ import User from '../entity/user.entity';
 import { UserService } from '../user.service';
 
 @Resolver()
-@UseGuards(AuthGuard, Access2Guard)
+@UseGuards(AuthGuard, AccessGuard)
 @UseInterceptors(GqlLoggingInterceptor)
 export class UserQueryResolver {
   constructor(private userService: UserService) {}
 
   @Query(() => [User])
-  @Access2.allow({ role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL })
+  @Access.allow({ role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL })
   async users() {
     return this.userService.list();
   }
 
   @Query(() => User)
-  @Access2.allow({
+  @Access.allow({
     or: [
       { role: UserRole.USER, target: 'user', targetScope: AccessScope.USER },
       { role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL },

@@ -2,24 +2,24 @@ import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { INFER_METADATA_KEY, InferEntry } from '../../common/decorator/infer.decorator';
-import { ACCESS2_METADATA_KEY, Access2Metadata } from '../decorator/access2.decorator';
+import { ACCESS_METADATA_KEY, AccessMetadata } from '../decorator/access.decorator';
 import { NoAccessError } from '../error/no-access.error';
-import { Access2Service } from '../access2.service';
+import { AccessService } from '../access.service';
 
 @Injectable()
-export class Access2Guard implements CanActivate {
+export class AccessGuard implements CanActivate {
   constructor(
     private reflector: Reflector,
-    private access2Service: Access2Service,
+    private accessService: AccessService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const access2Metadata = this.reflector.getAllAndOverride<Access2Metadata>(
-      ACCESS2_METADATA_KEY,
+    const accessMetadata = this.reflector.getAllAndOverride<AccessMetadata>(
+      ACCESS_METADATA_KEY,
       [context.getHandler(), context.getClass()],
     );
 
-    if (!access2Metadata) {
+    if (!accessMetadata) {
       return true;
     }
 
@@ -35,8 +35,8 @@ export class Access2Guard implements CanActivate {
         context.getClass(),
       ]) ?? [];
 
-    const { action, ruleDef } = access2Metadata;
-    const hasAccess = await this.access2Service.hasAccess(action, ruleDef, inferEntries, ctx);
+    const { action, ruleDef } = accessMetadata;
+    const hasAccess = await this.accessService.hasAccess(action, ruleDef, inferEntries, ctx);
 
     if (!hasAccess) {
       throw new NoAccessError();

@@ -1,9 +1,9 @@
 import { UseGuards, UseInterceptors } from '@nestjs/common';
 import { Args, Context, Int, Mutation, Resolver } from '@nestjs/graphql';
 import { Prisma } from '../../../generated/prisma/client';
-import { Access2 } from '../../access/decorator/access2.decorator';
+import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
-import { Access2Guard } from '../../access/guard/access2.guard';
+import { AccessGuard } from '../../access/guard/access.guard';
 import { AccessScope } from '../../access/interfaces';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
@@ -23,7 +23,7 @@ import { InviteService } from '../invite.service';
 
 @Resolver()
 @UseInterceptors(GqlLoggingInterceptor, TransactionInterceptor)
-@UseGuards(AuthGuard, Access2Guard)
+@UseGuards(AuthGuard, AccessGuard)
 export class InviteMutationResolver {
   constructor(
     private inviteService: InviteService,
@@ -32,7 +32,7 @@ export class InviteMutationResolver {
   ) {}
 
   @Mutation(() => Invite)
-  @Access2.allow({
+  @Access.allow({
     or: [
       { role: UserRole.USER, target: 'inviterUser', targetScope: AccessScope.USER },
       { role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL },
@@ -47,7 +47,7 @@ export class InviteMutationResolver {
   }
 
   @Mutation(() => Invite)
-  @Access2.allow({
+  @Access.allow({
     or: [
       { role: UserRole.USER, target: 'inviterUser', targetScope: AccessScope.USER },
       { role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL },
@@ -66,7 +66,7 @@ export class InviteMutationResolver {
   }
 
   @Mutation(() => Invite)
-  @Access2.allow({
+  @Access.allow({
     or: [
       {
         role: UserRole.USER,
@@ -88,7 +88,7 @@ export class InviteMutationResolver {
   }
 
   @Mutation(() => Invite)
-  @Access2.allow({
+  @Access.allow({
     or: [
       {
         role: UserRole.USER,
@@ -110,7 +110,7 @@ export class InviteMutationResolver {
   }
 
   @Mutation(() => Invite)
-  @Access2.allow({
+  @Access.allow({
     or: [
       {
         role: UserRole.USER,

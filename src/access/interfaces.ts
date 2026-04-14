@@ -18,7 +18,7 @@ export enum AccessScope {
   USER_BLOCK = 'user-block',
 }
 
-export interface Rule {
+export interface ResolvedRule {
   sourceScope?: AccessScope; // Default 'user'
   sourceId?: GetId; // Default ctx.getContext().req.user.id
   targetScope: AccessScope;

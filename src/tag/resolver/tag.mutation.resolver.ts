@@ -1,9 +1,9 @@
 import { UseGuards, UseInterceptors } from '@nestjs/common';
 import { Args, Context, Int, Mutation, Resolver } from '@nestjs/graphql';
 import { Prisma } from '../../../generated/prisma/client';
-import { Access2 } from '../../access/decorator/access2.decorator';
+import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
-import { Access2Guard } from '../../access/guard/access2.guard';
+import { AccessGuard } from '../../access/guard/access.guard';
 import { AccessScope } from '../../access/interfaces';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
@@ -20,13 +20,13 @@ import Tag from '../entity/tag.entity';
 import { TagService } from '../tag.service';
 
 @Resolver()
-@UseGuards(AuthGuard, Access2Guard)
+@UseGuards(AuthGuard, AccessGuard)
 @UseInterceptors(GqlLoggingInterceptor, TransactionInterceptor)
 export class TagMutationResolver {
   constructor(private tagService: TagService) {}
 
   @Mutation(() => Tag)
-  @Access2.allow({
+  @Access.allow({
     or: [
       { role: [UserRole.USER], target: 'workspace', targetScope: AccessScope.WORKSPACE },
       { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
@@ -43,7 +43,7 @@ export class TagMutationResolver {
   }
 
   @Mutation(() => Tag)
-  @Access2.allow({
+  @Access.allow({
     or: [
       { role: [UserRole.USER], target: 'workspace', targetScope: AccessScope.WORKSPACE },
       { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
@@ -61,7 +61,7 @@ export class TagMutationResolver {
   }
 
   @Mutation(() => Boolean)
-  @Access2.allow({
+  @Access.allow({
     or: [
       { role: [UserRole.USER], target: 'workspace', targetScope: AccessScope.WORKSPACE },
       { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },

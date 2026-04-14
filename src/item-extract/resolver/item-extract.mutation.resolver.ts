@@ -1,9 +1,9 @@
 import { UseGuards, UseInterceptors } from '@nestjs/common';
 import { Args, Context, Mutation, Resolver } from '@nestjs/graphql';
 import { Prisma } from '../../../generated/prisma/client';
-import { Access2 } from '../../access/decorator/access2.decorator';
+import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
-import { Access2Guard } from '../../access/guard/access2.guard';
+import { AccessGuard } from '../../access/guard/access.guard';
 import { AccessScope } from '../../access/interfaces';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
@@ -19,13 +19,13 @@ import { ExtractAsItemInDto } from '../dto';
 import { ItemExtractService } from '../item-extract.service';
 
 @Resolver()
-@UseGuards(AuthGuard, Access2Guard)
+@UseGuards(AuthGuard, AccessGuard)
 @UseInterceptors(TransactionInterceptor)
 export class ItemExtractMutationResolver {
   constructor(private itemExtractService: ItemExtractService) {}
 
   @Mutation(() => Item)
-  @Access2.allow({
+  @Access.allow({
     or: [
       { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
       {
