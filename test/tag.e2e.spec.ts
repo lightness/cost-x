@@ -14,6 +14,24 @@ import { WorkspaceFactoryService } from './factory/workspace-factory.service';
 import { TestGraphqlModule } from './graphql/test-graphql.module';
 import { TestConfigModule } from './test-config.module';
 
+const tagQuery = `
+  query Tag($id: Int!) {
+    tag(id: $id) {
+      id
+      title
+    }
+  }
+`;
+
+const tagsQuery = `
+  query Tags($workspaceId: Int!) {
+    tags(workspaceId: $workspaceId) {
+      id
+      title
+    }
+  }
+`;
+
 const createTagMutation = `
   mutation CreateTag($workspaceId: Int!, $dto: TagInDto!) {
     createTag(workspaceId: $workspaceId, dto: $dto) {
@@ -63,6 +81,138 @@ describe('Tag E2E', () => {
 
   afterAll(async () => {
     await app.close();
+  });
+
+  describe('tag', () => {
+    it('should return tag when workspace owner', async () => {
+      const user = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(user.id);
+      const tag = await tagFactory.create(workspace.id);
+
+      const { accessToken } = await authService.authenticateUser(user);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: tagQuery, variables: { id: tag.id } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expectResponseSuccess(response);
+      expect(response.body.data.tag.id).toBe(tag.id);
+    });
+
+    it('should not return tag when not workspace owner', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+      const tag = await tagFactory.create(workspace.id);
+      const other = await userFactory.create('active');
+
+      const { accessToken } = await authService.authenticateUser(other);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: tagQuery, variables: { id: tag.id } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expectResponseError(response, { code: ApplicationErrorCode.NO_ACCESS, status: 'FORBIDDEN' });
+    });
+
+    it('should not return tag when not authenticated', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+      const tag = await tagFactory.create(workspace.id);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: tagQuery, variables: { id: tag.id } })
+        .set('Content-Type', 'application/json');
+
+      expectResponseError(response, { code: ApplicationErrorCode.NO_ACCESS, status: 'FORBIDDEN' });
+    });
+
+    it('should return tag when admin', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+      const tag = await tagFactory.create(workspace.id);
+      const admin = await userFactory.create('active', { role: UserRole.ADMIN });
+
+      const { accessToken } = await authService.authenticateUser(admin);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: tagQuery, variables: { id: tag.id } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expectResponseSuccess(response);
+      expect(response.body.data.tag.id).toBe(tag.id);
+    });
+  });
+
+  describe('tags', () => {
+    it('should return tags when workspace owner', async () => {
+      const user = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(user.id);
+      await tagFactory.create(workspace.id);
+
+      const { accessToken } = await authService.authenticateUser(user);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: tagsQuery, variables: { workspaceId: workspace.id } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expectResponseSuccess(response);
+      expect(response.body.data.tags).toHaveLength(1);
+    });
+
+    it('should not return tags when not workspace owner', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+      const other = await userFactory.create('active');
+
+      const { accessToken } = await authService.authenticateUser(other);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: tagsQuery, variables: { workspaceId: workspace.id } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expectResponseError(response, { code: ApplicationErrorCode.NO_ACCESS, status: 'FORBIDDEN' });
+    });
+
+    it('should not return tags when not authenticated', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: tagsQuery, variables: { workspaceId: workspace.id } })
+        .set('Content-Type', 'application/json');
+
+      expectResponseError(response, { code: ApplicationErrorCode.NO_ACCESS, status: 'FORBIDDEN' });
+    });
+
+    it('should return tags when admin', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+      await tagFactory.create(workspace.id);
+      const admin = await userFactory.create('active', { role: UserRole.ADMIN });
+
+      const { accessToken } = await authService.authenticateUser(admin);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: tagsQuery, variables: { workspaceId: workspace.id } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expectResponseSuccess(response);
+      expect(response.body.data.tags).toHaveLength(1);
+    });
   });
 
   describe('createTag', () => {
