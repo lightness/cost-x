@@ -6,11 +6,6 @@ import { RuleEngineService } from './rule-engine.service';
 import {
   FormalAccessStrategy,
   GlobalAccessStrategy,
-  UserToContactAccessStrategy,
-  UserToInviteAccessStrategy,
-  UserToItemAccessStrategy,
-  UserToPaymentAccessStrategy,
-  UserToTagAccessStrategy,
   UserToWorkspaceAccessStrategy,
 } from './strategy';
 import { ACCESS_STRATEGIES } from './strategy/interface';
@@ -25,23 +20,9 @@ import { ACCESS_STRATEGIES } from './strategy/interface';
     // access strategies
     FormalAccessStrategy,
     GlobalAccessStrategy,
-    UserToContactAccessStrategy,
-    UserToInviteAccessStrategy,
-    UserToItemAccessStrategy,
-    UserToTagAccessStrategy,
-    UserToPaymentAccessStrategy,
     UserToWorkspaceAccessStrategy,
     {
-      inject: [
-        FormalAccessStrategy,
-        GlobalAccessStrategy,
-        UserToContactAccessStrategy,
-        UserToInviteAccessStrategy,
-        UserToItemAccessStrategy,
-        UserToTagAccessStrategy,
-        UserToPaymentAccessStrategy,
-        UserToWorkspaceAccessStrategy,
-      ],
+      inject: [FormalAccessStrategy, GlobalAccessStrategy, UserToWorkspaceAccessStrategy],
       provide: ACCESS_STRATEGIES,
       useFactory: (...strategies) => strategies,
     },

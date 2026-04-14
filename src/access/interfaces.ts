@@ -7,15 +7,9 @@ export enum AccessAction {
 }
 
 export enum AccessScope {
-  CONTACT = 'contact',
   USER = 'user',
   WORKSPACE = 'workspace',
-  ITEM = 'item',
-  TAG = 'tag',
-  PAYMENT = 'payment',
-  INVITE = 'invite',
   GLOBAL = 'global',
-  USER_BLOCK = 'user-block',
 }
 
 export interface ResolvedRule {
