@@ -1,4 +1,3 @@
-import { GqlExecutionContext } from '@nestjs/graphql';
 import { UserRole } from '../user/entity/user-role.enum';
 
 export enum AccessAction {
@@ -13,12 +12,8 @@ export enum AccessScope {
 }
 
 export interface ResolvedRule {
-  sourceScope?: AccessScope; // Default 'user'
-  sourceId?: GetId; // Default ctx.getContext().req.user.id
+  sourceEntity?: unknown;
   targetScope: AccessScope;
-  targetId?: GetId;
+  targetEntity?: unknown;
   role: UserRole | UserRole[];
-  metadata?: Record<string, unknown>;
 }
-
-export type GetId = (ctx: GqlExecutionContext) => number;

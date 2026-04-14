@@ -8,8 +8,7 @@ import {
   RuleOperationAnd,
   RuleOperationOr,
 } from './decorator/access.decorator';
-import { fromReq } from './function/from-req.function';
-import { AccessAction, AccessScope, ResolvedRule } from './interfaces';
+import { AccessAction, ResolvedRule } from './interfaces';
 import { RuleEngineService } from './rule-engine.service';
 
 @Injectable()
@@ -25,8 +24,9 @@ export class AccessService {
     inferEntries: InferEntry[],
     ctx: GqlExecutionContext,
   ): Promise<boolean> {
+    const currentUser = ctx.getContext().req.user;
     const inferredEntities = await this.resolveInferredEntities(inferEntries, ctx);
-    const matches = await this.isRuleMatch(ruleDef, ctx, inferredEntities);
+    const matches = await this.isRuleMatch(ruleDef, currentUser, inferredEntities);
 
     return action === AccessAction.ALLOW ? matches : !matches;
   }
@@ -82,12 +82,12 @@ export class AccessService {
 
   private async isRuleMatch(
     ruleDef: RuleDef,
-    ctx: GqlExecutionContext,
+    currentUser: unknown,
     inferredEntities: Map<string, unknown>,
   ): Promise<boolean> {
     if (Array.isArray(ruleDef)) {
       const results = await Promise.all(
-        ruleDef.map((sub) => this.isRuleMatch(sub, ctx, inferredEntities)),
+        ruleDef.map((sub) => this.isRuleMatch(sub, currentUser, inferredEntities)),
       );
 
       return results.some((r) => r);
@@ -95,7 +95,7 @@ export class AccessService {
 
     if (this.isOperatorOr(ruleDef)) {
       const results = await Promise.all(
-        ruleDef.or.map((sub) => this.isRuleMatch(sub, ctx, inferredEntities)),
+        ruleDef.or.map((sub) => this.isRuleMatch(sub, currentUser, inferredEntities)),
       );
 
       return results.some((r) => r);
@@ -103,14 +103,14 @@ export class AccessService {
 
     if (this.isOperatorAnd(ruleDef)) {
       const results = await Promise.all(
-        ruleDef.and.map((sub) => this.isRuleMatch(sub, ctx, inferredEntities)),
+        ruleDef.and.map((sub) => this.isRuleMatch(sub, currentUser, inferredEntities)),
       );
 
       return results.every((r) => r);
     }
 
     if (this.isRule(ruleDef)) {
-      return this.executeRule(ruleDef, ctx, inferredEntities);
+      return this.executeRule(ruleDef, currentUser, inferredEntities);
     }
 
     throw new InternalServerErrorException(`Access rule is malformed: ${JSON.stringify(ruleDef)}`);
@@ -118,22 +118,21 @@ export class AccessService {
 
   private async executeRule(
     rule: Rule,
-    ctx: GqlExecutionContext,
+    currentUser: unknown,
     inferredEntities: Map<string, unknown>,
   ): Promise<boolean> {
     const { target, ...rest } = rule;
 
     const normalizedRule: ResolvedRule = {
-      sourceId: fromReq('user.id'),
-      sourceScope: AccessScope.USER,
+      sourceEntity: currentUser,
       ...rest,
       role: Array.isArray(rule.role) ? rule.role : [rule.role],
       ...(target !== undefined && {
-        targetId: () => (inferredEntities.get(target) as { id: number }).id,
+        targetEntity: inferredEntities.get(target),
       }),
     };
 
-    return this.ruleEngineService.executeRule(normalizedRule, ctx);
+    return this.ruleEngineService.executeRule(normalizedRule);
   }
 
   private isRule(ruleDef: RuleDef): ruleDef is Rule {
