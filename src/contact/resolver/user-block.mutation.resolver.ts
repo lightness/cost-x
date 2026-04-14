@@ -1,13 +1,15 @@
 import { UseGuards, UseInterceptors } from '@nestjs/common';
 import { Args, Context, Mutation, Resolver } from '@nestjs/graphql';
 import { Prisma } from '../../../generated/prisma/browser';
-import { Access } from '../../access/decorator/access.decorator';
+import { Access2 } from '../../access/decorator/access2.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
-import { AccessGuard } from '../../access/guard/access.guard';
+import { Access2Guard } from '../../access/guard/access2.guard';
 import { AccessScope } from '../../access/interfaces';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
+import { Infer } from '../../common/decorator/infer.decorator';
 import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
+import { UserByIdPipe } from '../../common/pipe/user-by-id.pipe';
 import { GqlLoggingInterceptor } from '../../graphql/interceptor/gql-logging.interceptor';
 import { UserRole } from '../../user/entity/user-role.enum';
 import User from '../../user/entity/user.entity';
@@ -18,7 +20,7 @@ import { UserBlockService } from '../user-block.service';
 
 @Resolver()
 @UseInterceptors(GqlLoggingInterceptor, TransactionInterceptor)
-@UseGuards(AuthGuard, AccessGuard)
+@UseGuards(AuthGuard, Access2Guard)
 export class UserBlockMutationResolver {
   constructor(
     private userBlockService: UserBlockService,
@@ -26,14 +28,13 @@ export class UserBlockMutationResolver {
   ) {}
 
   @Mutation(() => UserBlock)
-  @Access.allow([
-    {
-      role: UserRole.USER,
-      targetId: fromArg('dto.blockerId'),
-      targetScope: AccessScope.USER,
-    },
-    { role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL },
-  ])
+  @Access2.allow({
+    or: [
+      { role: UserRole.USER, target: 'blockerUser', targetScope: AccessScope.USER },
+      { role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL },
+    ],
+  })
+  @Infer('blockerUser', { from: fromArg('dto.blockerId'), pipes: [UserByIdPipe] })
   async blockUser(
     @Args('dto') dto: CreateUserBlockInDto,
     @Context('tx') tx: Prisma.TransactionClient,
@@ -45,14 +46,13 @@ export class UserBlockMutationResolver {
   }
 
   @Mutation(() => UserBlock)
-  @Access.allow([
-    {
-      role: UserRole.USER,
-      targetId: fromArg('dto.blockerId'),
-      targetScope: AccessScope.USER,
-    },
-    { role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL },
-  ])
+  @Access2.allow({
+    or: [
+      { role: UserRole.USER, target: 'blockerUser', targetScope: AccessScope.USER },
+      { role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL },
+    ],
+  })
+  @Infer('blockerUser', { from: fromArg('dto.blockerId'), pipes: [UserByIdPipe] })
   async unblockUser(
     @Args('dto') dto: RemoveUserBlockInDto,
     @Context('tx') tx: Prisma.TransactionClient,
