@@ -14,6 +14,24 @@ import { WorkspaceFactoryService } from './factory/workspace-factory.service';
 import { TestGraphqlModule } from './graphql/test-graphql.module';
 import { TestConfigModule } from './test-config.module';
 
+const itemQuery = `
+  query Item($id: Int!) {
+    item(id: $id) {
+      id
+      title
+    }
+  }
+`;
+
+const itemsQuery = `
+  query Items($workspaceId: Int!) {
+    items(workspaceId: $workspaceId) {
+      id
+      title
+    }
+  }
+`;
+
 const createItemMutation = `
   mutation CreateItem($workspaceId: Int!, $dto: ItemInDto!) {
     createItem(workspaceId: $workspaceId, dto: $dto) {
@@ -63,6 +81,138 @@ describe('Item E2E', () => {
 
   afterAll(async () => {
     await app.close();
+  });
+
+  describe('item', () => {
+    it('should return item when workspace owner', async () => {
+      const user = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(user.id);
+      const item = await itemFactory.create(workspace.id);
+
+      const { accessToken } = await authService.authenticateUser(user);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: itemQuery, variables: { id: item.id } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expectResponseSuccess(response);
+      expect(response.body.data.item.id).toBe(item.id);
+    });
+
+    it('should not return item when not workspace owner', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+      const item = await itemFactory.create(workspace.id);
+      const other = await userFactory.create('active');
+
+      const { accessToken } = await authService.authenticateUser(other);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: itemQuery, variables: { id: item.id } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expectResponseError(response, { code: ApplicationErrorCode.NO_ACCESS, status: 'FORBIDDEN' });
+    });
+
+    it('should not return item when not authenticated', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+      const item = await itemFactory.create(workspace.id);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: itemQuery, variables: { id: item.id } })
+        .set('Content-Type', 'application/json');
+
+      expectResponseError(response, { code: ApplicationErrorCode.NO_ACCESS, status: 'FORBIDDEN' });
+    });
+
+    it('should return item when admin', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+      const item = await itemFactory.create(workspace.id);
+      const admin = await userFactory.create('active', { role: UserRole.ADMIN });
+
+      const { accessToken } = await authService.authenticateUser(admin);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: itemQuery, variables: { id: item.id } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expectResponseSuccess(response);
+      expect(response.body.data.item.id).toBe(item.id);
+    });
+  });
+
+  describe('items', () => {
+    it('should return items when workspace owner', async () => {
+      const user = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(user.id);
+      await itemFactory.create(workspace.id);
+
+      const { accessToken } = await authService.authenticateUser(user);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: itemsQuery, variables: { workspaceId: workspace.id } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expectResponseSuccess(response);
+      expect(response.body.data.items).toHaveLength(1);
+    });
+
+    it('should not return items when not workspace owner', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+      const other = await userFactory.create('active');
+
+      const { accessToken } = await authService.authenticateUser(other);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: itemsQuery, variables: { workspaceId: workspace.id } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expectResponseError(response, { code: ApplicationErrorCode.NO_ACCESS, status: 'FORBIDDEN' });
+    });
+
+    it('should not return items when not authenticated', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: itemsQuery, variables: { workspaceId: workspace.id } })
+        .set('Content-Type', 'application/json');
+
+      expectResponseError(response, { code: ApplicationErrorCode.NO_ACCESS, status: 'FORBIDDEN' });
+    });
+
+    it('should return items when admin', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+      await itemFactory.create(workspace.id);
+      const admin = await userFactory.create('active', { role: UserRole.ADMIN });
+
+      const { accessToken } = await authService.authenticateUser(admin);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: itemsQuery, variables: { workspaceId: workspace.id } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expectResponseSuccess(response);
+      expect(response.body.data.items).toHaveLength(1);
+    });
   });
 
   describe('createItem', () => {
