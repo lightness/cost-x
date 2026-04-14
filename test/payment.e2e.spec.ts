@@ -15,6 +15,24 @@ import { WorkspaceFactoryService } from './factory/workspace-factory.service';
 import { TestGraphqlModule } from './graphql/test-graphql.module';
 import { TestConfigModule } from './test-config.module';
 
+const paymentQuery = `
+  query Payment($id: Int!) {
+    payment(id: $id) {
+      id
+      cost
+      currency
+    }
+  }
+`;
+
+const paymentsQuery = `
+  query Payments($itemId: Int!) {
+    payments(itemId: $itemId) {
+      id
+    }
+  }
+`;
+
 const createPaymentMutation = `
   mutation CreatePayment($itemId: Int!, $dto: PaymentInDto!) {
     createPayment(itemId: $itemId, dto: $dto) {
@@ -70,6 +88,142 @@ describe('Payment E2E', () => {
 
   afterAll(async () => {
     await app.close();
+  });
+
+  describe('payment', () => {
+    it('should return payment when workspace owner', async () => {
+      const user = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(user.id);
+      const item = await itemFactory.create(workspace.id);
+      const payment = await paymentFactory.create(item.id);
+
+      const { accessToken } = await authService.authenticateUser(user);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: paymentQuery, variables: { id: payment.id } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expectResponseSuccess(response);
+      expect(response.body.data.payment.id).toBe(payment.id);
+    });
+
+    it('should not return payment when not workspace owner', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+      const item = await itemFactory.create(workspace.id);
+      const payment = await paymentFactory.create(item.id);
+      const other = await userFactory.create('active');
+
+      const { accessToken } = await authService.authenticateUser(other);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: paymentQuery, variables: { id: payment.id } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expectResponseError(response, { code: ApplicationErrorCode.NO_ACCESS, status: 'FORBIDDEN' });
+    });
+
+    it('should not return payment when not authenticated', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+      const item = await itemFactory.create(workspace.id);
+      const payment = await paymentFactory.create(item.id);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: paymentQuery, variables: { id: payment.id } })
+        .set('Content-Type', 'application/json');
+
+      expectResponseError(response, { code: ApplicationErrorCode.NO_ACCESS, status: 'FORBIDDEN' });
+    });
+
+    it('should return payment when admin', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+      const item = await itemFactory.create(workspace.id);
+      const payment = await paymentFactory.create(item.id);
+      const admin = await userFactory.create('active', { role: UserRole.ADMIN });
+
+      const { accessToken } = await authService.authenticateUser(admin);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: paymentQuery, variables: { id: payment.id } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expectResponseSuccess(response);
+      expect(response.body.data.payment.id).toBe(payment.id);
+    });
+  });
+
+  describe('payments', () => {
+    it('should return payments when workspace owner', async () => {
+      const user = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(user.id);
+      const item = await itemFactory.create(workspace.id);
+
+      const { accessToken } = await authService.authenticateUser(user);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: paymentsQuery, variables: { itemId: item.id } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expectResponseSuccess(response);
+    });
+
+    it('should not return payments when not workspace owner', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+      const item = await itemFactory.create(workspace.id);
+      const other = await userFactory.create('active');
+
+      const { accessToken } = await authService.authenticateUser(other);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: paymentsQuery, variables: { itemId: item.id } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expectResponseError(response, { code: ApplicationErrorCode.NO_ACCESS, status: 'FORBIDDEN' });
+    });
+
+    it('should not return payments when not authenticated', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+      const item = await itemFactory.create(workspace.id);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: paymentsQuery, variables: { itemId: item.id } })
+        .set('Content-Type', 'application/json');
+
+      expectResponseError(response, { code: ApplicationErrorCode.NO_ACCESS, status: 'FORBIDDEN' });
+    });
+
+    it('should return payments when admin', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+      const item = await itemFactory.create(workspace.id);
+      const admin = await userFactory.create('active', { role: UserRole.ADMIN });
+
+      const { accessToken } = await authService.authenticateUser(admin);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: paymentsQuery, variables: { itemId: item.id } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expectResponseSuccess(response);
+    });
   });
 
   describe('createPayment', () => {
