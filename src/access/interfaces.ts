@@ -27,8 +27,4 @@ export interface Rule {
   metadata?: Record<string, unknown>;
 }
 
-export type RuleOperationAnd = { and: (RuleDef | RuleOperationOr)[] };
-export type RuleOperationOr = { or: (RuleDef | RuleOperationAnd)[] };
-export type RuleDef = Rule | RuleDef[] | RuleOperationAnd | RuleOperationOr;
-
 export type GetId = (ctx: GqlExecutionContext) => number;
