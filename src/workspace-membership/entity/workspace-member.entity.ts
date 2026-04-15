@@ -23,5 +23,5 @@ export class WorkspaceMember implements PrismaWorkspaceMember {
   removedAt: Date;
 
   @Field(() => Int, { nullable: true })
-  removedById: number;
+  removedByUserId: number;
 }
