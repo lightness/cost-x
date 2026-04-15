@@ -9,9 +9,12 @@ import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
 import { Infer } from '../../common/decorator/infer.decorator';
 import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
+import { UserByIdPipe } from '../../common/pipe/user-by-id.pipe';
 import { WorkspaceByIdPipe } from '../../common/pipe/workspace-by-id.pipe';
+import { DeepArgs } from '../../graphql/decorator/deep-args.decorator';
 import { UserRole } from '../../user/entity/user-role.enum';
 import User from '../../user/entity/user.entity';
+import { Workspace } from '../../workspace/entity/workspace.entity';
 import { CreateWorkspaceInviteInDto } from '../dto/create-workspace-invite.in.dto';
 import { WorkspaceInvite } from '../entity/workspace-invite.entity';
 import { InviteeByWorkspaceInvitePipe } from '../pipe/invitee-by-workspace-invite.pipe';
@@ -34,11 +37,13 @@ export class WorkspaceInviteMutationResolver {
   })
   @Infer('workspace', { from: fromArg('dto.workspaceId'), pipes: [WorkspaceByIdPipe] })
   async createWorkspaceInvite(
-    @Args('dto') dto: CreateWorkspaceInviteInDto,
+    @Args('dto') _: CreateWorkspaceInviteInDto,
+    @DeepArgs('dto.workspaceId', WorkspaceByIdPipe) workspace: Workspace,
+    @DeepArgs('dto.inviteeId', UserByIdPipe) invitee: User,
     @CurrentUser() currentUser: User,
     @Context('tx') tx: Prisma.TransactionClient,
   ) {
-    return this.workspaceInviteService.createInvite(dto.workspaceId, currentUser.id, dto.inviteeId, tx);
+    return this.workspaceInviteService.createInvite(workspace, currentUser, invitee, tx);
   }
 
   @Mutation(() => WorkspaceInvite)

@@ -3,6 +3,8 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Prisma, WorkspaceInviteStatus } from '../../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { WorkspaceHistoryEvent } from '../workspace-history/entity/workspace-history-event.enum';
+import { Workspace } from '../workspace/entity/workspace.entity';
+import User from '../user/entity/user.entity';
 import { WorkspaceInvite } from './entity/workspace-invite.entity';
 import { WorkspaceMember } from './entity/workspace-member.entity';
 import { WorkspaceInviteValidationService } from './workspace-invite-validation.service';
@@ -16,20 +18,20 @@ export class WorkspaceInviteService {
   ) {}
 
   async createInvite(
-    workspaceId: number,
-    inviterId: number,
-    inviteeId: number,
+    workspace: Workspace,
+    inviter: User,
+    invitee: User,
     tx: Prisma.TransactionClient = this.prisma,
   ): Promise<WorkspaceInvite> {
-    await this.validationService.validateCreateInvite(workspaceId, inviteeId, tx);
+    await this.validationService.validateCreateInvite(workspace.id, invitee.id, tx);
 
     return tx.workspaceInvite.create({
       data: {
         createdAt: new Date(),
-        invitee: { connect: { id: inviteeId } },
-        inviter: { connect: { id: inviterId } },
+        invitee: { connect: { id: invitee.id } },
+        inviter: { connect: { id: inviter.id } },
         status: WorkspaceInviteStatus.PENDING,
-        workspace: { connect: { id: workspaceId } },
+        workspace: { connect: { id: workspace.id } },
       },
     });
   }
