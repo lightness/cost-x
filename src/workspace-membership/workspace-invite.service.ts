@@ -25,11 +25,11 @@ export class WorkspaceInviteService {
 
     return tx.workspaceInvite.create({
       data: {
-        workspace: { connect: { id: workspaceId } },
-        inviter: { connect: { id: inviterId } },
-        invitee: { connect: { id: inviteeId } },
-        status: WorkspaceInviteStatus.PENDING,
         createdAt: new Date(),
+        invitee: { connect: { id: inviteeId } },
+        inviter: { connect: { id: inviterId } },
+        status: WorkspaceInviteStatus.PENDING,
+        workspace: { connect: { id: workspaceId } },
       },
     });
   }
@@ -43,7 +43,7 @@ export class WorkspaceInviteService {
     await this.validationService.validateAcceptInvite(invite, tx);
 
     const updatedInvite = await tx.workspaceInvite.update({
-      data: { status: WorkspaceInviteStatus.ACCEPTED, reactedAt: new Date() },
+      data: { reactedAt: new Date(), status: WorkspaceInviteStatus.ACCEPTED },
       where: { id: inviteId },
     });
 
@@ -51,9 +51,9 @@ export class WorkspaceInviteService {
 
     await this.eventEmitter.emitAsync(WorkspaceHistoryEvent.MEMBER_JOINED, {
       actorId,
-      workspaceId: invite.workspaceId,
       member,
       tx,
+      workspaceId: invite.workspaceId,
     });
 
     return updatedInvite;
@@ -67,7 +67,20 @@ export class WorkspaceInviteService {
     this.validationService.validateRejectInvite(invite);
 
     return tx.workspaceInvite.update({
-      data: { status: WorkspaceInviteStatus.REJECTED, reactedAt: new Date() },
+      data: { reactedAt: new Date(), status: WorkspaceInviteStatus.REJECTED },
+      where: { id: inviteId },
+    });
+  }
+
+  async cancelInvite(
+    inviteId: number,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<WorkspaceInvite> {
+    const invite = await this.validationService.findInviteOrThrow(inviteId, tx);
+    this.validationService.validateCancelInvite(invite);
+
+    return tx.workspaceInvite.update({
+      data: { reactedAt: new Date(), status: WorkspaceInviteStatus.CANCELLED },
       where: { id: inviteId },
     });
   }
@@ -98,7 +111,7 @@ export class WorkspaceInviteService {
   ): Promise<WorkspaceMember[]> {
     return tx.workspaceMember.findMany({
       orderBy: { joinedAt: 'asc' },
-      where: { workspaceId, removedAt: null },
+      where: { removedAt: null, workspaceId },
     });
   }
 
@@ -110,10 +123,10 @@ export class WorkspaceInviteService {
   ): Promise<WorkspaceMember> {
     return tx.workspaceMember.create({
       data: {
-        workspace: { connect: { id: workspaceId } },
-        user: { connect: { id: userId } },
         invite: { connect: { id: inviteId } },
         joinedAt: new Date(),
+        user: { connect: { id: userId } },
+        workspace: { connect: { id: workspaceId } },
       },
     });
   }

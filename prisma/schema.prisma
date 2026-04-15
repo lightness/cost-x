@@ -224,6 +224,7 @@ enum WorkspaceInviteStatus {
   PENDING
   ACCEPTED
   REJECTED
+  CANCELLED
 }
 
 model WorkspaceInvite {

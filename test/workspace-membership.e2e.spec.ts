@@ -343,6 +343,116 @@ describe('WorkspaceMembership E2E', () => {
   });
 
   // ---------------------------------------------------------------------------
+  // cancelWorkspaceInvite
+  // ---------------------------------------------------------------------------
+
+  describe('cancelWorkspaceInvite', () => {
+    const mutation = `
+      mutation CancelWorkspaceInvite($inviteId: Int!) {
+        cancelWorkspaceInvite(inviteId: $inviteId) {
+          id
+          status
+        }
+      }
+    `;
+
+    it('should allow workspace owner to cancel a pending invite', async () => {
+      // Assume
+      const owner = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+      const invite = await workspaceInviteFactory.create('pending', { workspaceId: workspace.id, inviterId: owner.id, inviteeId: invitee.id });
+
+      // Act
+      const { accessToken } = await authService.authenticateUser(owner);
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: mutation, variables: { inviteId: invite.id } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseSuccess(response);
+      await expectInviteCancelled(invite.id);
+    });
+
+    it('should not allow invitee to cancel an invite', async () => {
+      // Assume
+      const owner = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+      const invite = await workspaceInviteFactory.create('pending', { workspaceId: workspace.id, inviterId: owner.id, inviteeId: invitee.id });
+
+      // Act
+      const { accessToken } = await authService.authenticateUser(invitee);
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: mutation, variables: { inviteId: invite.id } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseError(response, { code: ApplicationErrorCode.NO_ACCESS, status: 'FORBIDDEN' });
+      await expectInvitePending(invite.id);
+    });
+
+    it('should not allow cancelling a non-pending invite', async () => {
+      // Assume
+      const owner = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+      const invite = await workspaceInviteFactory.create('accepted', { workspaceId: workspace.id, inviterId: owner.id, inviteeId: invitee.id });
+
+      // Act
+      const { accessToken } = await authService.authenticateUser(owner);
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: mutation, variables: { inviteId: invite.id } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseError(response, {
+        code: ApplicationErrorCode.IMPROPER_WORKSPACE_INVITE_STATUS,
+        status: 'BAD_REQUEST',
+      });
+    });
+
+    it('should allow re-inviting the same person after cancellation', async () => {
+      // Assume
+      const owner = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+      const invite = await workspaceInviteFactory.create('pending', { workspaceId: workspace.id, inviterId: owner.id, inviteeId: invitee.id });
+
+      const { accessToken } = await authService.authenticateUser(owner);
+      await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: mutation, variables: { inviteId: invite.id } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Act — re-invite same person
+      const reInviteResponse = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({
+          query: `
+            mutation CreateWorkspaceInvite($dto: CreateWorkspaceInviteInDto!) {
+              createWorkspaceInvite(dto: $dto) { id status }
+            }
+          `,
+          variables: { dto: { workspaceId: workspace.id, inviteeId: invitee.id } },
+        })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseSuccess(reInviteResponse);
+      await expectInvitePending(reInviteResponse.body.data.createWorkspaceInvite.id);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
   // Workspace.members and Workspace.pendingInvites field resolvers
   // ---------------------------------------------------------------------------
 
@@ -459,6 +569,13 @@ describe('WorkspaceMembership E2E', () => {
     const invite = await prisma.workspaceInvite.findUnique({ where: { id: inviteId } });
     expect(invite).toBeDefined();
     expect(invite.status).toBe(WorkspaceInviteStatus.ACCEPTED);
+    expect(invite.reactedAt).toEqual(expect.any(Date));
+  }
+
+  async function expectInviteCancelled(inviteId: number) {
+    const invite = await prisma.workspaceInvite.findUnique({ where: { id: inviteId } });
+    expect(invite).toBeDefined();
+    expect(invite.status).toBe(WorkspaceInviteStatus.CANCELLED);
     expect(invite.reactedAt).toEqual(expect.any(Date));
   }
 

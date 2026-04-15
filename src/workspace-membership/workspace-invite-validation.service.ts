@@ -34,6 +34,10 @@ export class WorkspaceInviteValidationService {
     this.validateInviteIsInStatus(invite, WorkspaceInviteStatus.PENDING);
   }
 
+  validateCancelInvite(invite: WorkspaceInvite): void {
+    this.validateInviteIsInStatus(invite, WorkspaceInviteStatus.PENDING);
+  }
+
   private async validateInviteNotExists(
     workspaceId: number,
     inviteeId: number,
