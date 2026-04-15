@@ -15,4 +15,5 @@ export enum WorkspaceHistoryEvent {
   WORKSPACE_DELETED = 'workspace.deleted',
   ITEM_MERGED = 'item.merged',
   ITEM_EXTRACTED = 'item.extracted',
+  MEMBER_JOINED = 'member.joined',
 }

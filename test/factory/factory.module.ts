@@ -9,6 +9,7 @@ import { TagFactoryService } from './tag-factory.service';
 import { UserBlockFactoryService } from './user-block-factory.service';
 import { UserFactoryService } from './user-factory.service';
 import { WorkspaceFactoryService } from './workspace-factory.service';
+import { WorkspaceInviteFactoryService } from './workspace-invite-factory.service';
 
 const factories = [
   ContactFactoryService,
@@ -20,6 +21,7 @@ const factories = [
   UserBlockFactoryService,
   UserFactoryService,
   WorkspaceFactoryService,
+  WorkspaceInviteFactoryService,
 ];
 
 @Module({
