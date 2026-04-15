@@ -47,6 +47,12 @@ input CreateUserInDto {
   password: String!
 }
 
+input CreateWorkspaceInviteInDto {
+  inviteeId: Int!
+  inviterId: Int!
+  workspaceId: Int!
+}
+
 enum Currency {
   BYN
   EUR
@@ -163,9 +169,11 @@ input MergeItemsInDto {
 
 type Mutation {
   acceptInvite(inviteId: Int!): Invite!
+  acceptWorkspaceInvite(inviteId: Int!): WorkspaceInvite!
   assignTag(dto: AssignTagInDto!): ItemTag!
   banUser(id: Int!): User!
   blockUser(dto: CreateUserBlockInDto!): UserBlock!
+  cancelWorkspaceInvite(inviteId: Int!): WorkspaceInvite!
   createInvite(dto: CreateInviteInDto!): Invite!
   createInviteByEmail(dto: CreateInviteByEmailInDto!): Invite!
   createItem(dto: ItemInDto!, workspaceId: Int!): Item!
@@ -173,6 +181,7 @@ type Mutation {
   createTag(dto: TagInDto!, workspaceId: Int!): Tag!
   createUser(dto: CreateUserInDto!): User!
   createWorkspace(dto: WorkspaceInDto!): Workspace!
+  createWorkspaceInvite(dto: CreateWorkspaceInviteInDto!): WorkspaceInvite!
   deleteContact(contactId: Int!): Contact!
   deleteItem(id: Int!): Boolean!
   deletePayment(paymentId: Int!): Boolean!
@@ -184,6 +193,7 @@ type Mutation {
   mergeItems(dto: MergeItemsInDto!): Item!
   rejectInvite(inviteId: Int!): Invite!
   rejectInviteAndBlockUser(inviteId: Int!): Invite!
+  rejectWorkspaceInvite(inviteId: Int!): WorkspaceInvite!
   resendConfirmEmail(dto: ResendConfirmEmailInDto!): ResendEmailOutDto!
   resendForgotPasswordEmail(dto: ForgotPasswordInDto!): ResendEmailOutDto!
   resetPassword(dto: ResetPasswordInDto!): Boolean!
@@ -331,7 +341,9 @@ type Workspace {
   id: Int!
   items(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): [Item!]!
   itemsAggregation(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): ItemsAggregation!
+  members: [WorkspaceMember!]!
   ownerId: Int!
+  pendingInvites: [WorkspaceInvite!]!
   tags(tagsFilter: TagsFilter): [Tag!]!
   title: String!
   updatedAt: DateIso!
@@ -358,6 +370,7 @@ enum WorkspaceHistoryAction {
   ITEM_TAG_ASSIGNED
   ITEM_TAG_UNASSIGNED
   ITEM_UPDATED
+  MEMBER_JOINED
   PAYMENT_CREATED
   PAYMENT_DELETED
   PAYMENT_UPDATED
@@ -376,6 +389,35 @@ input WorkspaceHistoryFilter {
 input WorkspaceInDto {
   defaultCurrency: Currency!
   title: String!
+}
+
+type WorkspaceInvite {
+  createdAt: DateIso!
+  id: Int!
+  invitee: User!
+  inviteeId: Int!
+  inviter: User!
+  inviterId: Int!
+  reactedAt: DateIso
+  status: WorkspaceInviteStatus!
+  workspaceId: Int!
+}
+
+enum WorkspaceInviteStatus {
+  ACCEPTED
+  CANCELLED
+  PENDING
+  REJECTED
+}
+
+type WorkspaceMember {
+  id: Int!
+  inviteId: Int!
+  joinedAt: DateIso!
+  removedAt: DateIso
+  removedByUserId: Int
+  userId: Int!
+  workspaceId: Int!
 }
 
 input WorkspacesFilter {

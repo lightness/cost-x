@@ -1,7 +1,7 @@
 import { NestApplication } from '@nestjs/core';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
-import { User, WorkspaceInvite } from '../generated/prisma/client';
+import { WorkspaceInvite } from '../generated/prisma/client';
 import { AuthService } from '../src/auth/auth.service';
 import { ApplicationErrorCode } from '../src/common/error/coded-application.error';
 import { configureApp } from '../src/configure-app';
@@ -11,10 +11,10 @@ import { UserRole } from '../src/user/entity/user-role.enum';
 import { WorkspaceInviteStatus } from '../src/workspace-membership/entity/workspace-invite-status.enum';
 import { WorkspaceMembershipModule } from '../src/workspace-membership/workspace-membership.module';
 import { WorkspaceModule } from '../src/workspace/workspace.module';
-import { WorkspaceInviteFactoryService } from './factory/workspace-invite-factory.service';
 import { FactoryModule } from './factory/factory.module';
 import { UserFactoryService } from './factory/user-factory.service';
 import { WorkspaceFactoryService } from './factory/workspace-factory.service';
+import { WorkspaceInviteFactoryService } from './factory/workspace-invite-factory.service';
 import { TestGraphqlModule } from './graphql/test-graphql.module';
 import { TestConfigModule } from './test-config.module';
 
@@ -81,7 +81,12 @@ describe('WorkspaceMembership E2E', () => {
       const { accessToken } = await authService.authenticateUser(owner);
       const response = await request(app.getHttpServer())
         .post('/graphql')
-        .send({ query: mutation, variables: { dto: { workspaceId: workspace.id, inviterId: owner.id, inviteeId: invitee.id } } })
+        .send({
+          query: mutation,
+          variables: {
+            dto: { inviteeId: invitee.id, inviterId: owner.id, workspaceId: workspace.id },
+          },
+        })
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${accessToken}`);
 
@@ -107,7 +112,12 @@ describe('WorkspaceMembership E2E', () => {
       const { accessToken } = await authService.authenticateUser(nonOwner);
       const response = await request(app.getHttpServer())
         .post('/graphql')
-        .send({ query: mutation, variables: { dto: { workspaceId: workspace.id, inviterId: nonOwner.id, inviteeId: invitee.id } } })
+        .send({
+          query: mutation,
+          variables: {
+            dto: { inviteeId: invitee.id, inviterId: nonOwner.id, workspaceId: workspace.id },
+          },
+        })
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${accessToken}`);
 
@@ -126,7 +136,12 @@ describe('WorkspaceMembership E2E', () => {
       const { accessToken } = await authService.authenticateUser(owner);
       const response = await request(app.getHttpServer())
         .post('/graphql')
-        .send({ query: mutation, variables: { dto: { workspaceId: workspace.id, inviterId: otherUser.id, inviteeId: invitee.id } } })
+        .send({
+          query: mutation,
+          variables: {
+            dto: { inviteeId: invitee.id, inviterId: otherUser.id, workspaceId: workspace.id },
+          },
+        })
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${accessToken}`);
 
@@ -145,7 +160,12 @@ describe('WorkspaceMembership E2E', () => {
       const { accessToken } = await authService.authenticateUser(admin);
       const response = await request(app.getHttpServer())
         .post('/graphql')
-        .send({ query: mutation, variables: { dto: { workspaceId: workspace.id, inviterId: owner.id, inviteeId: invitee.id } } })
+        .send({
+          query: mutation,
+          variables: {
+            dto: { inviteeId: invitee.id, inviterId: owner.id, workspaceId: workspace.id },
+          },
+        })
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${accessToken}`);
 
@@ -161,13 +181,22 @@ describe('WorkspaceMembership E2E', () => {
       const owner = await userFactory.create('active');
       const invitee = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
-      await workspaceInviteFactory.create('pending', { workspaceId: workspace.id, inviterId: owner.id, inviteeId: invitee.id });
+      await workspaceInviteFactory.create('pending', {
+        inviteeId: invitee.id,
+        inviterId: owner.id,
+        workspaceId: workspace.id,
+      });
 
       // Act
       const { accessToken } = await authService.authenticateUser(owner);
       const response = await request(app.getHttpServer())
         .post('/graphql')
-        .send({ query: mutation, variables: { dto: { workspaceId: workspace.id, inviterId: owner.id, inviteeId: invitee.id } } })
+        .send({
+          query: mutation,
+          variables: {
+            dto: { inviteeId: invitee.id, inviterId: owner.id, workspaceId: workspace.id },
+          },
+        })
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${accessToken}`);
 
@@ -183,13 +212,22 @@ describe('WorkspaceMembership E2E', () => {
       const owner = await userFactory.create('active');
       const invitee = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
-      await workspaceInviteFactory.create('rejected', { workspaceId: workspace.id, inviterId: owner.id, inviteeId: invitee.id });
+      await workspaceInviteFactory.create('rejected', {
+        inviteeId: invitee.id,
+        inviterId: owner.id,
+        workspaceId: workspace.id,
+      });
 
       // Act
       const { accessToken } = await authService.authenticateUser(owner);
       const response = await request(app.getHttpServer())
         .post('/graphql')
-        .send({ query: mutation, variables: { dto: { workspaceId: workspace.id, inviterId: owner.id, inviteeId: invitee.id } } })
+        .send({
+          query: mutation,
+          variables: {
+            dto: { inviteeId: invitee.id, inviterId: owner.id, workspaceId: workspace.id },
+          },
+        })
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${accessToken}`);
 
@@ -203,13 +241,17 @@ describe('WorkspaceMembership E2E', () => {
       const owner = await userFactory.create('active');
       const invitee = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
-      const invite = await workspaceInviteFactory.create('accepted', { workspaceId: workspace.id, inviterId: owner.id, inviteeId: invitee.id });
+      const invite = await workspaceInviteFactory.create('accepted', {
+        inviteeId: invitee.id,
+        inviterId: owner.id,
+        workspaceId: workspace.id,
+      });
       await prisma.workspaceMember.create({
         data: {
-          workspace: { connect: { id: workspace.id } },
-          user: { connect: { id: invitee.id } },
           invite: { connect: { id: invite.id } },
           joinedAt: new Date(),
+          user: { connect: { id: invitee.id } },
+          workspace: { connect: { id: workspace.id } },
         },
       });
 
@@ -217,7 +259,12 @@ describe('WorkspaceMembership E2E', () => {
       const { accessToken } = await authService.authenticateUser(owner);
       const response = await request(app.getHttpServer())
         .post('/graphql')
-        .send({ query: mutation, variables: { dto: { workspaceId: workspace.id, inviterId: owner.id, inviteeId: invitee.id } } })
+        .send({
+          query: mutation,
+          variables: {
+            dto: { inviteeId: invitee.id, inviterId: owner.id, workspaceId: workspace.id },
+          },
+        })
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${accessToken}`);
 
@@ -248,7 +295,11 @@ describe('WorkspaceMembership E2E', () => {
       const owner = await userFactory.create('active');
       const invitee = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
-      const invite = await workspaceInviteFactory.create('pending', { workspaceId: workspace.id, inviterId: owner.id, inviteeId: invitee.id });
+      const invite = await workspaceInviteFactory.create('pending', {
+        inviteeId: invitee.id,
+        inviterId: owner.id,
+        workspaceId: workspace.id,
+      });
 
       // Act
       const { accessToken } = await authService.authenticateUser(invitee);
@@ -269,7 +320,11 @@ describe('WorkspaceMembership E2E', () => {
       const owner = await userFactory.create('active');
       const invitee = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
-      const invite = await workspaceInviteFactory.create('pending', { workspaceId: workspace.id, inviterId: owner.id, inviteeId: invitee.id });
+      const invite = await workspaceInviteFactory.create('pending', {
+        inviteeId: invitee.id,
+        inviterId: owner.id,
+        workspaceId: workspace.id,
+      });
 
       // Act
       const { accessToken } = await authService.authenticateUser(owner);
@@ -289,7 +344,11 @@ describe('WorkspaceMembership E2E', () => {
       const owner = await userFactory.create('active');
       const invitee = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
-      const invite = await workspaceInviteFactory.create('rejected', { workspaceId: workspace.id, inviterId: owner.id, inviteeId: invitee.id });
+      const invite = await workspaceInviteFactory.create('rejected', {
+        inviteeId: invitee.id,
+        inviterId: owner.id,
+        workspaceId: workspace.id,
+      });
 
       // Act
       const { accessToken } = await authService.authenticateUser(invitee);
@@ -326,7 +385,11 @@ describe('WorkspaceMembership E2E', () => {
       const owner = await userFactory.create('active');
       const invitee = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
-      const invite = await workspaceInviteFactory.create('pending', { workspaceId: workspace.id, inviterId: owner.id, inviteeId: invitee.id });
+      const invite = await workspaceInviteFactory.create('pending', {
+        inviteeId: invitee.id,
+        inviterId: owner.id,
+        workspaceId: workspace.id,
+      });
 
       // Act
       const { accessToken } = await authService.authenticateUser(invitee);
@@ -346,7 +409,11 @@ describe('WorkspaceMembership E2E', () => {
       const owner = await userFactory.create('active');
       const invitee = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
-      const invite = await workspaceInviteFactory.create('pending', { workspaceId: workspace.id, inviterId: owner.id, inviteeId: invitee.id });
+      const invite = await workspaceInviteFactory.create('pending', {
+        inviteeId: invitee.id,
+        inviterId: owner.id,
+        workspaceId: workspace.id,
+      });
 
       // Act
       const { accessToken } = await authService.authenticateUser(owner);
@@ -366,7 +433,11 @@ describe('WorkspaceMembership E2E', () => {
       const owner = await userFactory.create('active');
       const invitee = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
-      const invite = await workspaceInviteFactory.create('accepted', { workspaceId: workspace.id, inviterId: owner.id, inviteeId: invitee.id });
+      const invite = await workspaceInviteFactory.create('accepted', {
+        inviteeId: invitee.id,
+        inviterId: owner.id,
+        workspaceId: workspace.id,
+      });
 
       // Act
       const { accessToken } = await authService.authenticateUser(invitee);
@@ -403,7 +474,11 @@ describe('WorkspaceMembership E2E', () => {
       const owner = await userFactory.create('active');
       const invitee = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
-      const invite = await workspaceInviteFactory.create('pending', { workspaceId: workspace.id, inviterId: owner.id, inviteeId: invitee.id });
+      const invite = await workspaceInviteFactory.create('pending', {
+        inviteeId: invitee.id,
+        inviterId: owner.id,
+        workspaceId: workspace.id,
+      });
 
       // Act
       const { accessToken } = await authService.authenticateUser(owner);
@@ -423,7 +498,11 @@ describe('WorkspaceMembership E2E', () => {
       const owner = await userFactory.create('active');
       const invitee = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
-      const invite = await workspaceInviteFactory.create('pending', { workspaceId: workspace.id, inviterId: owner.id, inviteeId: invitee.id });
+      const invite = await workspaceInviteFactory.create('pending', {
+        inviteeId: invitee.id,
+        inviterId: owner.id,
+        workspaceId: workspace.id,
+      });
 
       // Act
       const { accessToken } = await authService.authenticateUser(invitee);
@@ -443,7 +522,11 @@ describe('WorkspaceMembership E2E', () => {
       const owner = await userFactory.create('active');
       const invitee = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
-      const invite = await workspaceInviteFactory.create('accepted', { workspaceId: workspace.id, inviterId: owner.id, inviteeId: invitee.id });
+      const invite = await workspaceInviteFactory.create('accepted', {
+        inviteeId: invitee.id,
+        inviterId: owner.id,
+        workspaceId: workspace.id,
+      });
 
       // Act
       const { accessToken } = await authService.authenticateUser(owner);
@@ -465,7 +548,11 @@ describe('WorkspaceMembership E2E', () => {
       const owner = await userFactory.create('active');
       const invitee = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
-      const invite = await workspaceInviteFactory.create('pending', { workspaceId: workspace.id, inviterId: owner.id, inviteeId: invitee.id });
+      const invite = await workspaceInviteFactory.create('pending', {
+        inviteeId: invitee.id,
+        inviterId: owner.id,
+        workspaceId: workspace.id,
+      });
 
       const { accessToken } = await authService.authenticateUser(owner);
       await request(app.getHttpServer())
@@ -483,7 +570,9 @@ describe('WorkspaceMembership E2E', () => {
               createWorkspaceInvite(dto: $dto) { id status }
             }
           `,
-          variables: { dto: { workspaceId: workspace.id, inviterId: owner.id, inviteeId: invitee.id } },
+          variables: {
+            dto: { inviteeId: invitee.id, inviterId: owner.id, workspaceId: workspace.id },
+          },
         })
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${accessToken}`);
@@ -505,9 +594,9 @@ describe('WorkspaceMembership E2E', () => {
       const invitee = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
       const pendingInvite = await workspaceInviteFactory.create('pending', {
-        workspaceId: workspace.id,
-        inviterId: owner.id,
         inviteeId: invitee.id,
+        inviterId: owner.id,
+        workspaceId: workspace.id,
       });
 
       // Accept the invite so a WorkspaceMember is created
@@ -551,9 +640,9 @@ describe('WorkspaceMembership E2E', () => {
       const invitee = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
       const invite = await workspaceInviteFactory.create('pending', {
-        workspaceId: workspace.id,
-        inviterId: owner.id,
         inviteeId: invitee.id,
+        inviterId: owner.id,
+        workspaceId: workspace.id,
       });
 
       // Act — use updateWorkspace mutation (returns Workspace) and select pendingInvites
@@ -630,7 +719,7 @@ describe('WorkspaceMembership E2E', () => {
 
   async function expectActiveMember(workspaceId: number, userId: number) {
     const member = await prisma.workspaceMember.findFirst({
-      where: { workspaceId, userId, removedAt: null },
+      where: { removedAt: null, userId, workspaceId },
     });
     expect(member).toBeDefined();
     expect(member.userId).toBe(userId);
