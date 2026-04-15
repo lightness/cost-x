@@ -7,6 +7,7 @@ import { ApplicationErrorCode } from '../src/common/error/coded-application.erro
 import { configureApp } from '../src/configure-app';
 import { GraphqlModule } from '../src/graphql/graphql.module';
 import { PrismaService } from '../src/prisma/prisma.service';
+import { UserRole } from '../src/user/entity/user-role.enum';
 import { WorkspaceInviteStatus } from '../src/workspace-membership/entity/workspace-invite-status.enum';
 import { WorkspaceMembershipModule } from '../src/workspace-membership/workspace-membership.module';
 import { WorkspaceModule } from '../src/workspace/workspace.module';
@@ -80,7 +81,7 @@ describe('WorkspaceMembership E2E', () => {
       const { accessToken } = await authService.authenticateUser(owner);
       const response = await request(app.getHttpServer())
         .post('/graphql')
-        .send({ query: mutation, variables: { dto: { workspaceId: workspace.id, inviteeId: invitee.id } } })
+        .send({ query: mutation, variables: { dto: { workspaceId: workspace.id, inviterId: owner.id, inviteeId: invitee.id } } })
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${accessToken}`);
 
@@ -106,12 +107,53 @@ describe('WorkspaceMembership E2E', () => {
       const { accessToken } = await authService.authenticateUser(nonOwner);
       const response = await request(app.getHttpServer())
         .post('/graphql')
-        .send({ query: mutation, variables: { dto: { workspaceId: workspace.id, inviteeId: invitee.id } } })
+        .send({ query: mutation, variables: { dto: { workspaceId: workspace.id, inviterId: nonOwner.id, inviteeId: invitee.id } } })
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${accessToken}`);
 
       // Assert
       expectResponseError(response, { code: ApplicationErrorCode.NO_ACCESS, status: 'FORBIDDEN' });
+    });
+
+    it('should not allow user to invite on behalf of another user', async () => {
+      // Assume
+      const owner = await userFactory.create('active');
+      const otherUser = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+
+      // Act — owner authenticates but sets inviterId to otherUser
+      const { accessToken } = await authService.authenticateUser(owner);
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: mutation, variables: { dto: { workspaceId: workspace.id, inviterId: otherUser.id, inviteeId: invitee.id } } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseError(response, { code: ApplicationErrorCode.NO_ACCESS, status: 'FORBIDDEN' });
+    });
+
+    it('should allow admin to invite on behalf of workspace owner', async () => {
+      // Assume
+      const owner = await userFactory.create('active');
+      const admin = await userFactory.create('active', { role: UserRole.ADMIN });
+      const invitee = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+
+      // Act
+      const { accessToken } = await authService.authenticateUser(admin);
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: mutation, variables: { dto: { workspaceId: workspace.id, inviterId: owner.id, inviteeId: invitee.id } } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseSuccess(response);
+      const invite = response.body.data.createWorkspaceInvite;
+      expect(invite.inviterId).toBe(owner.id);
+      await expectInvitePending(invite.id);
     });
 
     it('should not allow duplicate pending invite', async () => {
@@ -125,7 +167,7 @@ describe('WorkspaceMembership E2E', () => {
       const { accessToken } = await authService.authenticateUser(owner);
       const response = await request(app.getHttpServer())
         .post('/graphql')
-        .send({ query: mutation, variables: { dto: { workspaceId: workspace.id, inviteeId: invitee.id } } })
+        .send({ query: mutation, variables: { dto: { workspaceId: workspace.id, inviterId: owner.id, inviteeId: invitee.id } } })
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${accessToken}`);
 
@@ -147,7 +189,7 @@ describe('WorkspaceMembership E2E', () => {
       const { accessToken } = await authService.authenticateUser(owner);
       const response = await request(app.getHttpServer())
         .post('/graphql')
-        .send({ query: mutation, variables: { dto: { workspaceId: workspace.id, inviteeId: invitee.id } } })
+        .send({ query: mutation, variables: { dto: { workspaceId: workspace.id, inviterId: owner.id, inviteeId: invitee.id } } })
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${accessToken}`);
 
@@ -175,7 +217,7 @@ describe('WorkspaceMembership E2E', () => {
       const { accessToken } = await authService.authenticateUser(owner);
       const response = await request(app.getHttpServer())
         .post('/graphql')
-        .send({ query: mutation, variables: { dto: { workspaceId: workspace.id, inviteeId: invitee.id } } })
+        .send({ query: mutation, variables: { dto: { workspaceId: workspace.id, inviterId: owner.id, inviteeId: invitee.id } } })
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${accessToken}`);
 
@@ -441,7 +483,7 @@ describe('WorkspaceMembership E2E', () => {
               createWorkspaceInvite(dto: $dto) { id status }
             }
           `,
-          variables: { dto: { workspaceId: workspace.id, inviteeId: invitee.id } },
+          variables: { dto: { workspaceId: workspace.id, inviterId: owner.id, inviteeId: invitee.id } },
         })
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${accessToken}`);

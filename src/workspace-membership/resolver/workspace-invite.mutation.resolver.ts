@@ -31,19 +31,25 @@ export class WorkspaceInviteMutationResolver {
   @Mutation(() => WorkspaceInvite)
   @Access.allow({
     or: [
-      { role: [UserRole.USER], target: 'workspace', targetScope: AccessScope.WORKSPACE },
+      {
+        and: [
+          { role: [UserRole.USER], target: 'workspace', targetScope: AccessScope.WORKSPACE },
+          { role: [UserRole.USER], target: 'inviterUser', targetScope: AccessScope.USER },
+        ],
+      },
       { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
     ],
   })
   @Infer('workspace', { from: fromArg('dto.workspaceId'), pipes: [WorkspaceByIdPipe] })
+  @Infer('inviterUser', { from: fromArg('dto.inviterId'), pipes: [UserByIdPipe] })
   async createWorkspaceInvite(
     @Args('dto') _: CreateWorkspaceInviteInDto,
     @DeepArgs('dto.workspaceId', WorkspaceByIdPipe) workspace: Workspace,
+    @DeepArgs('dto.inviterId', UserByIdPipe) inviter: User,
     @DeepArgs('dto.inviteeId', UserByIdPipe) invitee: User,
-    @CurrentUser() currentUser: User,
     @Context('tx') tx: Prisma.TransactionClient,
   ) {
-    return this.workspaceInviteService.createInvite(workspace, currentUser, invitee, tx);
+    return this.workspaceInviteService.createInvite(workspace, inviter, invitee, tx);
   }
 
   @Mutation(() => WorkspaceInvite)

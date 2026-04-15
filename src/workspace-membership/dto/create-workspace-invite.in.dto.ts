@@ -6,5 +6,8 @@ export class CreateWorkspaceInviteInDto {
   workspaceId: number;
 
   @Field(() => Int)
+  inviterId: number;
+
+  @Field(() => Int)
   inviteeId: number;
 }
