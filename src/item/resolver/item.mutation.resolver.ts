@@ -7,7 +7,11 @@ import { AccessGuard } from '../../access/guard/access.guard';
 import { AccessScope } from '../../access/interfaces';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
+import { Infer } from '../../common/decorator/infer.decorator';
 import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
+import { ItemByIdPipe } from '../../common/pipe/item-by-id.pipe';
+import { WorkspaceByIdPipe } from '../../common/pipe/workspace-by-id.pipe';
+import { WorkspaceByItemPipe } from '../../common/pipe/workspace-by-item.pipe';
 import { UserRole } from '../../user/entity/user-role.enum';
 import User from '../../user/entity/user.entity';
 import { ItemInDto } from '../dto';
@@ -21,14 +25,13 @@ export class ItemMutationResolver {
   constructor(private itemService: ItemService) {}
 
   @Mutation(() => Item)
-  @Access.allow([
-    { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
-    {
-      role: [UserRole.USER],
-      targetId: fromArg('workspaceId'),
-      targetScope: AccessScope.WORKSPACE,
-    },
-  ])
+  @Access.allow({
+    or: [
+      { role: [UserRole.USER], target: 'workspace', targetScope: AccessScope.WORKSPACE },
+      { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
+    ],
+  })
+  @Infer('workspace', { from: fromArg('workspaceId'), pipes: [WorkspaceByIdPipe] })
   async createItem(
     @Args('workspaceId', { type: () => Int }) workspaceId: number,
     @Args('dto', { type: () => ItemInDto }) dto: ItemInDto,
@@ -39,14 +42,14 @@ export class ItemMutationResolver {
   }
 
   @Mutation(() => Item)
-  @Access.allow([
-    { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
-    {
-      role: [UserRole.USER],
-      targetId: fromArg('id'),
-      targetScope: AccessScope.ITEM,
-    },
-  ])
+  @Access.allow({
+    or: [
+      { role: [UserRole.USER], target: 'workspace', targetScope: AccessScope.WORKSPACE },
+      { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
+    ],
+  })
+  @Infer('item', { from: fromArg('id'), pipes: [ItemByIdPipe] })
+  @Infer('workspace', { from: 'item', pipes: [WorkspaceByItemPipe] })
   async updateItem(
     @Args('id', { type: () => Int }) id: number,
     @Args('dto', { type: () => ItemInDto }) dto: ItemInDto,
@@ -57,14 +60,14 @@ export class ItemMutationResolver {
   }
 
   @Mutation(() => Boolean)
-  @Access.allow([
-    { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
-    {
-      role: [UserRole.USER],
-      targetId: fromArg('id'),
-      targetScope: AccessScope.ITEM,
-    },
-  ])
+  @Access.allow({
+    or: [
+      { role: [UserRole.USER], target: 'workspace', targetScope: AccessScope.WORKSPACE },
+      { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
+    ],
+  })
+  @Infer('item', { from: fromArg('id'), pipes: [ItemByIdPipe] })
+  @Infer('workspace', { from: 'item', pipes: [WorkspaceByItemPipe] })
   async deleteItem(
     @Args('id', { type: () => Int }) id: number,
     @CurrentUser() currentUser: User,

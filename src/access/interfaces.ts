@@ -1,4 +1,3 @@
-import { GqlExecutionContext } from '@nestjs/graphql';
 import { UserRole } from '../user/entity/user-role.enum';
 
 export enum AccessAction {
@@ -7,28 +6,14 @@ export enum AccessAction {
 }
 
 export enum AccessScope {
-  CONTACT = 'contact',
   USER = 'user',
   WORKSPACE = 'workspace',
-  ITEM = 'item',
-  TAG = 'tag',
-  PAYMENT = 'payment',
-  INVITE = 'invite',
   GLOBAL = 'global',
-  USER_BLOCK = 'user-block',
 }
 
-export interface Rule {
-  sourceScope?: AccessScope; // Default 'user'
-  sourceId?: GetId; // Default ctx.getContext().req.user.id
+export interface ResolvedRule {
+  sourceEntity?: unknown;
   targetScope: AccessScope;
-  targetId?: GetId;
+  targetEntity?: unknown;
   role: UserRole | UserRole[];
-  metadata?: Record<string, unknown>;
 }
-
-export type RuleOperationAnd = { and: (RuleDef | RuleOperationOr)[] };
-export type RuleOperationOr = { or: (RuleDef | RuleOperationAnd)[] };
-export type RuleDef = Rule | RuleDef[] | RuleOperationAnd | RuleOperationOr;
-
-export type GetId = (ctx: GqlExecutionContext) => number;

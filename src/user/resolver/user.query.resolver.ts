@@ -6,6 +6,8 @@ import { AccessGuard } from '../../access/guard/access.guard';
 import { AccessScope } from '../../access/interfaces';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
+import { Infer } from '../../common/decorator/infer.decorator';
+import { UserByIdPipe } from '../../common/pipe/user-by-id.pipe';
 import { GqlLoggingInterceptor } from '../../graphql/interceptor/gql-logging.interceptor';
 import { UserRole } from '../entity/user-role.enum';
 import User from '../entity/user.entity';
@@ -18,20 +20,19 @@ export class UserQueryResolver {
   constructor(private userService: UserService) {}
 
   @Query(() => [User])
-  @Access.allow([{ role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL }])
+  @Access.allow({ role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL })
   async users() {
     return this.userService.list();
   }
 
   @Query(() => User)
-  @Access.allow([
-    {
-      role: UserRole.USER,
-      targetId: fromArg('id'),
-      targetScope: AccessScope.USER,
-    },
-    { role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL },
-  ])
+  @Access.allow({
+    or: [
+      { role: UserRole.USER, target: 'user', targetScope: AccessScope.USER },
+      { role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL },
+    ],
+  })
+  @Infer('user', { from: fromArg('id'), pipes: [UserByIdPipe] })
   async user(@Args('id', { type: () => Int }) id: number) {
     return this.userService.getById(id);
   }

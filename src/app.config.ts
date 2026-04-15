@@ -61,6 +61,7 @@ export default () => ({
   smtp: {
     host: process.env.SMTP_HOST || 'localhost',
     port: asInteger(process.env.SMTP_PORT, 1025),
+    stub: process.env.SMTP_STUB === 'true',
     sender: {
       email: process.env.SENDER_EMAIL || 'no-reply@cost-x.local',
       name: 'Cost-X',

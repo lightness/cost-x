@@ -9,6 +9,10 @@ export const providers: Provider[] = [
     inject: [ConfigService],
     provide: MAIL_TRANSPORTER,
     useFactory: (configService: ConfigService) => {
+      if (configService.get('smtp.stub')) {
+        return nodemailer.createTransport({ jsonTransport: true });
+      }
+
       return nodemailer.createTransport({
         host: configService.getOrThrow('smtp.host'),
         port: configService.getOrThrow('smtp.port'),

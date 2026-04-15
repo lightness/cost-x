@@ -1,85 +1,149 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { ModuleRef } from '@nestjs/core';
 import { GqlExecutionContext } from '@nestjs/graphql';
-import { fromReq } from './function/from-req.function';
+import { InferEntry } from '../common/decorator/infer.decorator';
 import {
-  AccessAction,
-  AccessScope,
   Rule,
   RuleDef,
   RuleOperationAnd,
   RuleOperationOr,
-} from './interfaces';
+} from './decorator/access.decorator';
+import { AccessAction, ResolvedRule } from './interfaces';
 import { RuleEngineService } from './rule-engine.service';
 
 @Injectable()
 export class AccessService {
-  constructor(private ruleEngineService: RuleEngineService) {}
-
-  private normalizeRule(rule: Rule): Rule {
-    return {
-      sourceId: fromReq('user.id'),
-      sourceScope: AccessScope.USER,
-      ...rule,
-      role: Array.isArray(rule.role) ? rule.role : [rule.role],
-    };
-  }
+  constructor(
+    private moduleRef: ModuleRef,
+    private ruleEngineService: RuleEngineService,
+  ) {}
 
   async hasAccess(
     action: AccessAction,
     ruleDef: RuleDef,
+    inferEntries: InferEntry[],
     ctx: GqlExecutionContext,
   ): Promise<boolean> {
-    if (action === AccessAction.ALLOW) {
-      return this.isRuleMatch(ruleDef, ctx);
-    } else {
-      return !this.isRuleMatch(ruleDef, ctx);
-    }
+    const currentUser = ctx.getContext().req.user;
+    const inferredEntities = await this.resolveInferredEntities(inferEntries, ctx);
+    const matches = await this.isRuleMatch(ruleDef, currentUser, inferredEntities);
+
+    return action === AccessAction.ALLOW ? matches : !matches;
   }
 
-  private async isRuleMatch(ruleDef: RuleDef, ctx: GqlExecutionContext): Promise<boolean> {
+  private async resolveInferredEntities(
+    entries: InferEntry[],
+    ctx: GqlExecutionContext,
+  ): Promise<Map<string, unknown>> {
+    const entryByKey = new Map(entries.map((e) => [e.key, e]));
+    const inFlight = new Map<string, Promise<unknown>>();
+
+    const resolve = (key: string): Promise<unknown> => {
+      if (inFlight.has(key)) {
+        return inFlight.get(key);
+      }
+
+      const entry = entryByKey.get(key);
+
+      if (!entry) {
+        throw new InternalServerErrorException(
+          `@Infer key "${key}" referenced but not defined`,
+        );
+      }
+
+      const promise = (async () => {
+        let value: unknown =
+          typeof entry.options.from === 'string'
+            ? await resolve(entry.options.from)
+            : entry.options.from(ctx);
+
+        for (const PipeClass of entry.options.pipes) {
+          const pipe = await this.moduleRef.create(PipeClass);
+          value = await pipe.transform(value as never, {
+            data: undefined,
+            metatype: undefined,
+            type: 'custom',
+          });
+        }
+
+        return value;
+      })();
+
+      inFlight.set(key, promise);
+
+      return promise;
+    };
+
+    const values = await Promise.all(entries.map(({ key }) => resolve(key)));
+    const resolved = new Map(entries.map(({ key }, i) => [key, values[i]]));
+
+    return resolved;
+  }
+
+  private async isRuleMatch(
+    ruleDef: RuleDef,
+    currentUser: unknown,
+    inferredEntities: Map<string, unknown>,
+  ): Promise<boolean> {
     if (Array.isArray(ruleDef)) {
-      const subRuleResults = await Promise.all(
-        ruleDef.map((subRuleDef) => this.isRuleMatch(subRuleDef, ctx)),
+      const results = await Promise.all(
+        ruleDef.map((sub) => this.isRuleMatch(sub, currentUser, inferredEntities)),
       );
 
-      return subRuleResults.some(
-        (result) => result,
-        subRuleResults.some((result) => result),
-      );
+      return results.some((r) => r);
     }
 
-    if (this.isRuleOperatorOr(ruleDef)) {
-      const subRuleResults = await Promise.all(
-        ruleDef.or.map((subRuleDef) => this.isRuleMatch(subRuleDef, ctx)),
+    if (this.isOperatorOr(ruleDef)) {
+      const results = await Promise.all(
+        ruleDef.or.map((sub) => this.isRuleMatch(sub, currentUser, inferredEntities)),
       );
 
-      return subRuleResults.some((result) => result);
+      return results.some((r) => r);
     }
 
-    if (this.isRuleOperatorAnd(ruleDef)) {
-      const subRuleResults = await Promise.all(
-        ruleDef.and.map((subRuleDef) => this.isRuleMatch(subRuleDef, ctx)),
+    if (this.isOperatorAnd(ruleDef)) {
+      const results = await Promise.all(
+        ruleDef.and.map((sub) => this.isRuleMatch(sub, currentUser, inferredEntities)),
       );
 
-      return subRuleResults.every((result) => result);
+      return results.every((r) => r);
     }
 
     if (this.isRule(ruleDef)) {
-      return this.ruleEngineService.executeRule(this.normalizeRule(ruleDef), ctx);
+      return this.executeRule(ruleDef, currentUser, inferredEntities);
     }
 
-    throw new InternalServerErrorException(`Access rule is wrong: ${JSON.stringify(ruleDef)}`);
+    throw new InternalServerErrorException(`Access rule is malformed: ${JSON.stringify(ruleDef)}`);
+  }
+
+  private async executeRule(
+    rule: Rule,
+    currentUser: unknown,
+    inferredEntities: Map<string, unknown>,
+  ): Promise<boolean> {
+    const { target, ...rest } = rule;
+
+    const normalizedRule: ResolvedRule = {
+      sourceEntity: currentUser,
+      ...rest,
+      role: Array.isArray(rule.role) ? rule.role : [rule.role],
+      ...(target !== undefined && {
+        targetEntity: inferredEntities.get(target),
+      }),
+    };
+
+    return this.ruleEngineService.executeRule(normalizedRule);
   }
 
   private isRule(ruleDef: RuleDef): ruleDef is Rule {
     return 'targetScope' in ruleDef;
   }
 
-  private isRuleOperatorOr(ruleDef: RuleDef): ruleDef is RuleOperationOr {
+  private isOperatorOr(ruleDef: RuleDef): ruleDef is RuleOperationOr {
     return 'or' in ruleDef;
   }
 
-  private isRuleOperatorAnd(ruleDef: RuleDef): ruleDef is RuleOperationAnd {
+  private isOperatorAnd(ruleDef: RuleDef): ruleDef is RuleOperationAnd {
     return 'and' in ruleDef;
   }
 }

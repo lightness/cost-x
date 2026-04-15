@@ -3,6 +3,7 @@
     "clazz",
     "maildev",
     "mailersend",
+    "metatype",
     "QLJSON",
     "unban"
   ],

@@ -286,6 +286,32 @@ describe('Email Invite E2E', () => {
 
       expect(mockMailService.sendEmailInvite).not.toHaveBeenCalled();
     });
+
+    it('should not be possible to create invite by email as a different user', async () => {
+      // Assume
+      const inviter = await userFactory.create('active');
+      const otherUser = await userFactory.create('active');
+      const inviteeEmail = userFactory.generateEmail();
+      const { accessToken } = await authService.authenticateUser(otherUser);
+
+      // Act
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({
+          query: CREATE_INVITE_BY_EMAIL,
+          variables: { dto: { inviteeEmail, inviterUserId: inviter.id } },
+        })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseError(response, {
+        code: ApplicationErrorCode.NO_ACCESS,
+        status: 'FORBIDDEN',
+      });
+
+      expect(mockMailService.sendEmailInvite).not.toHaveBeenCalled();
+    });
   });
 
   describe('acceptEmailInvite', () => {

@@ -1,7 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { GqlExecutionContext } from '@nestjs/graphql';
-import { PrismaService } from '../../prisma/prisma.service';
-import { AccessScope, Rule } from '../interfaces';
+import { AccessScope, ResolvedRule } from '../interfaces';
 import { AccessStrategy } from './interface';
 import { GlobalAccessStrategy } from './global.access-strategy';
 
@@ -10,31 +8,18 @@ export class UserToWorkspaceAccessStrategy
   extends GlobalAccessStrategy
   implements AccessStrategy
 {
-  constructor(private prisma: PrismaService) {
-    super();
+  isApplicable(rule: ResolvedRule): boolean {
+    return rule.targetScope === AccessScope.WORKSPACE;
   }
 
-  isApplicable(rule: Rule): boolean {
-    return (
-      rule.targetScope === AccessScope.WORKSPACE &&
-      rule.sourceScope === AccessScope.USER
-    );
-  }
+  async executeRule(rule: ResolvedRule): Promise<boolean> {
+    const userId = (rule.sourceEntity as { id: number }).id;
+    const workspace = rule.targetEntity as { ownerId: number };
 
-  async executeRule(rule: Rule, ctx: GqlExecutionContext): Promise<boolean> {
-    const { sourceId: getSourceId, targetId: getTargetId } = rule;
-
-    const userId = getSourceId(ctx);
-    const workspaceId = getTargetId(ctx);
-
-    const workspace = await this.prisma.workspace.findUnique({
-      where: { id: workspaceId },
-    });
-
-    if (workspace?.ownerId !== userId) {
+    if (workspace.ownerId !== userId) {
       return false;
     }
 
-    return super.executeRule(rule, ctx);
+    return super.executeRule(rule);
   }
 }

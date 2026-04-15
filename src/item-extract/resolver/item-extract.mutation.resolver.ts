@@ -7,8 +7,10 @@ import { AccessGuard } from '../../access/guard/access.guard';
 import { AccessScope } from '../../access/interfaces';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
+import { Infer } from '../../common/decorator/infer.decorator';
 import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
 import { ItemByIdPipe } from '../../common/pipe/item-by-id.pipe';
+import { WorkspaceByItemPipe } from '../../common/pipe/workspace-by-item.pipe';
 import { DeepArgs } from '../../graphql/decorator/deep-args.decorator';
 import Item from '../../item/entity/item.entity';
 import { UserRole } from '../../user/entity/user-role.enum';
@@ -23,14 +25,20 @@ export class ItemExtractMutationResolver {
   constructor(private itemExtractService: ItemExtractService) {}
 
   @Mutation(() => Item)
-  @Access.allow([
-    { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
-    {
-      role: [UserRole.USER],
-      targetId: fromArg('dto.itemId'),
-      targetScope: AccessScope.ITEM,
-    },
-  ])
+  @Access.allow({
+    or: [
+      { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
+      {
+        role: [UserRole.USER],
+        target: 'itemWorkspace',
+        targetScope: AccessScope.WORKSPACE,
+      },
+    ],
+  })
+  @Infer('itemWorkspace', {
+    from: fromArg('dto.itemId'),
+    pipes: [ItemByIdPipe, WorkspaceByItemPipe],
+  })
   async extractAsItem(
     @Args('dto') dto: ExtractAsItemInDto,
     @DeepArgs('dto.itemId', ItemByIdPipe) sourceItem: Item,

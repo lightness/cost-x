@@ -7,8 +7,10 @@ import { AccessGuard } from '../../access/guard/access.guard';
 import { AccessScope } from '../../access/interfaces';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
+import { Infer } from '../../common/decorator/infer.decorator';
 import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
 import { ItemByIdPipe } from '../../common/pipe/item-by-id.pipe';
+import { WorkspaceByItemPipe } from '../../common/pipe/workspace-by-item.pipe';
 import { DeepArgs } from '../../graphql/decorator/deep-args.decorator';
 import Item from '../../item/entity/item.entity';
 import { UserRole } from '../../user/entity/user-role.enum';
@@ -23,23 +25,33 @@ export class ItemMergeMutationResolver {
   constructor(private itemMergeService: ItemMergeService) {}
 
   @Mutation(() => Item)
-  @Access.allow([
-    { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
-    {
-      and: [
-        {
-          role: [UserRole.USER],
-          targetId: fromArg('dto.hostItemId'),
-          targetScope: AccessScope.ITEM,
-        },
-        {
-          role: [UserRole.USER],
-          targetId: fromArg('dto.mergingItemId'),
-          targetScope: AccessScope.ITEM,
-        },
-      ],
-    },
-  ])
+  @Access.allow({
+    or: [
+      { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
+      {
+        and: [
+          {
+            role: [UserRole.USER],
+            target: 'hostItemWorkspace',
+            targetScope: AccessScope.WORKSPACE,
+          },
+          {
+            role: [UserRole.USER],
+            target: 'mergingItemWorkspace',
+            targetScope: AccessScope.WORKSPACE,
+          },
+        ],
+      },
+    ],
+  })
+  @Infer('hostItemWorkspace', {
+    from: fromArg('dto.hostItemId'),
+    pipes: [ItemByIdPipe, WorkspaceByItemPipe],
+  })
+  @Infer('mergingItemWorkspace', {
+    from: fromArg('dto.mergingItemId'),
+    pipes: [ItemByIdPipe, WorkspaceByItemPipe],
+  })
   async mergeItems(
     @Args('dto') _: MergeItemsInDto,
     @DeepArgs('dto.hostItemId', ItemByIdPipe) hostItem: Item,

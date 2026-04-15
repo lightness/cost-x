@@ -1,25 +1,22 @@
 import { Injectable } from '@nestjs/common';
-import { GqlExecutionContext } from '@nestjs/graphql';
-import { Rule } from '../interfaces';
+import { AccessScope, ResolvedRule } from '../interfaces';
 import { GlobalAccessStrategy } from './global.access-strategy';
 import { AccessStrategy } from './interface';
 
 @Injectable()
 export class FormalAccessStrategy extends GlobalAccessStrategy implements AccessStrategy {
-  isApplicable(rule: Rule): boolean {
-    return rule.targetScope === rule.sourceScope;
+  isApplicable(rule: ResolvedRule): boolean {
+    return rule.targetScope === AccessScope.USER;
   }
 
-  async executeRule(rule: Rule, ctx: GqlExecutionContext): Promise<boolean> {
-    const { sourceId: getSourceId, targetId: getTargetId } = rule;
+  async executeRule(rule: ResolvedRule): Promise<boolean> {
+    const sourceEntity = rule.sourceEntity as { id: number };
+    const targetEntity = rule.targetEntity as { id: number };
 
-    const sourceId = getSourceId(ctx);
-    const targetId = getTargetId(ctx);
-
-    if (sourceId !== targetId) {
+    if (sourceEntity.id !== targetEntity.id) {
       return false;
     }
 
-    return super.executeRule(rule, ctx);
+    return super.executeRule(rule);
   }
 }

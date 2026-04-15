@@ -1,9 +1,8 @@
-import { GqlExecutionContext } from '@nestjs/graphql';
-import { Rule } from '../interfaces';
+import { ResolvedRule } from '../interfaces';
 
 export const ACCESS_STRATEGIES = Symbol('ACCESS_STRATEGIES');
 
 export interface AccessStrategy {
-  isApplicable(rule: Rule): boolean;
-  executeRule(rule: Rule, ctx: GqlExecutionContext): Promise<boolean>;
+  isApplicable(rule: ResolvedRule): boolean;
+  executeRule(rule: ResolvedRule): Promise<boolean>;
 }

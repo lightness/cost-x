@@ -3,6 +3,7 @@ import { PrismaModule } from '../../src/prisma/prisma.module';
 import { ContactFactoryService } from './contact-factory.service';
 import { InviteFactoryService } from './invite-factory.service';
 import { ItemFactoryService } from './item-factory.service';
+import { ItemTagFactoryService } from './item-tag-factory.service';
 import { PaymentFactoryService } from './payment-factory.service';
 import { TagFactoryService } from './tag-factory.service';
 import { UserBlockFactoryService } from './user-block-factory.service';
@@ -13,6 +14,7 @@ const factories = [
   ContactFactoryService,
   InviteFactoryService,
   ItemFactoryService,
+  ItemTagFactoryService,
   PaymentFactoryService,
   TagFactoryService,
   UserBlockFactoryService,

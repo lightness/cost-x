@@ -479,6 +479,43 @@ describe('Contact E2E', () => {
       expectResponseSuccess(response);
       await expectInvitePending(getInviteId(response), { invitee, inviter });
     });
+
+    it('should not be possible to create invite as a different user', async () => {
+      // Assume
+      const inviter = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const otherUser = await userFactory.create('active');
+
+      // Act
+      const query = `
+        mutation CreateInvite($dto: CreateInviteInDto!) {
+          createInvite(dto: $dto) {
+            id
+          }
+        }
+      `;
+
+      const variables = {
+        dto: {
+          inviteeUserId: invitee.id,
+          inviterUserId: inviter.id,
+        },
+      };
+
+      const { accessToken } = await authService.authenticateUser(otherUser);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query, variables })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseError(response, {
+        code: ApplicationErrorCode.NO_ACCESS,
+        status: 'FORBIDDEN',
+      });
+    });
   });
 
   describe('accept invite', () => {
@@ -1726,6 +1763,31 @@ describe('Contact E2E', () => {
       await expectNoActiveUserBlock(sourceUser, targetUser);
       await expectNoActiveUserBlock(targetUser, sourceUser);
     });
+
+    it('should not be possible to delete contact when not authenticated', async () => {
+      // Assume
+      const [contact] = await contactFactory.createActivePair();
+
+      // Act
+      const query = `
+        mutation DeleteContact ($contactId: Int!) {
+          deleteContact(contactId: $contactId) {
+            id
+          }
+        }
+      `;
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query, variables: { contactId: contact.id } })
+        .set('Content-Type', 'application/json');
+
+      // Assert
+      expectResponseError(response, {
+        code: ApplicationErrorCode.NO_ACCESS,
+        status: 'FORBIDDEN',
+      });
+    });
   });
 
   describe('block user', () => {
@@ -2003,6 +2065,44 @@ describe('Contact E2E', () => {
       await expectNoActiveUserBlock(targetUser, sourceUser);
       await expectRemovedUserBlock(sourceUser, targetUser, { removedByUser: sourceUser });
       await expectNoRemovedUserBlock(targetUser, sourceUser);
+    });
+
+    it('should not be possible to block user as a different user', async () => {
+      // Assume
+      const blocker = await userFactory.create('active');
+      const blocked = await userFactory.create('active');
+      const otherUser = await userFactory.create('active');
+
+      // Act
+      const query = `
+        mutation BlockUser ($dto: CreateUserBlockInDto!) {
+          blockUser(dto: $dto) {
+            id
+          }
+        }
+      `;
+
+      const variables = {
+        dto: {
+          blockedId: blocked.id,
+          blockerId: blocker.id,
+        },
+      };
+
+      const { accessToken } = await authService.authenticateUser(otherUser);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query, variables })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseError(response, {
+        code: ApplicationErrorCode.NO_ACCESS,
+        status: 'FORBIDDEN',
+      });
+      await expectNoActiveUserBlock(blocker, blocked);
     });
   });
 

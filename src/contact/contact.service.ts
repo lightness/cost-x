@@ -48,7 +48,7 @@ export class ContactService {
   }
 
   async removeContact(
-    contactId: number,
+    contact: Contact,
     removedByUserId: number,
     tx: Prisma.TransactionClient = this.prisma,
   ): Promise<Contact> {
@@ -61,7 +61,7 @@ export class ContactService {
           },
         },
       },
-      where: { id: contactId },
+      where: { id: contact.id },
     });
   }
 
@@ -87,20 +87,20 @@ export class ContactService {
   }
 
   async removeContactPair(
-    contactId: number,
+    contact: Contact,
     removedByUserId: number,
     tx: Prisma.TransactionClient = this.prisma,
   ): Promise<[Contact, Contact]> {
-    const directContact = await this.removeContact(contactId, removedByUserId, tx);
-    const existingReverseContact = await this.getReverseContact(directContact, tx);
+    const removedDirectContact = await this.removeContact(contact, removedByUserId, tx);
+    const existingReverseContact = await this.getReverseContact(contact, tx);
 
     if (!existingReverseContact) {
-      return [directContact, null];
+      return [removedDirectContact, null];
     }
 
-    const reverseContact = await this.removeContact(existingReverseContact.id, removedByUserId, tx);
+    const reverseContact = await this.removeContact(existingReverseContact, removedByUserId, tx);
 
-    return [directContact, reverseContact];
+    return [removedDirectContact, reverseContact];
   }
 
   async getReverseContact(
