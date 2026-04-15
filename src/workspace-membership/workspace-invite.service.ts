@@ -37,22 +37,21 @@ export class WorkspaceInviteService {
   }
 
   async acceptInvite(
-    inviteId: number,
-    actorId: number,
+    invite: WorkspaceInvite,
+    actor: User,
     tx: Prisma.TransactionClient = this.prisma,
   ): Promise<WorkspaceInvite> {
-    const invite = await this.validationService.findInviteOrThrow(inviteId, tx);
     await this.validationService.validateAcceptInvite(invite, tx);
 
     const updatedInvite = await tx.workspaceInvite.update({
       data: { reactedAt: new Date(), status: WorkspaceInviteStatus.ACCEPTED },
-      where: { id: inviteId },
+      where: { id: invite.id },
     });
 
     const member = await this.createMember(invite.workspaceId, invite.inviteeId, invite.id, tx);
 
     await this.eventEmitter.emitAsync(WorkspaceHistoryEvent.MEMBER_JOINED, {
-      actorId,
+      actorId: actor.id,
       member,
       tx,
       workspaceId: invite.workspaceId,
@@ -62,28 +61,26 @@ export class WorkspaceInviteService {
   }
 
   async rejectInvite(
-    inviteId: number,
+    invite: WorkspaceInvite,
     tx: Prisma.TransactionClient = this.prisma,
   ): Promise<WorkspaceInvite> {
-    const invite = await this.validationService.findInviteOrThrow(inviteId, tx);
     this.validationService.validateRejectInvite(invite);
 
     return tx.workspaceInvite.update({
       data: { reactedAt: new Date(), status: WorkspaceInviteStatus.REJECTED },
-      where: { id: inviteId },
+      where: { id: invite.id },
     });
   }
 
   async cancelInvite(
-    inviteId: number,
+    invite: WorkspaceInvite,
     tx: Prisma.TransactionClient = this.prisma,
   ): Promise<WorkspaceInvite> {
-    const invite = await this.validationService.findInviteOrThrow(inviteId, tx);
     this.validationService.validateCancelInvite(invite);
 
     return tx.workspaceInvite.update({
       data: { reactedAt: new Date(), status: WorkspaceInviteStatus.CANCELLED },
-      where: { id: inviteId },
+      where: { id: invite.id },
     });
   }
 

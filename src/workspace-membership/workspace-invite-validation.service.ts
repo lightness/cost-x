@@ -6,7 +6,6 @@ import {
   ImproperWorkspaceInviteStatusError,
   UserAlreadyWorkspaceMemberError,
   WorkspaceInviteAlreadyExistsError,
-  WorkspaceInviteNotFoundError,
 } from './error';
 
 @Injectable()
@@ -77,16 +76,4 @@ export class WorkspaceInviteValidationService {
     }
   }
 
-  async findInviteOrThrow(
-    inviteId: number,
-    tx: Prisma.TransactionClient = this.prisma,
-  ): Promise<WorkspaceInvite> {
-    const invite = await tx.workspaceInvite.findUnique({ where: { id: inviteId } });
-
-    if (!invite) {
-      throw new WorkspaceInviteNotFoundError();
-    }
-
-    return invite;
-  }
 }

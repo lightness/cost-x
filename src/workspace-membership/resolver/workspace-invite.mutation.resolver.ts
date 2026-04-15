@@ -56,11 +56,12 @@ export class WorkspaceInviteMutationResolver {
   @Infer('invite', { from: fromArg('inviteId'), pipes: [WorkspaceInviteByIdPipe] })
   @Infer('inviteeUser', { from: 'invite', pipes: [InviteeByWorkspaceInvitePipe] })
   async acceptWorkspaceInvite(
-    @Args('inviteId', { type: () => Int }) inviteId: number,
+    @Args('inviteId', { type: () => Int }) _: number,
+    @DeepArgs('inviteId', WorkspaceInviteByIdPipe) invite: WorkspaceInvite,
     @CurrentUser() currentUser: User,
     @Context('tx') tx: Prisma.TransactionClient,
   ) {
-    return this.workspaceInviteService.acceptInvite(inviteId, currentUser.id, tx);
+    return this.workspaceInviteService.acceptInvite(invite, currentUser, tx);
   }
 
   @Mutation(() => WorkspaceInvite)
@@ -73,10 +74,11 @@ export class WorkspaceInviteMutationResolver {
   @Infer('invite', { from: fromArg('inviteId'), pipes: [WorkspaceInviteByIdPipe] })
   @Infer('inviteeUser', { from: 'invite', pipes: [InviteeByWorkspaceInvitePipe] })
   async rejectWorkspaceInvite(
-    @Args('inviteId', { type: () => Int }) inviteId: number,
+    @Args('inviteId', { type: () => Int }) _: number,
+    @DeepArgs('inviteId', WorkspaceInviteByIdPipe) invite: WorkspaceInvite,
     @Context('tx') tx: Prisma.TransactionClient,
   ) {
-    return this.workspaceInviteService.rejectInvite(inviteId, tx);
+    return this.workspaceInviteService.rejectInvite(invite, tx);
   }
 
   @Mutation(() => WorkspaceInvite)
@@ -89,9 +91,10 @@ export class WorkspaceInviteMutationResolver {
   @Infer('invite', { from: fromArg('inviteId'), pipes: [WorkspaceInviteByIdPipe] })
   @Infer('workspace', { from: 'invite', pipes: [WorkspaceByWorkspaceInvitePipe] })
   async cancelWorkspaceInvite(
-    @Args('inviteId', { type: () => Int }) inviteId: number,
+    @Args('inviteId', { type: () => Int }) _: number,
+    @DeepArgs('inviteId', WorkspaceInviteByIdPipe) invite: WorkspaceInvite,
     @Context('tx') tx: Prisma.TransactionClient,
   ) {
-    return this.workspaceInviteService.cancelInvite(inviteId, tx);
+    return this.workspaceInviteService.cancelInvite(invite, tx);
   }
 }
