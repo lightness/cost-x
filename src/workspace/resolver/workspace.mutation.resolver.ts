@@ -23,7 +23,7 @@ export class WorkspaceMutationResolver {
   constructor(private workspaceService: WorkspaceService) {}
 
   @Mutation(() => Workspace)
-  @Access.allow({ role: [UserRole.USER, UserRole.ADMIN], targetScope: AccessScope.GLOBAL })
+  @Access.allow({ role: [UserRole.USER, UserRole.ADMIN], targetScope: AccessScope.USER })
   async createWorkspace(
     @Args('dto') dto: WorkspaceInDto,
     @CurrentUser() currentUser: User,
@@ -40,7 +40,7 @@ export class WorkspaceMutationResolver {
         targetScope: AccessScope.WORKSPACE,
         workspaceRole: [WorkspaceRole.OWNER, WorkspaceRole.MEMBER],
       },
-      { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
+      { role: [UserRole.ADMIN], targetScope: AccessScope.USER },
     ],
   })
   @Infer('workspace', { from: fromArg('id'), pipes: [WorkspaceByIdPipe] })
@@ -61,7 +61,7 @@ export class WorkspaceMutationResolver {
         targetScope: AccessScope.WORKSPACE,
         workspaceRole: [WorkspaceRole.OWNER],
       },
-      { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
+      { role: [UserRole.ADMIN], targetScope: AccessScope.USER },
     ],
   })
   @Infer('workspace', { from: fromArg('id'), pipes: [WorkspaceByIdPipe] })

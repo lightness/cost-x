@@ -30,7 +30,7 @@ export class PaymentMutationResolver {
   @Access.allow({
     or: [
       { target: 'workspace', targetScope: AccessScope.WORKSPACE, workspaceRole: [WorkspaceRole.OWNER, WorkspaceRole.MEMBER] },
-      { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
+      { role: [UserRole.ADMIN], targetScope: AccessScope.USER },
     ],
   })
   @Infer('item', { from: fromArg('itemId'), pipes: [ItemByIdPipe] })
@@ -48,7 +48,7 @@ export class PaymentMutationResolver {
   @Access.allow({
     or: [
       { target: 'workspace', targetScope: AccessScope.WORKSPACE, workspaceRole: [WorkspaceRole.OWNER, WorkspaceRole.MEMBER] },
-      { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
+      { role: [UserRole.ADMIN], targetScope: AccessScope.USER },
     ],
   })
   @Infer('payment', { from: fromArg('paymentId'), pipes: [PaymentByIdPipe] })
@@ -66,7 +66,7 @@ export class PaymentMutationResolver {
   @Access.allow({
     or: [
       { target: 'workspace', targetScope: AccessScope.WORKSPACE, workspaceRole: [WorkspaceRole.OWNER, WorkspaceRole.MEMBER] },
-      { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
+      { role: [UserRole.ADMIN], targetScope: AccessScope.USER },
     ],
   })
   @Infer('payment', { from: fromArg('paymentId'), pipes: [PaymentByIdPipe] })

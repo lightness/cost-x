@@ -31,7 +31,7 @@ export class UserBlockMutationResolver {
   @Access.allow({
     or: [
       { role: UserRole.USER, target: 'blockerUser', targetScope: AccessScope.USER },
-      { role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL },
+      { role: UserRole.ADMIN, targetScope: AccessScope.USER },
     ],
   })
   @Infer('blockerUser', { from: fromArg('dto.blockerId'), pipes: [UserByIdPipe] })
@@ -49,7 +49,7 @@ export class UserBlockMutationResolver {
   @Access.allow({
     or: [
       { role: UserRole.USER, target: 'blockerUser', targetScope: AccessScope.USER },
-      { role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL },
+      { role: UserRole.ADMIN, targetScope: AccessScope.USER },
     ],
   })
   @Infer('blockerUser', { from: fromArg('dto.blockerId'), pipes: [UserByIdPipe] })

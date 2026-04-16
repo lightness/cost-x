@@ -25,7 +25,7 @@ export class UserMutationResolver {
   @Access.allow({
     or: [
       { role: UserRole.USER, target: 'user', targetScope: AccessScope.USER },
-      { role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL },
+      { role: UserRole.ADMIN, targetScope: AccessScope.USER },
     ],
   })
   @Infer('user', { from: fromArg('id'), pipes: [UserByIdPipe] })
@@ -38,7 +38,7 @@ export class UserMutationResolver {
   }
 
   @Mutation(() => Boolean)
-  @Access.allow({ role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL })
+  @Access.allow({ role: UserRole.ADMIN, targetScope: AccessScope.USER })
   async deleteUser(
     @Args('id', { type: () => Int }, UserByIdPipe) user: User,
     @Context('tx') tx: Prisma.TransactionClient,
@@ -49,7 +49,7 @@ export class UserMutationResolver {
   }
 
   @Mutation(() => User)
-  @Access.allow({ role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL })
+  @Access.allow({ role: [UserRole.ADMIN], targetScope: AccessScope.USER })
   async banUser(
     @Args('id', { type: () => Int }, UserByIdPipe) user: User,
     @Context('tx') tx: Prisma.TransactionClient,
@@ -58,7 +58,7 @@ export class UserMutationResolver {
   }
 
   @Mutation(() => User)
-  @Access.allow({ role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL })
+  @Access.allow({ role: [UserRole.ADMIN], targetScope: AccessScope.USER })
   async unbanUser(
     @Args('id', { type: () => Int }, UserByIdPipe) user: User,
     @Context('tx') tx: Prisma.TransactionClient,

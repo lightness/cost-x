@@ -35,7 +35,7 @@ export class InviteMutationResolver {
   @Access.allow({
     or: [
       { role: UserRole.USER, target: 'inviterUser', targetScope: AccessScope.USER },
-      { role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL },
+      { role: UserRole.ADMIN, targetScope: AccessScope.USER },
     ],
   })
   @Infer('inviterUser', { from: fromArg('dto.inviterUserId'), pipes: [UserByIdPipe] })
@@ -50,7 +50,7 @@ export class InviteMutationResolver {
   @Access.allow({
     or: [
       { role: UserRole.USER, target: 'inviterUser', targetScope: AccessScope.USER },
-      { role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL },
+      { role: UserRole.ADMIN, targetScope: AccessScope.USER },
     ],
   })
   @Infer('inviterUser', { from: fromArg('dto.inviterUserId'), pipes: [UserByIdPipe] })
@@ -73,7 +73,7 @@ export class InviteMutationResolver {
         target: 'inviteeUser',
         targetScope: AccessScope.USER,
       },
-      { role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL },
+      { role: UserRole.ADMIN, targetScope: AccessScope.USER },
     ],
   })
   @Infer('invite', { from: fromArg('inviteId'), pipes: [InviteByIdPipe] })
@@ -95,7 +95,7 @@ export class InviteMutationResolver {
         target: 'inviteeUser',
         targetScope: AccessScope.USER,
       },
-      { role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL },
+      { role: UserRole.ADMIN, targetScope: AccessScope.USER },
     ],
   })
   @Infer('invite', { from: fromArg('inviteId'), pipes: [InviteByIdPipe] })
@@ -117,7 +117,7 @@ export class InviteMutationResolver {
         target: 'inviteeUser',
         targetScope: AccessScope.USER,
       },
-      { role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL },
+      { role: UserRole.ADMIN, targetScope: AccessScope.USER },
     ],
   })
   @Infer('invite', { from: fromArg('inviteId'), pipes: [InviteByIdPipe] })

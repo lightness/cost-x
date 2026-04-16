@@ -21,7 +21,8 @@
       "Bash(gh api:*)",
       "Bash(migration_name=add_workspace_membership npm run *)",
       "Bash(migration_name=rename_workspace_member_removed_by_id npm run prisma:migration:create)",
-      "Bash(migration_name=add_workspace_invite_cancelled_status npm run prisma:migration:create)"
+      "Bash(migration_name=add_workspace_invite_cancelled_status npm run prisma:migration:create)",
+      "Bash(xargs sed *)"
     ]
   }
 }

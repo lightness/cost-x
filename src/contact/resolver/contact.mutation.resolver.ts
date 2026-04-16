@@ -34,7 +34,7 @@ export class ContactMutationResolver {
         target: 'sourceUser',
         targetScope: AccessScope.USER,
       },
-      { role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL },
+      { role: UserRole.ADMIN, targetScope: AccessScope.USER },
     ],
   })
   @Infer('contact', { from: fromArg('contactId'), pipes: [ContactByIdPipe] })

@@ -28,7 +28,7 @@ export class ItemMutationResolver {
   @Access.allow({
     or: [
       { target: 'workspace', targetScope: AccessScope.WORKSPACE, workspaceRole: [WorkspaceRole.OWNER, WorkspaceRole.MEMBER] },
-      { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
+      { role: [UserRole.ADMIN], targetScope: AccessScope.USER },
     ],
   })
   @Infer('workspace', { from: fromArg('workspaceId'), pipes: [WorkspaceByIdPipe] })
@@ -45,7 +45,7 @@ export class ItemMutationResolver {
   @Access.allow({
     or: [
       { target: 'workspace', targetScope: AccessScope.WORKSPACE, workspaceRole: [WorkspaceRole.OWNER, WorkspaceRole.MEMBER] },
-      { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
+      { role: [UserRole.ADMIN], targetScope: AccessScope.USER },
     ],
   })
   @Infer('item', { from: fromArg('id'), pipes: [ItemByIdPipe] })
@@ -63,7 +63,7 @@ export class ItemMutationResolver {
   @Access.allow({
     or: [
       { target: 'workspace', targetScope: AccessScope.WORKSPACE, workspaceRole: [WorkspaceRole.OWNER, WorkspaceRole.MEMBER] },
-      { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
+      { role: [UserRole.ADMIN], targetScope: AccessScope.USER },
     ],
   })
   @Infer('item', { from: fromArg('id'), pipes: [ItemByIdPipe] })

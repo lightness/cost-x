@@ -3,11 +3,7 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { AccessService } from './access.service';
 import { AccessGuard } from './guard/access.guard';
 import { RuleEngineService } from './rule-engine.service';
-import {
-  FormalAccessStrategy,
-  GlobalAccessStrategy,
-  UserToWorkspaceAccessStrategy,
-} from './strategy';
+import { UserAccessStrategy, UserToWorkspaceAccessStrategy } from './strategy';
 import { ACCESS_STRATEGIES } from './strategy/interface';
 
 @Module({
@@ -18,11 +14,10 @@ import { ACCESS_STRATEGIES } from './strategy/interface';
     AccessGuard,
     RuleEngineService,
     // access strategies
-    FormalAccessStrategy,
-    GlobalAccessStrategy,
+    UserAccessStrategy,
     UserToWorkspaceAccessStrategy,
     {
-      inject: [FormalAccessStrategy, GlobalAccessStrategy, UserToWorkspaceAccessStrategy],
+      inject: [UserAccessStrategy, UserToWorkspaceAccessStrategy],
       provide: ACCESS_STRATEGIES,
       useFactory: (...strategies) => strategies,
     },

@@ -37,7 +37,7 @@ export class WorkspaceInviteMutationResolver {
           { role: [UserRole.USER], target: 'inviterUser', targetScope: AccessScope.USER },
         ],
       },
-      { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
+      { role: [UserRole.ADMIN], targetScope: AccessScope.USER },
     ],
   })
   @Infer('workspace', { from: fromArg('dto.workspaceId'), pipes: [WorkspaceByIdPipe] })
@@ -56,7 +56,7 @@ export class WorkspaceInviteMutationResolver {
   @Access.allow({
     or: [
       { role: [UserRole.USER], target: 'inviteeUser', targetScope: AccessScope.USER },
-      { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
+      { role: [UserRole.ADMIN], targetScope: AccessScope.USER },
     ],
   })
   @Infer('invite', { from: fromArg('inviteId'), pipes: [WorkspaceInviteByIdPipe] })
@@ -74,7 +74,7 @@ export class WorkspaceInviteMutationResolver {
   @Access.allow({
     or: [
       { role: [UserRole.USER], target: 'inviteeUser', targetScope: AccessScope.USER },
-      { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
+      { role: [UserRole.ADMIN], targetScope: AccessScope.USER },
     ],
   })
   @Infer('invite', { from: fromArg('inviteId'), pipes: [WorkspaceInviteByIdPipe] })
@@ -91,7 +91,7 @@ export class WorkspaceInviteMutationResolver {
   @Access.allow({
     or: [
       { target: 'workspace', targetScope: AccessScope.WORKSPACE, workspaceRole: [WorkspaceRole.OWNER] },
-      { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
+      { role: [UserRole.ADMIN], targetScope: AccessScope.USER },
     ],
   })
   @Infer('invite', { from: fromArg('inviteId'), pipes: [WorkspaceInviteByIdPipe] })

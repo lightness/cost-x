@@ -8,7 +8,6 @@ export enum AccessAction {
 export enum AccessScope {
   USER = 'user',
   WORKSPACE = 'workspace',
-  GLOBAL = 'global',
 }
 
 export enum WorkspaceRole {

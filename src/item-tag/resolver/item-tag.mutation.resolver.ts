@@ -31,7 +31,7 @@ export class ItemTagMutationResolver {
   @Mutation(() => ItemTag)
   @Access.allow({
     or: [
-      { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
+      { role: [UserRole.ADMIN], targetScope: AccessScope.USER },
       {
         and: [
           {
@@ -66,7 +66,7 @@ export class ItemTagMutationResolver {
   @Mutation(() => Boolean)
   @Access.allow({
     or: [
-      { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
+      { role: [UserRole.ADMIN], targetScope: AccessScope.USER },
       {
         and: [
           {
