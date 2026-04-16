@@ -15,6 +15,6 @@ export class WorkspaceMembershipFieldResolver {
 
   @ResolveField(() => [WorkspaceInvite])
   async pendingInvites(@Parent() workspace: Workspace): Promise<WorkspaceInvite[]> {
-    return this.workspaceInviteService.listByWorkspaceId(workspace.id);
+    return this.workspaceInviteService.listPendingByWorkspaceId(workspace.id);
   }
 }

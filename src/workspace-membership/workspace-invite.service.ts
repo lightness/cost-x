@@ -2,9 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Prisma, WorkspaceInviteStatus } from '../../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import User from '../user/entity/user.entity';
 import { WorkspaceHistoryEvent } from '../workspace-history/entity/workspace-history-event.enum';
 import { Workspace } from '../workspace/entity/workspace.entity';
-import User from '../user/entity/user.entity';
 import { WorkspaceInvite } from './entity/workspace-invite.entity';
 import { WorkspaceMember } from './entity/workspace-member.entity';
 import { WorkspaceInviteValidationService } from './workspace-invite-validation.service';
@@ -84,13 +84,13 @@ export class WorkspaceInviteService {
     });
   }
 
-  async listByWorkspaceId(
+  async listPendingByWorkspaceId(
     workspaceId: number,
     tx: Prisma.TransactionClient = this.prisma,
   ): Promise<WorkspaceInvite[]> {
     return tx.workspaceInvite.findMany({
       orderBy: { createdAt: 'desc' },
-      where: { workspaceId, status: WorkspaceInviteStatus.PENDING },
+      where: { status: WorkspaceInviteStatus.PENDING, workspaceId },
     });
   }
 
