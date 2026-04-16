@@ -634,13 +634,25 @@ describe('WorkspaceMembership E2E', () => {
       expect(members[0].userId).toBe(invitee.id);
     });
 
-    it('should return pending invites on Workspace.pendingInvites', async () => {
+    it('should return only pending invites on Workspace.pendingInvites', async () => {
       // Assume
       const owner = await userFactory.create('active');
-      const invitee = await userFactory.create('active');
+      const invitee1 = await userFactory.create('active');
+      const invitee2 = await userFactory.create('active');
+      const invitee3 = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
-      const invite = await workspaceInviteFactory.create('pending', {
-        inviteeId: invitee.id,
+      const pendingInvite = await workspaceInviteFactory.create('pending', {
+        inviteeId: invitee1.id,
+        inviterId: owner.id,
+        workspaceId: workspace.id,
+      });
+      const acceptedInvite = await workspaceInviteFactory.create('accepted', {
+        inviteeId: invitee2.id,
+        inviterId: owner.id,
+        workspaceId: workspace.id,
+      });
+      const rejectedInvite = await workspaceInviteFactory.create('rejected', {
+        inviteeId: invitee3.id,
         inviterId: owner.id,
         workspaceId: workspace.id,
       });
@@ -668,7 +680,11 @@ describe('WorkspaceMembership E2E', () => {
       // Assert
       expectResponseSuccess(response);
       const invites = response.body.data.updateWorkspace.pendingInvites;
-      expect(invites.some((i: WorkspaceInvite) => i.id === invite.id)).toBe(true);
+      const ids = invites.map((i: WorkspaceInvite) => i.id);
+      expect(ids).toContain(pendingInvite.id);
+      expect(ids).not.toContain(acceptedInvite.id);
+      expect(ids).not.toContain(rejectedInvite.id);
+      expect(invites.every((i: WorkspaceInvite) => i.status === WorkspaceInviteStatus.PENDING)).toBe(true);
     });
   });
 

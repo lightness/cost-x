@@ -90,7 +90,7 @@ export class WorkspaceInviteService {
   ): Promise<WorkspaceInvite[]> {
     return tx.workspaceInvite.findMany({
       orderBy: { createdAt: 'desc' },
-      where: { workspaceId },
+      where: { workspaceId, status: WorkspaceInviteStatus.PENDING },
     });
   }
 

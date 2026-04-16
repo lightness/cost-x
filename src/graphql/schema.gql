@@ -412,10 +412,13 @@ enum WorkspaceInviteStatus {
 
 type WorkspaceMember {
   id: Int!
+  invite: WorkspaceInvite!
   inviteId: Int!
   joinedAt: DateIso!
   removedAt: DateIso
+  removedByUser: User
   removedByUserId: Int
+  user: User!
   userId: Int!
   workspaceId: Int!
 }
