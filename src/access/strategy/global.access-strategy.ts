@@ -11,7 +11,7 @@ export class GlobalAccessStrategy implements AccessStrategy {
 
   async executeRule(rule: ResolvedRule): Promise<boolean> {
     const sourceUser = rule.sourceEntity as { role: UserRole };
-    const requiredRoles = Array.isArray(rule.role) ? rule.role : [rule.role];
+    const requiredRoles = rule.role ?? [];
 
     return requiredRoles.includes(sourceUser.role);
   }

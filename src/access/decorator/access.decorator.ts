@@ -1,13 +1,14 @@
 import { SetMetadata } from '@nestjs/common';
 import { UserRole } from '../../user/entity/user-role.enum';
-import { AccessAction, AccessScope } from '../interfaces';
+import { AccessAction, AccessScope, WorkspaceRole } from '../interfaces';
 
 export const ACCESS_METADATA_KEY = 'access';
 
 export interface Rule {
   targetScope: AccessScope;
   target?: string;
-  role: UserRole | UserRole[];
+  role?: UserRole | UserRole[];
+  workspaceRole?: WorkspaceRole | WorkspaceRole[];
 }
 
 export type RuleOperationAnd = { and: (RuleDef | RuleOperationOr)[] };

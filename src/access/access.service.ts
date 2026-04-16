@@ -126,7 +126,12 @@ export class AccessService {
     const normalizedRule: ResolvedRule = {
       sourceEntity: currentUser,
       ...rest,
-      role: Array.isArray(rule.role) ? rule.role : [rule.role],
+      ...(rule.role !== undefined && {
+        role: Array.isArray(rule.role) ? rule.role : [rule.role],
+      }),
+      ...(rule.workspaceRole !== undefined && {
+        workspaceRole: Array.isArray(rule.workspaceRole) ? rule.workspaceRole : [rule.workspaceRole],
+      }),
       ...(target !== undefined && {
         targetEntity: inferredEntities.get(target),
       }),

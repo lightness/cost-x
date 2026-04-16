@@ -3,7 +3,7 @@ import { Args, Int, Query, Resolver } from '@nestjs/graphql';
 import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
-import { AccessScope } from '../../access/interfaces';
+import { AccessScope, WorkspaceRole } from '../../access/interfaces';
 import { AuthGuard } from '../../auth/guard/auth.guard';
 import { Infer } from '../../common/decorator/infer.decorator';
 import { TagByIdPipe } from '../../common/pipe/tag-by-id.pipe';
@@ -22,7 +22,7 @@ export class TagQueryResolver {
   @Query(() => [Tag])
   @Access.allow({
     or: [
-      { role: [UserRole.USER], target: 'workspace', targetScope: AccessScope.WORKSPACE },
+      { target: 'workspace', targetScope: AccessScope.WORKSPACE, workspaceRole: [WorkspaceRole.OWNER, WorkspaceRole.MEMBER] },
       { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
     ],
   })
@@ -37,7 +37,7 @@ export class TagQueryResolver {
   @Query(() => Tag)
   @Access.allow({
     or: [
-      { role: [UserRole.USER], target: 'workspace', targetScope: AccessScope.WORKSPACE },
+      { target: 'workspace', targetScope: AccessScope.WORKSPACE, workspaceRole: [WorkspaceRole.OWNER, WorkspaceRole.MEMBER] },
       { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
     ],
   })

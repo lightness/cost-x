@@ -4,7 +4,7 @@ import { Prisma } from '../../../generated/prisma/client';
 import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
-import { AccessScope } from '../../access/interfaces';
+import { AccessScope, WorkspaceRole } from '../../access/interfaces';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
 import { Infer } from '../../common/decorator/infer.decorator';
@@ -29,7 +29,7 @@ export class PaymentMutationResolver {
   @Mutation(() => Payment)
   @Access.allow({
     or: [
-      { role: [UserRole.USER], target: 'workspace', targetScope: AccessScope.WORKSPACE },
+      { target: 'workspace', targetScope: AccessScope.WORKSPACE, workspaceRole: [WorkspaceRole.OWNER, WorkspaceRole.MEMBER] },
       { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
     ],
   })
@@ -47,7 +47,7 @@ export class PaymentMutationResolver {
   @Mutation(() => Payment)
   @Access.allow({
     or: [
-      { role: [UserRole.USER], target: 'workspace', targetScope: AccessScope.WORKSPACE },
+      { target: 'workspace', targetScope: AccessScope.WORKSPACE, workspaceRole: [WorkspaceRole.OWNER, WorkspaceRole.MEMBER] },
       { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
     ],
   })
@@ -65,7 +65,7 @@ export class PaymentMutationResolver {
   @Mutation(() => Boolean)
   @Access.allow({
     or: [
-      { role: [UserRole.USER], target: 'workspace', targetScope: AccessScope.WORKSPACE },
+      { target: 'workspace', targetScope: AccessScope.WORKSPACE, workspaceRole: [WorkspaceRole.OWNER, WorkspaceRole.MEMBER] },
       { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
     ],
   })

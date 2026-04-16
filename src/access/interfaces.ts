@@ -11,9 +11,15 @@ export enum AccessScope {
   GLOBAL = 'global',
 }
 
+export enum WorkspaceRole {
+  OWNER = 'owner',
+  MEMBER = 'member',
+}
+
 export interface ResolvedRule {
   sourceEntity?: unknown;
   targetScope: AccessScope;
   targetEntity?: unknown;
-  role: UserRole | UserRole[];
+  role?: UserRole[];
+  workspaceRole?: WorkspaceRole[];
 }
