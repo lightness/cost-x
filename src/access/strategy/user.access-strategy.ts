@@ -11,6 +11,13 @@ export class UserAccessStrategy implements AccessStrategy {
 
   async executeRule(rule: ResolvedRule): Promise<boolean> {
     const sourceUser = rule.sourceEntity as { id: number; role: UserRole };
+
+    if (rule.self) {
+      const targetEntity = rule.targetEntity as { id: number };
+
+      return sourceUser.id === targetEntity.id;
+    }
+
     const requiredRoles = rule.role ?? [];
 
     if (!requiredRoles.includes(sourceUser.role)) {

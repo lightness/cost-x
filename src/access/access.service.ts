@@ -7,8 +7,10 @@ import {
   RuleDef,
   RuleOperationAnd,
   RuleOperationOr,
+  SelfRule,
+  TargetRule,
 } from './decorator/access.decorator';
-import { AccessAction, ResolvedRule } from './interfaces';
+import { AccessAction, AccessScope, ResolvedRule } from './interfaces';
 import { RuleEngineService } from './rule-engine.service';
 
 @Injectable()
@@ -46,9 +48,7 @@ export class AccessService {
       const entry = entryByKey.get(key);
 
       if (!entry) {
-        throw new InternalServerErrorException(
-          `@Infer key "${key}" referenced but not defined`,
-        );
+        throw new InternalServerErrorException(`@Infer key "${key}" referenced but not defined`);
       }
 
       const promise = (async () => {
@@ -121,9 +121,26 @@ export class AccessService {
     currentUser: unknown,
     inferredEntities: Map<string, unknown>,
   ): Promise<boolean> {
+    if (this.isSelfRule(rule)) {
+      return this.ruleEngineService.executeRule({
+        self: true,
+        sourceEntity: currentUser,
+        targetEntity: inferredEntities.get(rule.self),
+        targetScope: AccessScope.USER,
+      });
+    }
+
+    return this.ruleEngineService.executeRule(this.normalizeTargetRule(rule, currentUser, inferredEntities));
+  }
+
+  private normalizeTargetRule(
+    rule: TargetRule,
+    currentUser: unknown,
+    inferredEntities: Map<string, unknown>,
+  ): ResolvedRule {
     const { target, ...rest } = rule;
 
-    const normalizedRule: ResolvedRule = {
+    return {
       sourceEntity: currentUser,
       ...rest,
       ...(rule.role !== undefined && {
@@ -136,12 +153,14 @@ export class AccessService {
         targetEntity: inferredEntities.get(target),
       }),
     };
-
-    return this.ruleEngineService.executeRule(normalizedRule);
   }
 
   private isRule(ruleDef: RuleDef): ruleDef is Rule {
-    return 'targetScope' in ruleDef;
+    return 'targetScope' in ruleDef || 'self' in ruleDef;
+  }
+
+  private isSelfRule(rule: Rule): rule is SelfRule {
+    return 'self' in rule;
   }
 
   private isOperatorOr(ruleDef: RuleDef): ruleDef is RuleOperationOr {

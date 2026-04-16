@@ -30,7 +30,7 @@ export class UserBlockMutationResolver {
   @Mutation(() => UserBlock)
   @Access.allow({
     or: [
-      { role: UserRole.USER, target: 'blockerUser', targetScope: AccessScope.USER },
+      { self: 'blockerUser' },
       { role: UserRole.ADMIN, targetScope: AccessScope.USER },
     ],
   })
@@ -48,7 +48,7 @@ export class UserBlockMutationResolver {
   @Mutation(() => UserBlock)
   @Access.allow({
     or: [
-      { role: UserRole.USER, target: 'blockerUser', targetScope: AccessScope.USER },
+      { self: 'blockerUser' },
       { role: UserRole.ADMIN, targetScope: AccessScope.USER },
     ],
   })

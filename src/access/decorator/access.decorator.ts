@@ -4,12 +4,18 @@ import { AccessAction, AccessScope, WorkspaceRole } from '../interfaces';
 
 export const ACCESS_METADATA_KEY = 'access';
 
-export interface Rule {
+export interface SelfRule {
+  self: string;
+}
+
+export interface TargetRule {
   targetScope: AccessScope;
   target?: string;
   role?: UserRole | UserRole[];
   workspaceRole?: WorkspaceRole | WorkspaceRole[];
 }
+
+export type Rule = SelfRule | TargetRule;
 
 export type RuleOperationAnd = { and: (RuleDef | RuleOperationOr)[] };
 export type RuleOperationOr = { or: (RuleDef | RuleOperationAnd)[] };

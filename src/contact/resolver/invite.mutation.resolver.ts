@@ -34,7 +34,7 @@ export class InviteMutationResolver {
   @Mutation(() => Invite)
   @Access.allow({
     or: [
-      { role: UserRole.USER, target: 'inviterUser', targetScope: AccessScope.USER },
+      { self: 'inviterUser' },
       { role: UserRole.ADMIN, targetScope: AccessScope.USER },
     ],
   })
@@ -49,7 +49,7 @@ export class InviteMutationResolver {
   @Mutation(() => Invite)
   @Access.allow({
     or: [
-      { role: UserRole.USER, target: 'inviterUser', targetScope: AccessScope.USER },
+      { self: 'inviterUser' },
       { role: UserRole.ADMIN, targetScope: AccessScope.USER },
     ],
   })
@@ -68,11 +68,7 @@ export class InviteMutationResolver {
   @Mutation(() => Invite)
   @Access.allow({
     or: [
-      {
-        role: UserRole.USER,
-        target: 'inviteeUser',
-        targetScope: AccessScope.USER,
-      },
+      { self: 'inviteeUser' },
       { role: UserRole.ADMIN, targetScope: AccessScope.USER },
     ],
   })
@@ -90,11 +86,7 @@ export class InviteMutationResolver {
   @Mutation(() => Invite)
   @Access.allow({
     or: [
-      {
-        role: UserRole.USER,
-        target: 'inviteeUser',
-        targetScope: AccessScope.USER,
-      },
+      { self: 'inviteeUser' },
       { role: UserRole.ADMIN, targetScope: AccessScope.USER },
     ],
   })
@@ -112,11 +104,7 @@ export class InviteMutationResolver {
   @Mutation(() => Invite)
   @Access.allow({
     or: [
-      {
-        role: UserRole.USER,
-        target: 'inviteeUser',
-        targetScope: AccessScope.USER,
-      },
+      { self: 'inviteeUser' },
       { role: UserRole.ADMIN, targetScope: AccessScope.USER },
     ],
   })

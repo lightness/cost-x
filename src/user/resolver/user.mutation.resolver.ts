@@ -24,7 +24,7 @@ export class UserMutationResolver {
   @Mutation(() => User)
   @Access.allow({
     or: [
-      { role: UserRole.USER, target: 'user', targetScope: AccessScope.USER },
+      { self: 'user' },
       { role: UserRole.ADMIN, targetScope: AccessScope.USER },
     ],
   })

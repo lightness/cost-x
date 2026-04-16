@@ -28,14 +28,7 @@ export class ContactMutationResolver {
 
   @Mutation(() => Contact)
   @Access.allow({
-    or: [
-      {
-        role: UserRole.USER,
-        target: 'sourceUser',
-        targetScope: AccessScope.USER,
-      },
-      { role: UserRole.ADMIN, targetScope: AccessScope.USER },
-    ],
+    or: [{ self: 'sourceUser' }, { role: UserRole.ADMIN, targetScope: AccessScope.USER }],
   })
   @Infer('contact', { from: fromArg('contactId'), pipes: [ContactByIdPipe] })
   @Infer('sourceUser', { from: 'contact', pipes: [SourceUserByContactPipe] })

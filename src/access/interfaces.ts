@@ -21,4 +21,5 @@ export interface ResolvedRule {
   targetEntity?: unknown;
   role?: UserRole[];
   workspaceRole?: WorkspaceRole[];
+  self?: boolean;
 }
