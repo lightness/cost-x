@@ -4,7 +4,7 @@ import { Prisma } from '../../../generated/prisma/client';
 import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
-import { AccessScope } from '../../access/interfaces';
+import { AccessScope, WorkspacePermission } from '../../access/interfaces';
 import { Permission } from '../../access/permission.enum';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
@@ -33,7 +33,19 @@ export class WorkspaceInviteMutationResolver {
   @Access.allow({
     or: [
       {
-        and: [{ owner: 'workspace', scope: AccessScope.WORKSPACE }, { self: 'inviterUser' }],
+        and: [
+          {
+            or: [
+              { owner: 'workspace', scope: AccessScope.WORKSPACE },
+              {
+                permission: WorkspacePermission.CREATE_WORKSPACE_INVITE,
+                scope: AccessScope.WORKSPACE,
+                target: 'workspace',
+              },
+            ],
+          },
+          { self: 'inviterUser' },
+        ],
       },
       { role: [UserRole.ADMIN], scope: AccessScope.USER },
     ],
