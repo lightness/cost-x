@@ -19,6 +19,7 @@ import { Workspace } from '../../workspace/entity/workspace.entity';
 import { CreateWorkspaceInviteInDto } from '../dto/create-workspace-invite.in.dto';
 import { WorkspaceInvite } from '../entity/workspace-invite.entity';
 import { InviteeByWorkspaceInvitePipe } from '../pipe/invitee-by-workspace-invite.pipe';
+import { InviterByWorkspaceInvitePipe } from '../pipe/inviter-by-workspace-invite.pipe';
 import { WorkspaceByWorkspaceInvitePipe } from '../pipe/workspace-by-workspace-invite.pipe';
 import { WorkspaceInviteByIdPipe } from '../pipe/workspace-invite-by-id.pipe';
 import { WorkspaceInviteService } from '../workspace-invite.service';
@@ -111,11 +112,13 @@ export class WorkspaceInviteMutationResolver {
   @Access.allow({
     or: [
       { owner: 'workspace', scope: AccessScope.WORKSPACE },
+      { self: 'inviter' },
       { role: [UserRole.ADMIN], scope: AccessScope.USER },
     ],
   })
   @Infer('invite', { from: fromArg('inviteId'), pipes: [WorkspaceInviteByIdPipe] })
   @Infer('workspace', { from: 'invite', pipes: [WorkspaceByWorkspaceInvitePipe] })
+  @Infer('inviter', { from: 'invite', pipes: [InviterByWorkspaceInvitePipe] })
   async cancelWorkspaceInvite(
     @Args('inviteId', { type: () => Int }) _: number,
     @DeepArgs('inviteId', WorkspaceInviteByIdPipe) invite: WorkspaceInvite,
