@@ -239,6 +239,19 @@ input PaymentsFilter {
   dateTo: Date
 }
 
+enum Permission {
+  ACCEPT_CONTACT_INVITE
+  ACCEPT_WORKSPACE_INVITE
+  BLOCK_USER
+  CREATE_CONTACT_INVITE
+  CREATE_WORKSPACE
+  DELETE_CONTACT
+  REJECT_CONTACT_INVITE
+  REJECT_WORKSPACE_INVITE
+  UNBLOCK_USER
+  UPDATE_PROFILE
+}
+
 type Query {
   currencyRate(date: Date!, fromCurrency: Currency!, toCurrency: Currency!): CurrencyRate!
   item(id: Int!): Item!
@@ -250,6 +263,7 @@ type Query {
   tag(id: Int!): Tag!
   tags(dto: TagsFilter, workspaceId: Int!): [Tag!]!
   user(id: Int!): User!
+  userPermissions(userId: Int!): [UserPermission!]!
   users: [User!]!
 }
 
@@ -313,6 +327,7 @@ type User {
   isEmailVerified: Boolean!
   name: String!
   outgoingInvites(invitesFilter: InvitesFilter): [Invite!]!
+  permissions: [UserPermission!]!
   role: UserRole!
   updatedAt: DateIso!
   workspaces(workspacesFilter: WorkspacesFilter): [Workspace!]!
@@ -327,6 +342,13 @@ type UserBlock {
   id: Int!
   removedAt: DateIso
   removedByUserId: Int
+}
+
+type UserPermission {
+  grantedAt: DateIso!
+  id: Int!
+  permission: Permission!
+  userId: Int!
 }
 
 enum UserRole {

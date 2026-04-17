@@ -35,7 +35,12 @@ export class InviteMutationResolver {
   @Mutation(() => Invite)
   @Access.allow({
     or: [
-      { and: [{ self: 'inviterUser' }, { scope: AccessScope.USER, permission: Permission.CREATE_CONTACT_INVITE }] },
+      {
+        and: [
+          { self: 'inviterUser' },
+          { permission: Permission.CREATE_CONTACT_INVITE, scope: AccessScope.USER },
+        ],
+      },
       { role: UserRole.ADMIN, scope: AccessScope.USER },
     ],
   })
@@ -50,7 +55,12 @@ export class InviteMutationResolver {
   @Mutation(() => Invite)
   @Access.allow({
     or: [
-      { and: [{ self: 'inviterUser' }, { scope: AccessScope.USER, permission: Permission.CREATE_CONTACT_INVITE }] },
+      {
+        and: [
+          { self: 'inviterUser' },
+          { permission: Permission.CREATE_CONTACT_INVITE, scope: AccessScope.USER },
+        ],
+      },
       { role: UserRole.ADMIN, scope: AccessScope.USER },
     ],
   })
@@ -69,7 +79,12 @@ export class InviteMutationResolver {
   @Mutation(() => Invite)
   @Access.allow({
     or: [
-      { and: [{ self: 'inviteeUser' }, { scope: AccessScope.USER, permission: Permission.ACCEPT_CONTACT_INVITE }] },
+      {
+        and: [
+          { self: 'inviteeUser' },
+          { permission: Permission.ACCEPT_CONTACT_INVITE, scope: AccessScope.USER },
+        ],
+      },
       { role: UserRole.ADMIN, scope: AccessScope.USER },
     ],
   })
@@ -87,7 +102,12 @@ export class InviteMutationResolver {
   @Mutation(() => Invite)
   @Access.allow({
     or: [
-      { and: [{ self: 'inviteeUser' }, { scope: AccessScope.USER, permission: Permission.REJECT_CONTACT_INVITE }] },
+      {
+        and: [
+          { self: 'inviteeUser' },
+          { permission: Permission.REJECT_CONTACT_INVITE, scope: AccessScope.USER },
+        ],
+      },
       { role: UserRole.ADMIN, scope: AccessScope.USER },
     ],
   })
@@ -105,7 +125,12 @@ export class InviteMutationResolver {
   @Mutation(() => Invite)
   @Access.allow({
     or: [
-      { and: [{ self: 'inviteeUser' }, { scope: AccessScope.USER, permission: Permission.REJECT_CONTACT_INVITE }] },
+      {
+        and: [
+          { self: 'inviteeUser' },
+          { permission: Permission.REJECT_CONTACT_INVITE, scope: AccessScope.USER },
+        ],
+      },
       { role: UserRole.ADMIN, scope: AccessScope.USER },
     ],
   })
