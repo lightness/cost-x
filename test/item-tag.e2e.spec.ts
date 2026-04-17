@@ -73,7 +73,7 @@ describe('ItemTag E2E', () => {
     it('should assign tag to item when user owns the workspace', async () => {
       // Assume
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
       const tag = await tagFactory.create(workspace.id);
 
@@ -96,7 +96,7 @@ describe('ItemTag E2E', () => {
     it('should not assign tag when request is not authenticated', async () => {
       // Assume
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
       const tag = await tagFactory.create(workspace.id);
 
@@ -114,7 +114,7 @@ describe('ItemTag E2E', () => {
       // Assume
       const owner = await userFactory.create('active');
       const stranger = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
       const tag = await tagFactory.create(workspace.id);
 
@@ -134,7 +134,7 @@ describe('ItemTag E2E', () => {
     it('should assign tag when workspace member with ASSIGN_TAG permission', async () => {
       // Assume
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
       const tag = await tagFactory.create(workspace.id);
       const member = await userFactory.create('active');
@@ -157,7 +157,7 @@ describe('ItemTag E2E', () => {
     it('should not assign tag when workspace member without ASSIGN_TAG permission', async () => {
       // Assume
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
       const tag = await tagFactory.create(workspace.id);
       const member = await userFactory.create('active');
@@ -180,7 +180,7 @@ describe('ItemTag E2E', () => {
       // Assume
       const admin = await userFactory.create('active', { role: UserRole.ADMIN });
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
       const tag = await tagFactory.create(workspace.id);
 
@@ -201,7 +201,7 @@ describe('ItemTag E2E', () => {
     it('should not assign tag when item already has the tag', async () => {
       // Assume
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
       const tag = await tagFactory.create(workspace.id);
       await itemTagFactory.create(item.id, tag.id);
@@ -223,8 +223,8 @@ describe('ItemTag E2E', () => {
     it('should not assign tag when item and tag belong to different workspaces', async () => {
       // Assume
       const owner = await userFactory.create('active');
-      const workspaceA = await workspaceFactory.create(owner.id);
-      const workspaceB = await workspaceFactory.create(owner.id);
+      const workspaceA = await workspaceFactory.create({ ownerId: owner.id });
+      const workspaceB = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspaceA.id);
       const tag = await tagFactory.create(workspaceB.id);
 
@@ -249,7 +249,7 @@ describe('ItemTag E2E', () => {
     it('should unassign tag from item when user owns the workspace', async () => {
       // Assume
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
       const tag = await tagFactory.create(workspace.id);
       await itemTagFactory.create(item.id, tag.id);
@@ -272,7 +272,7 @@ describe('ItemTag E2E', () => {
     it('should not unassign tag when request is not authenticated', async () => {
       // Assume
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
       const tag = await tagFactory.create(workspace.id);
 
@@ -290,7 +290,7 @@ describe('ItemTag E2E', () => {
       // Assume
       const owner = await userFactory.create('active');
       const stranger = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
       const tag = await tagFactory.create(workspace.id);
       await itemTagFactory.create(item.id, tag.id);
@@ -311,7 +311,7 @@ describe('ItemTag E2E', () => {
     it('should unassign tag when workspace member with UNASSIGN_TAG permission', async () => {
       // Assume
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
       const tag = await tagFactory.create(workspace.id);
       await itemTagFactory.create(item.id, tag.id);
@@ -335,7 +335,7 @@ describe('ItemTag E2E', () => {
     it('should not unassign tag when workspace member without UNASSIGN_TAG permission', async () => {
       // Assume
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
       const tag = await tagFactory.create(workspace.id);
       await itemTagFactory.create(item.id, tag.id);
@@ -359,7 +359,7 @@ describe('ItemTag E2E', () => {
       // Assume
       const admin = await userFactory.create('active', { role: UserRole.ADMIN });
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
       const tag = await tagFactory.create(workspace.id);
       await itemTagFactory.create(item.id, tag.id);
@@ -381,7 +381,7 @@ describe('ItemTag E2E', () => {
     it('should not unassign tag when item does not have the tag', async () => {
       // Assume
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
       const tag = await tagFactory.create(workspace.id);
 

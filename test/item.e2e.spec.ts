@@ -89,7 +89,7 @@ describe('Item E2E', () => {
   describe('item', () => {
     it('should return item when workspace owner', async () => {
       const user = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(user.id);
+      const workspace = await workspaceFactory.create({ ownerId: user.id });
       const item = await itemFactory.create(workspace.id);
 
       const { accessToken } = await authService.authenticateUser(user);
@@ -106,7 +106,7 @@ describe('Item E2E', () => {
 
     it('should not return item when not workspace owner', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
       const other = await userFactory.create('active');
 
@@ -123,7 +123,7 @@ describe('Item E2E', () => {
 
     it('should not return item when not authenticated', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
 
       const response = await request(app.getHttpServer())
@@ -136,7 +136,7 @@ describe('Item E2E', () => {
 
     it('should return item when admin', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
       const admin = await userFactory.create('active', { role: UserRole.ADMIN });
 
@@ -156,7 +156,7 @@ describe('Item E2E', () => {
   describe('items', () => {
     it('should return items when workspace owner', async () => {
       const user = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(user.id);
+      const workspace = await workspaceFactory.create({ ownerId: user.id });
       await itemFactory.create(workspace.id);
 
       const { accessToken } = await authService.authenticateUser(user);
@@ -173,7 +173,7 @@ describe('Item E2E', () => {
 
     it('should not return items when not workspace owner', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const other = await userFactory.create('active');
 
       const { accessToken } = await authService.authenticateUser(other);
@@ -189,7 +189,7 @@ describe('Item E2E', () => {
 
     it('should not return items when not authenticated', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
 
       const response = await request(app.getHttpServer())
         .post('/graphql')
@@ -201,7 +201,7 @@ describe('Item E2E', () => {
 
     it('should return items when admin', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       await itemFactory.create(workspace.id);
       const admin = await userFactory.create('active', { role: UserRole.ADMIN });
 
@@ -221,7 +221,7 @@ describe('Item E2E', () => {
   describe('createItem', () => {
     it('should create item when workspace owner', async () => {
       const user = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(user.id);
+      const workspace = await workspaceFactory.create({ ownerId: user.id });
 
       const { accessToken } = await authService.authenticateUser(user);
 
@@ -240,7 +240,7 @@ describe('Item E2E', () => {
 
     it('should not create item when non-member', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const stranger = await userFactory.create('active');
 
       const { accessToken } = await authService.authenticateUser(stranger);
@@ -259,7 +259,7 @@ describe('Item E2E', () => {
 
     it('should create item when workspace member with CREATE_ITEM permission', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const member = await userFactory.create('active');
       await workspaceMemberFactory.create(workspace.id, member.id);
 
@@ -280,7 +280,7 @@ describe('Item E2E', () => {
 
     it('should not create item when workspace member without CREATE_ITEM permission', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const member = await userFactory.create('active');
       await workspaceMemberFactory.create(workspace.id, member.id, { permissions: [] });
 
@@ -300,7 +300,7 @@ describe('Item E2E', () => {
 
     it('should not create item when not authenticated', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
 
       const response = await request(app.getHttpServer())
         .post('/graphql')
@@ -315,7 +315,7 @@ describe('Item E2E', () => {
 
     it('should create item when admin', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const admin = await userFactory.create('active', { role: UserRole.ADMIN });
 
       const { accessToken } = await authService.authenticateUser(admin);
@@ -337,7 +337,7 @@ describe('Item E2E', () => {
   describe('updateItem', () => {
     it('should update item when workspace owner', async () => {
       const user = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(user.id);
+      const workspace = await workspaceFactory.create({ ownerId: user.id });
       const item = await itemFactory.create(workspace.id);
 
       const { accessToken } = await authService.authenticateUser(user);
@@ -357,7 +357,7 @@ describe('Item E2E', () => {
 
     it('should not update item when non-member', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
       const stranger = await userFactory.create('active');
 
@@ -377,7 +377,7 @@ describe('Item E2E', () => {
 
     it('should update item when workspace member with UPDATE_ITEM permission', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
       const member = await userFactory.create('active');
       await workspaceMemberFactory.create(workspace.id, member.id);
@@ -399,7 +399,7 @@ describe('Item E2E', () => {
 
     it('should not update item when workspace member without UPDATE_ITEM permission', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
       const member = await userFactory.create('active');
       await workspaceMemberFactory.create(workspace.id, member.id, { permissions: [] });
@@ -420,7 +420,7 @@ describe('Item E2E', () => {
 
     it('should not update item when not authenticated', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
 
       const response = await request(app.getHttpServer())
@@ -436,7 +436,7 @@ describe('Item E2E', () => {
 
     it('should update item when admin', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
       const admin = await userFactory.create('active', { role: UserRole.ADMIN });
 
@@ -459,7 +459,7 @@ describe('Item E2E', () => {
   describe('deleteItem', () => {
     it('should delete item when workspace owner', async () => {
       const user = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(user.id);
+      const workspace = await workspaceFactory.create({ ownerId: user.id });
       const item = await itemFactory.create(workspace.id);
 
       const { accessToken } = await authService.authenticateUser(user);
@@ -476,7 +476,7 @@ describe('Item E2E', () => {
 
     it('should not delete item when non-member', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
       const stranger = await userFactory.create('active');
 
@@ -493,7 +493,7 @@ describe('Item E2E', () => {
 
     it('should delete item when workspace member with DELETE_ITEM permission', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
       const member = await userFactory.create('active');
       await workspaceMemberFactory.create(workspace.id, member.id);
@@ -512,7 +512,7 @@ describe('Item E2E', () => {
 
     it('should not delete item when workspace member without DELETE_ITEM permission', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
       const member = await userFactory.create('active');
       await workspaceMemberFactory.create(workspace.id, member.id, { permissions: [] });
@@ -530,7 +530,7 @@ describe('Item E2E', () => {
 
     it('should not delete item when not authenticated', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
 
       const response = await request(app.getHttpServer())
@@ -543,7 +543,7 @@ describe('Item E2E', () => {
 
     it('should delete item when admin', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
       const admin = await userFactory.create('active', { role: UserRole.ADMIN });
 

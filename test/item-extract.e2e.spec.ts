@@ -69,7 +69,7 @@ describe('ItemExtract E2E', () => {
   it('should extract payments as new item when user owns the workspace', async () => {
     // Assume
     const owner = await userFactory.create('active');
-    const workspace = await workspaceFactory.create(owner.id);
+    const workspace = await workspaceFactory.create({ ownerId: owner.id });
     const sourceItem = await itemFactory.create(workspace.id);
     const payment1 = await paymentFactory.create(sourceItem.id);
     await paymentFactory.create(sourceItem.id);
@@ -98,7 +98,7 @@ describe('ItemExtract E2E', () => {
   it('should not extract when request is not authenticated', async () => {
     // Assume
     const owner = await userFactory.create('active');
-    const workspace = await workspaceFactory.create(owner.id);
+    const workspace = await workspaceFactory.create({ ownerId: owner.id });
     const sourceItem = await itemFactory.create(workspace.id);
     const payment = await paymentFactory.create(sourceItem.id);
 
@@ -119,7 +119,7 @@ describe('ItemExtract E2E', () => {
     // Assume
     const owner = await userFactory.create('active');
     const stranger = await userFactory.create('active');
-    const workspace = await workspaceFactory.create(owner.id);
+    const workspace = await workspaceFactory.create({ ownerId: owner.id });
     const sourceItem = await itemFactory.create(workspace.id);
     const payment = await paymentFactory.create(sourceItem.id);
 
@@ -142,7 +142,7 @@ describe('ItemExtract E2E', () => {
   it('should extract when workspace member with EXTRACT_ITEM permission', async () => {
     // Assume
     const owner = await userFactory.create('active');
-    const workspace = await workspaceFactory.create(owner.id);
+    const workspace = await workspaceFactory.create({ ownerId: owner.id });
     const sourceItem = await itemFactory.create(workspace.id);
     const payment1 = await paymentFactory.create(sourceItem.id);
     await paymentFactory.create(sourceItem.id);
@@ -169,7 +169,7 @@ describe('ItemExtract E2E', () => {
   it('should not extract when workspace member without EXTRACT_ITEM permission', async () => {
     // Assume
     const owner = await userFactory.create('active');
-    const workspace = await workspaceFactory.create(owner.id);
+    const workspace = await workspaceFactory.create({ ownerId: owner.id });
     const sourceItem = await itemFactory.create(workspace.id);
     const payment = await paymentFactory.create(sourceItem.id);
     const member = await userFactory.create('active');
@@ -195,7 +195,7 @@ describe('ItemExtract E2E', () => {
     // Assume
     const admin = await userFactory.create('active', { role: UserRole.ADMIN });
     const owner = await userFactory.create('active');
-    const workspace = await workspaceFactory.create(owner.id);
+    const workspace = await workspaceFactory.create({ ownerId: owner.id });
     const sourceItem = await itemFactory.create(workspace.id);
     const payment1 = await paymentFactory.create(sourceItem.id);
     await paymentFactory.create(sourceItem.id);
@@ -220,7 +220,7 @@ describe('ItemExtract E2E', () => {
   it('should not extract when paymentIds is empty', async () => {
     // Assume
     const owner = await userFactory.create('active');
-    const workspace = await workspaceFactory.create(owner.id);
+    const workspace = await workspaceFactory.create({ ownerId: owner.id });
     const sourceItem = await itemFactory.create(workspace.id);
 
     // Act
@@ -242,7 +242,7 @@ describe('ItemExtract E2E', () => {
   it('should not extract when a payment does not belong to the item', async () => {
     // Assume
     const owner = await userFactory.create('active');
-    const workspace = await workspaceFactory.create(owner.id);
+    const workspace = await workspaceFactory.create({ ownerId: owner.id });
     const sourceItem = await itemFactory.create(workspace.id);
     const otherItem = await itemFactory.create(workspace.id);
     await paymentFactory.create(sourceItem.id);
@@ -267,7 +267,7 @@ describe('ItemExtract E2E', () => {
   it('should not extract when all payments of the item are selected', async () => {
     // Assume
     const owner = await userFactory.create('active');
-    const workspace = await workspaceFactory.create(owner.id);
+    const workspace = await workspaceFactory.create({ ownerId: owner.id });
     const sourceItem = await itemFactory.create(workspace.id);
     const payment1 = await paymentFactory.create(sourceItem.id);
     const payment2 = await paymentFactory.create(sourceItem.id);
@@ -291,7 +291,7 @@ describe('ItemExtract E2E', () => {
   it('should copy source item tags to the extracted item', async () => {
     // Assume
     const owner = await userFactory.create('active');
-    const workspace = await workspaceFactory.create(owner.id);
+    const workspace = await workspaceFactory.create({ ownerId: owner.id });
     const sourceItem = await itemFactory.create(workspace.id);
     const tag1 = await tagFactory.create(workspace.id);
     const tag2 = await tagFactory.create(workspace.id);

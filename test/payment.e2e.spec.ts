@@ -97,7 +97,7 @@ describe('Payment E2E', () => {
   describe('payment', () => {
     it('should return payment when workspace owner', async () => {
       const user = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(user.id);
+      const workspace = await workspaceFactory.create({ ownerId: user.id });
       const item = await itemFactory.create(workspace.id);
       const payment = await paymentFactory.create(item.id);
 
@@ -115,7 +115,7 @@ describe('Payment E2E', () => {
 
     it('should not return payment when not workspace owner', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
       const payment = await paymentFactory.create(item.id);
       const other = await userFactory.create('active');
@@ -133,7 +133,7 @@ describe('Payment E2E', () => {
 
     it('should not return payment when not authenticated', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
       const payment = await paymentFactory.create(item.id);
 
@@ -147,7 +147,7 @@ describe('Payment E2E', () => {
 
     it('should return payment when admin', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
       const payment = await paymentFactory.create(item.id);
       const admin = await userFactory.create('active', { role: UserRole.ADMIN });
@@ -168,7 +168,7 @@ describe('Payment E2E', () => {
   describe('payments', () => {
     it('should return payments when workspace owner', async () => {
       const user = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(user.id);
+      const workspace = await workspaceFactory.create({ ownerId: user.id });
       const item = await itemFactory.create(workspace.id);
 
       const { accessToken } = await authService.authenticateUser(user);
@@ -184,7 +184,7 @@ describe('Payment E2E', () => {
 
     it('should not return payments when not workspace owner', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
       const other = await userFactory.create('active');
 
@@ -201,7 +201,7 @@ describe('Payment E2E', () => {
 
     it('should not return payments when not authenticated', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
 
       const response = await request(app.getHttpServer())
@@ -214,7 +214,7 @@ describe('Payment E2E', () => {
 
     it('should return payments when admin', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
       const admin = await userFactory.create('active', { role: UserRole.ADMIN });
 
@@ -233,7 +233,7 @@ describe('Payment E2E', () => {
   describe('createPayment', () => {
     it('should create payment when workspace owner', async () => {
       const user = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(user.id);
+      const workspace = await workspaceFactory.create({ ownerId: user.id });
       const item = await itemFactory.create(workspace.id);
 
       const { accessToken } = await authService.authenticateUser(user);
@@ -250,7 +250,7 @@ describe('Payment E2E', () => {
 
     it('should not create payment when non-member', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
       const stranger = await userFactory.create('active');
 
@@ -267,7 +267,7 @@ describe('Payment E2E', () => {
 
     it('should create payment when workspace member with CREATE_PAYMENT permission', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
       const member = await userFactory.create('active');
       await workspaceMemberFactory.create(workspace.id, member.id);
@@ -286,7 +286,7 @@ describe('Payment E2E', () => {
 
     it('should not create payment when workspace member without CREATE_PAYMENT permission', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
       const member = await userFactory.create('active');
       await workspaceMemberFactory.create(workspace.id, member.id, { permissions: [] });
@@ -304,7 +304,7 @@ describe('Payment E2E', () => {
 
     it('should not create payment when not authenticated', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
 
       const response = await request(app.getHttpServer())
@@ -317,7 +317,7 @@ describe('Payment E2E', () => {
 
     it('should create payment when admin', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
       const admin = await userFactory.create('active', { role: UserRole.ADMIN });
 
@@ -337,7 +337,7 @@ describe('Payment E2E', () => {
   describe('updatePayment', () => {
     it('should update payment when workspace owner', async () => {
       const user = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(user.id);
+      const workspace = await workspaceFactory.create({ ownerId: user.id });
       const item = await itemFactory.create(workspace.id);
       const payment = await paymentFactory.create(item.id);
 
@@ -355,7 +355,7 @@ describe('Payment E2E', () => {
 
     it('should not update payment when non-member', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
       const payment = await paymentFactory.create(item.id);
       const stranger = await userFactory.create('active');
@@ -373,7 +373,7 @@ describe('Payment E2E', () => {
 
     it('should update payment when workspace member with UPDATE_PAYMENT permission', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
       const payment = await paymentFactory.create(item.id);
       const member = await userFactory.create('active');
@@ -393,7 +393,7 @@ describe('Payment E2E', () => {
 
     it('should not update payment when workspace member without UPDATE_PAYMENT permission', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
       const payment = await paymentFactory.create(item.id);
       const member = await userFactory.create('active');
@@ -412,7 +412,7 @@ describe('Payment E2E', () => {
 
     it('should not update payment when not authenticated', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
       const payment = await paymentFactory.create(item.id);
 
@@ -426,7 +426,7 @@ describe('Payment E2E', () => {
 
     it('should update payment when admin', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
       const payment = await paymentFactory.create(item.id);
       const admin = await userFactory.create('active', { role: UserRole.ADMIN });
@@ -447,7 +447,7 @@ describe('Payment E2E', () => {
   describe('deletePayment', () => {
     it('should delete payment when workspace owner', async () => {
       const user = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(user.id);
+      const workspace = await workspaceFactory.create({ ownerId: user.id });
       const item = await itemFactory.create(workspace.id);
       const payment = await paymentFactory.create(item.id);
 
@@ -465,7 +465,7 @@ describe('Payment E2E', () => {
 
     it('should not delete payment when non-member', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
       const payment = await paymentFactory.create(item.id);
       const stranger = await userFactory.create('active');
@@ -483,7 +483,7 @@ describe('Payment E2E', () => {
 
     it('should delete payment when workspace member with DELETE_PAYMENT permission', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
       const payment = await paymentFactory.create(item.id);
       const member = await userFactory.create('active');
@@ -503,7 +503,7 @@ describe('Payment E2E', () => {
 
     it('should not delete payment when workspace member without DELETE_PAYMENT permission', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
       const payment = await paymentFactory.create(item.id);
       const member = await userFactory.create('active');
@@ -522,7 +522,7 @@ describe('Payment E2E', () => {
 
     it('should not delete payment when not authenticated', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
       const payment = await paymentFactory.create(item.id);
 
@@ -536,7 +536,7 @@ describe('Payment E2E', () => {
 
     it('should delete payment when admin', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
       const payment = await paymentFactory.create(item.id);
       const admin = await userFactory.create('active', { role: UserRole.ADMIN });

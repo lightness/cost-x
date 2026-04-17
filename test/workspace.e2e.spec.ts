@@ -122,7 +122,7 @@ describe('Workspace E2E', () => {
     it('should update workspace when user is the owner', async () => {
       // Assume
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id, { title: 'Old Title', defaultCurrency: Currency.USD });
+      const workspace = await workspaceFactory.create({ ownerId: owner.id, title: 'Old Title', defaultCurrency: Currency.USD });
 
       // Act
       const { accessToken } = await authService.authenticateUser(owner);
@@ -145,7 +145,7 @@ describe('Workspace E2E', () => {
     it('should not update when not authenticated', async () => {
       // Assume
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
 
       // Act
       const response = await request(app.getHttpServer())
@@ -164,7 +164,7 @@ describe('Workspace E2E', () => {
       // Assume
       const owner = await userFactory.create('active');
       const stranger = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
 
       // Act
       const { accessToken } = await authService.authenticateUser(stranger);
@@ -186,7 +186,7 @@ describe('Workspace E2E', () => {
       // Assume
       const owner = await userFactory.create('active');
       const member = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       await workspaceMemberFactory.create(workspace.id, member.id);
 
       // Act
@@ -209,7 +209,7 @@ describe('Workspace E2E', () => {
       // Assume
       const admin = await userFactory.create('active', { role: UserRole.ADMIN });
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id, { title: 'Old Title' });
+      const workspace = await workspaceFactory.create({ ownerId: owner.id, title: 'Old Title' });
 
       // Act
       const { accessToken } = await authService.authenticateUser(admin);
@@ -233,7 +233,7 @@ describe('Workspace E2E', () => {
     it('should delete workspace when user is the owner', async () => {
       // Assume
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
 
       // Act
       const { accessToken } = await authService.authenticateUser(owner);
@@ -259,7 +259,7 @@ describe('Workspace E2E', () => {
     it('should not delete when not authenticated', async () => {
       // Assume
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
 
       // Act
       const response = await request(app.getHttpServer())
@@ -278,7 +278,7 @@ describe('Workspace E2E', () => {
       // Assume
       const owner = await userFactory.create('active');
       const stranger = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
 
       // Act
       const { accessToken } = await authService.authenticateUser(stranger);
@@ -300,7 +300,7 @@ describe('Workspace E2E', () => {
       // Assume
       const admin = await userFactory.create('active', { role: UserRole.ADMIN });
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
 
       // Act
       const { accessToken } = await authService.authenticateUser(admin);

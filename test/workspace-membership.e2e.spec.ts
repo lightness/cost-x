@@ -79,7 +79,7 @@ describe('WorkspaceMembership E2E', () => {
       // Assume
       const owner = await userFactory.create('active');
       const invitee = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
 
       // Act
       const { accessToken } = await authService.authenticateUser(owner);
@@ -110,7 +110,7 @@ describe('WorkspaceMembership E2E', () => {
       const owner = await userFactory.create('active');
       const nonMember = await userFactory.create('active');
       const invitee = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
 
       // Act
       const { accessToken } = await authService.authenticateUser(nonMember);
@@ -134,7 +134,7 @@ describe('WorkspaceMembership E2E', () => {
       const owner = await userFactory.create('active');
       const member = await userFactory.create('active');
       const invitee = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       await workspaceMemberFactory.create(workspace.id, member.id);
 
       // Act
@@ -160,7 +160,7 @@ describe('WorkspaceMembership E2E', () => {
       const owner = await userFactory.create('active');
       const member = await userFactory.create('active');
       const invitee = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       await workspaceMemberFactory.create(workspace.id, member.id, {
         permissions: Object.values(WorkspacePermission).filter((p) => p !== WorkspacePermission.CREATE_WORKSPACE_INVITE),
       });
@@ -187,7 +187,7 @@ describe('WorkspaceMembership E2E', () => {
       const owner = await userFactory.create('active');
       const otherUser = await userFactory.create('active');
       const invitee = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
 
       // Act — owner authenticates but sets inviterId to otherUser
       const { accessToken } = await authService.authenticateUser(owner);
@@ -211,7 +211,7 @@ describe('WorkspaceMembership E2E', () => {
       const owner = await userFactory.create('active');
       const admin = await userFactory.create('active', { role: UserRole.ADMIN });
       const invitee = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
 
       // Act
       const { accessToken } = await authService.authenticateUser(admin);
@@ -237,7 +237,7 @@ describe('WorkspaceMembership E2E', () => {
       // Assume
       const owner = await userFactory.create('active');
       const invitee = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       await workspaceInviteFactory.create('pending', {
         inviteeId: invitee.id,
         inviterId: owner.id,
@@ -268,7 +268,7 @@ describe('WorkspaceMembership E2E', () => {
       // Assume
       const owner = await userFactory.create('active');
       const invitee = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       await workspaceInviteFactory.create('rejected', {
         inviteeId: invitee.id,
         inviterId: owner.id,
@@ -297,7 +297,7 @@ describe('WorkspaceMembership E2E', () => {
       // Assume
       const owner = await userFactory.create('active');
       const invitee = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const invite = await workspaceInviteFactory.create('accepted', {
         inviteeId: invitee.id,
         inviterId: owner.id,
@@ -351,7 +351,7 @@ describe('WorkspaceMembership E2E', () => {
       // Assume
       const owner = await userFactory.create('active');
       const invitee = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const invite = await workspaceInviteFactory.create('pending', {
         inviteeId: invitee.id,
         inviterId: owner.id,
@@ -376,7 +376,7 @@ describe('WorkspaceMembership E2E', () => {
       // Assume
       const owner = await userFactory.create('active');
       const invitee = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const invite = await workspaceInviteFactory.create('pending', {
         inviteeId: invitee.id,
         inviterId: owner.id,
@@ -401,7 +401,7 @@ describe('WorkspaceMembership E2E', () => {
       // Assume
       const owner = await userFactory.create('active');
       const invitee = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const invite = await workspaceInviteFactory.create('pending', {
         inviteeId: invitee.id,
         inviterId: owner.id,
@@ -425,7 +425,7 @@ describe('WorkspaceMembership E2E', () => {
       // Assume
       const owner = await userFactory.create('active');
       const invitee = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const invite = await workspaceInviteFactory.create('rejected', {
         inviteeId: invitee.id,
         inviterId: owner.id,
@@ -466,7 +466,7 @@ describe('WorkspaceMembership E2E', () => {
       // Assume
       const owner = await userFactory.create('active');
       const invitee = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const invite = await workspaceInviteFactory.create('pending', {
         inviteeId: invitee.id,
         inviterId: owner.id,
@@ -490,7 +490,7 @@ describe('WorkspaceMembership E2E', () => {
       // Assume
       const owner = await userFactory.create('active');
       const invitee = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const invite = await workspaceInviteFactory.create('pending', {
         inviteeId: invitee.id,
         inviterId: owner.id,
@@ -515,7 +515,7 @@ describe('WorkspaceMembership E2E', () => {
       // Assume
       const owner = await userFactory.create('active');
       const invitee = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const invite = await workspaceInviteFactory.create('pending', {
         inviteeId: invitee.id,
         inviterId: owner.id,
@@ -539,7 +539,7 @@ describe('WorkspaceMembership E2E', () => {
       // Assume
       const owner = await userFactory.create('active');
       const invitee = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const invite = await workspaceInviteFactory.create('accepted', {
         inviteeId: invitee.id,
         inviterId: owner.id,
@@ -580,7 +580,7 @@ describe('WorkspaceMembership E2E', () => {
       // Assume
       const owner = await userFactory.create('active');
       const invitee = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const invite = await workspaceInviteFactory.create('pending', {
         inviteeId: invitee.id,
         inviterId: owner.id,
@@ -605,7 +605,7 @@ describe('WorkspaceMembership E2E', () => {
       const owner = await userFactory.create('active');
       const inviter = await userFactory.create('active');
       const invitee = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       await workspaceMemberFactory.create(workspace.id, inviter.id);
       const invite = await workspaceInviteFactory.create('pending', {
         inviteeId: invitee.id,
@@ -630,7 +630,7 @@ describe('WorkspaceMembership E2E', () => {
       // Assume
       const owner = await userFactory.create('active');
       const invitee = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const invite = await workspaceInviteFactory.create('pending', {
         inviteeId: invitee.id,
         inviterId: owner.id,
@@ -656,7 +656,7 @@ describe('WorkspaceMembership E2E', () => {
       const owner = await userFactory.create('active');
       const invitee = await userFactory.create('active');
       const stranger = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const invite = await workspaceInviteFactory.create('pending', {
         inviteeId: invitee.id,
         inviterId: owner.id,
@@ -680,7 +680,7 @@ describe('WorkspaceMembership E2E', () => {
       // Assume
       const owner = await userFactory.create('active');
       const invitee = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const invite = await workspaceInviteFactory.create('pending', {
         inviteeId: invitee.id,
         inviterId: owner.id,
@@ -704,7 +704,7 @@ describe('WorkspaceMembership E2E', () => {
       // Assume
       const owner = await userFactory.create('active');
       const invitee = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const invite = await workspaceInviteFactory.create('accepted', {
         inviteeId: invitee.id,
         inviterId: owner.id,
@@ -730,7 +730,7 @@ describe('WorkspaceMembership E2E', () => {
       // Assume
       const owner = await userFactory.create('active');
       const invitee = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const invite = await workspaceInviteFactory.create('pending', {
         inviteeId: invitee.id,
         inviterId: owner.id,
@@ -775,7 +775,7 @@ describe('WorkspaceMembership E2E', () => {
       // Assume
       const owner = await userFactory.create('active');
       const invitee = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const pendingInvite = await workspaceInviteFactory.create('pending', {
         inviteeId: invitee.id,
         inviterId: owner.id,
@@ -823,7 +823,7 @@ describe('WorkspaceMembership E2E', () => {
       const invitee1 = await userFactory.create('active');
       const invitee2 = await userFactory.create('active');
       const invitee3 = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const pendingInvite = await workspaceInviteFactory.create('pending', {
         inviteeId: invitee1.id,
         inviterId: owner.id,

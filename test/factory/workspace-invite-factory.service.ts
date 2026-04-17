@@ -19,7 +19,7 @@ export class WorkspaceInviteFactoryService {
     overrides: Partial<{ workspaceId: number; inviterId: number; inviteeId: number }> = {},
   ): Promise<WorkspaceInvite> {
     const inviterId = overrides.inviterId ?? (await this.userFactory.create('active')).id;
-    const workspaceId = overrides.workspaceId ?? (await this.workspaceFactory.create(inviterId)).id;
+    const workspaceId = overrides.workspaceId ?? (await this.workspaceFactory.create({ ownerId: inviterId })).id;
     const inviteeId = overrides.inviteeId ?? (await this.userFactory.create('active')).id;
 
     return this.prisma.workspaceInvite.create({

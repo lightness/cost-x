@@ -7,11 +7,11 @@ import { Workspace } from '../../src/workspace/entity/workspace.entity';
 export class WorkspaceFactoryService {
   constructor(private prisma: PrismaService) {}
 
-  async create(ownerId: number, overrides: Partial<{ title: string; defaultCurrency: Currency }> = {}): Promise<Workspace> {
+  async create(overrides: { ownerId: number; title?: string; defaultCurrency?: Currency }): Promise<Workspace> {
     return this.prisma.workspace.create({
       data: {
         defaultCurrency: overrides.defaultCurrency ?? Currency.USD,
-        ownerId,
+        ownerId: overrides.ownerId,
         title: overrides.title ?? `Workspace ${Date.now()}`,
       },
     });

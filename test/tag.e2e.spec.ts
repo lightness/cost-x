@@ -90,7 +90,7 @@ describe('Tag E2E', () => {
   describe('tag', () => {
     it('should return tag when workspace owner', async () => {
       const user = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(user.id);
+      const workspace = await workspaceFactory.create({ ownerId: user.id });
       const tag = await tagFactory.create(workspace.id);
 
       const { accessToken } = await authService.authenticateUser(user);
@@ -107,7 +107,7 @@ describe('Tag E2E', () => {
 
     it('should not return tag when not workspace owner', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const tag = await tagFactory.create(workspace.id);
       const other = await userFactory.create('active');
 
@@ -124,7 +124,7 @@ describe('Tag E2E', () => {
 
     it('should not return tag when not authenticated', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const tag = await tagFactory.create(workspace.id);
 
       const response = await request(app.getHttpServer())
@@ -137,7 +137,7 @@ describe('Tag E2E', () => {
 
     it('should return tag when admin', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const tag = await tagFactory.create(workspace.id);
       const admin = await userFactory.create('active', { role: UserRole.ADMIN });
 
@@ -157,7 +157,7 @@ describe('Tag E2E', () => {
   describe('tags', () => {
     it('should return tags when workspace owner', async () => {
       const user = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(user.id);
+      const workspace = await workspaceFactory.create({ ownerId: user.id });
       await tagFactory.create(workspace.id);
 
       const { accessToken } = await authService.authenticateUser(user);
@@ -174,7 +174,7 @@ describe('Tag E2E', () => {
 
     it('should not return tags when not workspace owner', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const other = await userFactory.create('active');
 
       const { accessToken } = await authService.authenticateUser(other);
@@ -190,7 +190,7 @@ describe('Tag E2E', () => {
 
     it('should not return tags when not authenticated', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
 
       const response = await request(app.getHttpServer())
         .post('/graphql')
@@ -202,7 +202,7 @@ describe('Tag E2E', () => {
 
     it('should return tags when admin', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       await tagFactory.create(workspace.id);
       const admin = await userFactory.create('active', { role: UserRole.ADMIN });
 
@@ -222,7 +222,7 @@ describe('Tag E2E', () => {
   describe('createTag', () => {
     it('should create tag when workspace owner', async () => {
       const user = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(user.id);
+      const workspace = await workspaceFactory.create({ ownerId: user.id });
 
       const { accessToken } = await authService.authenticateUser(user);
 
@@ -238,7 +238,7 @@ describe('Tag E2E', () => {
 
     it('should not create tag when non-member', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const stranger = await userFactory.create('active');
 
       const { accessToken } = await authService.authenticateUser(stranger);
@@ -254,7 +254,7 @@ describe('Tag E2E', () => {
 
     it('should create tag when workspace member with CREATE_TAG permission', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const member = await userFactory.create('active');
       await workspaceMemberFactory.create(workspace.id, member.id);
 
@@ -272,7 +272,7 @@ describe('Tag E2E', () => {
 
     it('should not create tag when workspace member without CREATE_TAG permission', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const member = await userFactory.create('active');
       await workspaceMemberFactory.create(workspace.id, member.id, { permissions: [] });
 
@@ -289,7 +289,7 @@ describe('Tag E2E', () => {
 
     it('should not create tag when not authenticated', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
 
       const response = await request(app.getHttpServer())
         .post('/graphql')
@@ -301,7 +301,7 @@ describe('Tag E2E', () => {
 
     it('should create tag when admin', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const admin = await userFactory.create('active', { role: UserRole.ADMIN });
 
       const { accessToken } = await authService.authenticateUser(admin);
@@ -320,7 +320,7 @@ describe('Tag E2E', () => {
   describe('updateTag', () => {
     it('should update tag when workspace owner', async () => {
       const user = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(user.id);
+      const workspace = await workspaceFactory.create({ ownerId: user.id });
       const tag = await tagFactory.create(workspace.id);
 
       const { accessToken } = await authService.authenticateUser(user);
@@ -337,7 +337,7 @@ describe('Tag E2E', () => {
 
     it('should not update tag when non-member', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const tag = await tagFactory.create(workspace.id);
       const stranger = await userFactory.create('active');
 
@@ -354,7 +354,7 @@ describe('Tag E2E', () => {
 
     it('should update tag when workspace member with UPDATE_TAG permission', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const tag = await tagFactory.create(workspace.id);
       const member = await userFactory.create('active');
       await workspaceMemberFactory.create(workspace.id, member.id);
@@ -373,7 +373,7 @@ describe('Tag E2E', () => {
 
     it('should not update tag when workspace member without UPDATE_TAG permission', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const tag = await tagFactory.create(workspace.id);
       const member = await userFactory.create('active');
       await workspaceMemberFactory.create(workspace.id, member.id, { permissions: [] });
@@ -391,7 +391,7 @@ describe('Tag E2E', () => {
 
     it('should not update tag when not authenticated', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const tag = await tagFactory.create(workspace.id);
 
       const response = await request(app.getHttpServer())
@@ -404,7 +404,7 @@ describe('Tag E2E', () => {
 
     it('should update tag when admin', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const tag = await tagFactory.create(workspace.id);
       const admin = await userFactory.create('active', { role: UserRole.ADMIN });
 
@@ -424,7 +424,7 @@ describe('Tag E2E', () => {
   describe('deleteTag', () => {
     it('should delete tag when workspace owner', async () => {
       const user = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(user.id);
+      const workspace = await workspaceFactory.create({ ownerId: user.id });
       const tag = await tagFactory.create(workspace.id);
 
       const { accessToken } = await authService.authenticateUser(user);
@@ -441,7 +441,7 @@ describe('Tag E2E', () => {
 
     it('should not delete tag when non-member', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const tag = await tagFactory.create(workspace.id);
       const stranger = await userFactory.create('active');
 
@@ -458,7 +458,7 @@ describe('Tag E2E', () => {
 
     it('should delete tag when workspace member with DELETE_TAG permission', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const tag = await tagFactory.create(workspace.id);
       const member = await userFactory.create('active');
       await workspaceMemberFactory.create(workspace.id, member.id);
@@ -477,7 +477,7 @@ describe('Tag E2E', () => {
 
     it('should not delete tag when workspace member without DELETE_TAG permission', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const tag = await tagFactory.create(workspace.id);
       const member = await userFactory.create('active');
       await workspaceMemberFactory.create(workspace.id, member.id, { permissions: [] });
@@ -495,7 +495,7 @@ describe('Tag E2E', () => {
 
     it('should not delete tag when not authenticated', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const tag = await tagFactory.create(workspace.id);
 
       const response = await request(app.getHttpServer())
@@ -508,7 +508,7 @@ describe('Tag E2E', () => {
 
     it('should delete tag when admin', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const tag = await tagFactory.create(workspace.id);
       const admin = await userFactory.create('active', { role: UserRole.ADMIN });
 
