@@ -4,7 +4,7 @@ import { Prisma } from '../../../generated/prisma/client';
 import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
-import { AccessScope, WorkspaceRole } from '../../access/interfaces';
+import { AccessScope, WorkspacePermission } from '../../access/interfaces';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
 import { Infer } from '../../common/decorator/infer.decorator';
@@ -31,14 +31,16 @@ export class ItemMergeMutationResolver {
       {
         and: [
           {
-            target: 'hostItemWorkspace',
-            scope: AccessScope.WORKSPACE,
-            workspaceRole: [WorkspaceRole.OWNER, WorkspaceRole.MEMBER],
+            or: [
+              { scope: AccessScope.WORKSPACE, owner: 'hostItemWorkspace' },
+              { scope: AccessScope.WORKSPACE, target: 'hostItemWorkspace', permission: WorkspacePermission.MERGE_ITEMS },
+            ],
           },
           {
-            target: 'mergingItemWorkspace',
-            scope: AccessScope.WORKSPACE,
-            workspaceRole: [WorkspaceRole.OWNER, WorkspaceRole.MEMBER],
+            or: [
+              { scope: AccessScope.WORKSPACE, owner: 'mergingItemWorkspace' },
+              { scope: AccessScope.WORKSPACE, target: 'mergingItemWorkspace', permission: WorkspacePermission.MERGE_ITEMS },
+            ],
           },
         ],
       },

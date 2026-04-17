@@ -1,5 +1,7 @@
-import { Permission } from '../../generated/prisma/client';
+import { Permission, WorkspacePermission } from '../../generated/prisma/client';
 import { UserRole } from '../user/entity/user-role.enum';
+
+export { WorkspacePermission };
 
 export enum AccessAction {
   ALLOW = 'allow',
@@ -24,4 +26,6 @@ export interface ResolvedRule {
   workspaceRole?: WorkspaceRole[];
   self?: boolean;
   permissions?: Permission[];
+  ownerCheck?: boolean;
+  workspacePermissions?: WorkspacePermission[];
 }

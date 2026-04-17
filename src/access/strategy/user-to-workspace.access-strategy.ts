@@ -8,7 +8,7 @@ export class UserToWorkspaceAccessStrategy implements AccessStrategy {
   constructor(private prisma: PrismaService) {}
 
   isApplicable(rule: ResolvedRule): boolean {
-    return rule.scope === AccessScope.WORKSPACE;
+    return rule.scope === AccessScope.WORKSPACE && (rule.workspaceRole?.length ?? 0) > 0;
   }
 
   async executeRule(rule: ResolvedRule): Promise<boolean> {

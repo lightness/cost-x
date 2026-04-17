@@ -7,7 +7,7 @@ import { AccessGuard } from './guard/access.guard';
 import { UserPermissionsByUserIdLoader } from './dataloader/user-permissions-by-user-id.loader';
 import { UserPermissionQueryResolver } from './resolver/user-permission.query.resolver';
 import { RuleEngineService } from './rule-engine.service';
-import { UserAccessStrategy, UserPermissionAccessStrategy, UserToWorkspaceAccessStrategy } from './strategy';
+import { UserAccessStrategy, UserPermissionAccessStrategy, UserToWorkspaceAccessStrategy, WorkspaceOwnerAccessStrategy, WorkspacePermissionAccessStrategy } from './strategy';
 import { ACCESS_STRATEGIES } from './strategy/interface';
 import { UserPermissionService } from './user-permission.service';
 
@@ -25,8 +25,10 @@ import { UserPermissionService } from './user-permission.service';
     UserAccessStrategy,
     UserPermissionAccessStrategy,
     UserToWorkspaceAccessStrategy,
+    WorkspaceOwnerAccessStrategy,
+    WorkspacePermissionAccessStrategy,
     {
-      inject: [UserAccessStrategy, UserPermissionAccessStrategy, UserToWorkspaceAccessStrategy],
+      inject: [UserAccessStrategy, UserPermissionAccessStrategy, UserToWorkspaceAccessStrategy, WorkspaceOwnerAccessStrategy, WorkspacePermissionAccessStrategy],
       provide: ACCESS_STRATEGIES,
       useFactory: (...strategies) => strategies,
     },

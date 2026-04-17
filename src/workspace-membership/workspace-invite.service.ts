@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { Prisma, WorkspaceInviteStatus } from '../../generated/prisma/client';
+import { Prisma, WorkspaceInviteStatus, WorkspacePermission } from '../../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import User from '../user/entity/user.entity';
 import { WorkspaceHistoryEvent } from '../workspace-history/entity/workspace-history-event.enum';
@@ -49,6 +49,8 @@ export class WorkspaceInviteService {
     });
 
     const member = await this.createMember(invite.workspaceId, invite.inviteeId, invite.id, tx);
+
+    await this.seedWorkspacePermissions(invite.workspaceId, invite.inviteeId, tx);
 
     await this.eventEmitter.emitAsync(WorkspaceHistoryEvent.MEMBER_JOINED, {
       actorId: actor.id,
@@ -111,6 +113,20 @@ export class WorkspaceInviteService {
     return tx.workspaceMember.findMany({
       orderBy: { joinedAt: 'asc' },
       where: { removedAt: null, workspaceId },
+    });
+  }
+
+  private async seedWorkspacePermissions(
+    workspaceId: number,
+    userId: number,
+    tx: Prisma.TransactionClient,
+  ): Promise<void> {
+    await tx.userWorkspacePermission.createMany({
+      data: Object.values(WorkspacePermission).map((permission) => ({
+        userId,
+        workspaceId,
+        permission,
+      })),
     });
   }
 

@@ -4,7 +4,7 @@ import { Prisma } from '../../../generated/prisma/client';
 import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
-import { AccessScope, WorkspaceRole } from '../../access/interfaces';
+import { AccessScope, WorkspacePermission } from '../../access/interfaces';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
 import { Infer } from '../../common/decorator/infer.decorator';
@@ -27,7 +27,8 @@ export class ItemMutationResolver {
   @Mutation(() => Item)
   @Access.allow({
     or: [
-      { target: 'workspace', scope: AccessScope.WORKSPACE, workspaceRole: [WorkspaceRole.OWNER, WorkspaceRole.MEMBER] },
+      { scope: AccessScope.WORKSPACE, owner: 'workspace' },
+      { scope: AccessScope.WORKSPACE, target: 'workspace', permission: WorkspacePermission.CREATE_ITEM },
       { role: [UserRole.ADMIN], scope: AccessScope.USER },
     ],
   })
@@ -44,7 +45,8 @@ export class ItemMutationResolver {
   @Mutation(() => Item)
   @Access.allow({
     or: [
-      { target: 'workspace', scope: AccessScope.WORKSPACE, workspaceRole: [WorkspaceRole.OWNER, WorkspaceRole.MEMBER] },
+      { scope: AccessScope.WORKSPACE, owner: 'workspace' },
+      { scope: AccessScope.WORKSPACE, target: 'workspace', permission: WorkspacePermission.UPDATE_ITEM },
       { role: [UserRole.ADMIN], scope: AccessScope.USER },
     ],
   })
@@ -62,7 +64,8 @@ export class ItemMutationResolver {
   @Mutation(() => Boolean)
   @Access.allow({
     or: [
-      { target: 'workspace', scope: AccessScope.WORKSPACE, workspaceRole: [WorkspaceRole.OWNER, WorkspaceRole.MEMBER] },
+      { scope: AccessScope.WORKSPACE, owner: 'workspace' },
+      { scope: AccessScope.WORKSPACE, target: 'workspace', permission: WorkspacePermission.DELETE_ITEM },
       { role: [UserRole.ADMIN], scope: AccessScope.USER },
     ],
   })

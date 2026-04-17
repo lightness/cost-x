@@ -104,6 +104,7 @@ model User {
   workspaceMemberships    WorkspaceMember[]  @relation(name: "workspaceMember")
   removedWorkspaceMemberships WorkspaceMember[] @relation(name: "workspaceMemberRemovedBy")
   userPermissions             UserPermission[]
+  userWorkspacePermissions    UserWorkspacePermission[]
 
   @@map("user")
 }
@@ -124,6 +125,38 @@ enum Permission {
   DELETE_CONTACT
   ACCEPT_WORKSPACE_INVITE
   REJECT_WORKSPACE_INVITE
+}
+
+enum WorkspacePermission {
+  CREATE_ITEM
+  UPDATE_ITEM
+  DELETE_ITEM
+  CREATE_PAYMENT
+  UPDATE_PAYMENT
+  DELETE_PAYMENT
+  CREATE_TAG
+  UPDATE_TAG
+  DELETE_TAG
+  ASSIGN_TAG
+  UNASSIGN_TAG
+  MERGE_ITEMS
+  EXTRACT_ITEM
+  CREATE_WORKSPACE_INVITE
+  CANCEL_WORKSPACE_INVITE
+}
+
+model UserWorkspacePermission {
+  id          Int                 @id(map: "PK_user_workspace_permission_id") @default(autoincrement())
+  userId      Int                 @map("user_id")
+  workspaceId Int                 @map("workspace_id")
+  permission  WorkspacePermission
+  grantedAt   DateTime            @default(now()) @map("granted_at") @db.Timestamp(6)
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_user_workspace_permission_user_id_user_id")
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_user_workspace_permission_workspace_id_workspace_id")
+
+  @@unique([userId, workspaceId, permission], map: "UQ_user_workspace_permission_user_id_workspace_id_permission")
+  @@map("user_workspace_permission")
 }
 
 model UserPermission {
@@ -148,8 +181,9 @@ model Workspace {
   items           Item[]
   tags            Tag[]
   historyEntries  WorkspaceHistory[]
-  workspaceInvites WorkspaceInvite[]
-  workspaceMembers WorkspaceMember[]
+  workspaceInvites         WorkspaceInvite[]
+  workspaceMembers         WorkspaceMember[]
+  userWorkspacePermissions UserWorkspacePermission[]
 
   owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_workspace_owner_id_user_id")
 

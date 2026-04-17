@@ -1,7 +1,7 @@
 import { SetMetadata } from '@nestjs/common';
 import { Permission } from '../permission.enum';
 import { UserRole } from '../../user/entity/user-role.enum';
-import { AccessAction, AccessScope, WorkspaceRole } from '../interfaces';
+import { AccessAction, AccessScope, WorkspacePermission, WorkspaceRole } from '../interfaces';
 
 export const ACCESS_METADATA_KEY = 'access';
 
@@ -21,7 +21,18 @@ export interface PermissionRule {
   permission: Permission | Permission[];
 }
 
-export type Rule = SelfRule | TargetRule | PermissionRule;
+export interface WorkspaceOwnerRule {
+  scope: AccessScope.WORKSPACE;
+  owner: string;
+}
+
+export interface WorkspacePermissionRule {
+  scope: AccessScope.WORKSPACE;
+  target: string;
+  permission: WorkspacePermission | WorkspacePermission[];
+}
+
+export type Rule = SelfRule | TargetRule | PermissionRule | WorkspaceOwnerRule | WorkspacePermissionRule;
 
 export type RuleOperationAnd = { and: (RuleDef | RuleOperationOr)[] };
 export type RuleOperationOr = { or: (RuleDef | RuleOperationAnd)[] };

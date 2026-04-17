@@ -30,7 +30,8 @@
       "Bash(DATABASE_URL=\"postgresql://postgres:12345@127.0.0.1:9992/cost_x_db?schema=public\" npx prisma *)",
       "Bash(DATABASE_URL=\"postgresql://postgres:12345@127.0.0.1:9992/cost_x_db?schema=public\" psql -c \"SELECT migration_name, finished_at FROM \\\\\"_prisma_migrations\\\\\" ORDER BY started_at DESC LIMIT 10;\")",
       "Bash(PGPASSWORD=12345 psql -h 127.0.0.1 -p 9992 -U postgres -d cost_x_db -c \"SELECT migration_name FROM \\\\\"_prisma_migrations\\\\\" ORDER BY started_at DESC LIMIT 5;\")",
-      "Bash(PGPASSWORD=12345 psql *)"
+      "Bash(PGPASSWORD=12345 psql *)",
+      "Bash(migration_name=add_workspace_permissions npm run *)"
     ]
   }
 }

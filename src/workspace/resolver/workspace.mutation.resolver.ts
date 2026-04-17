@@ -4,7 +4,7 @@ import { Prisma } from '../../../generated/prisma/client';
 import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
-import { AccessScope, WorkspaceRole } from '../../access/interfaces';
+import { AccessScope } from '../../access/interfaces';
 import { Permission } from '../../access/permission.enum';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
@@ -41,11 +41,7 @@ export class WorkspaceMutationResolver {
   @Mutation(() => Workspace)
   @Access.allow({
     or: [
-      {
-        target: 'workspace',
-        scope: AccessScope.WORKSPACE,
-        workspaceRole: [WorkspaceRole.OWNER, WorkspaceRole.MEMBER],
-      },
+      { scope: AccessScope.WORKSPACE, owner: 'workspace' },
       { role: [UserRole.ADMIN], scope: AccessScope.USER },
     ],
   })
@@ -62,11 +58,7 @@ export class WorkspaceMutationResolver {
   @Mutation(() => Workspace)
   @Access.allow({
     or: [
-      {
-        target: 'workspace',
-        scope: AccessScope.WORKSPACE,
-        workspaceRole: [WorkspaceRole.OWNER],
-      },
+      { scope: AccessScope.WORKSPACE, owner: 'workspace' },
       { role: [UserRole.ADMIN], scope: AccessScope.USER },
     ],
   })

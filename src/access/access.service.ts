@@ -10,6 +10,8 @@ import {
   RuleOperationOr,
   SelfRule,
   TargetRule,
+  WorkspaceOwnerRule,
+  WorkspacePermissionRule,
 } from './decorator/access.decorator';
 import { AccessAction, AccessScope, ResolvedRule } from './interfaces';
 import { RuleEngineService } from './rule-engine.service';
@@ -139,7 +141,25 @@ export class AccessService {
       });
     }
 
-    return this.ruleEngineService.executeRule(this.normalizeTargetRule(rule, currentUser, inferredEntities));
+    if (this.isWorkspaceOwnerRule(rule)) {
+      return this.ruleEngineService.executeRule({
+        sourceEntity: currentUser,
+        targetEntity: inferredEntities.get(rule.owner),
+        scope: AccessScope.WORKSPACE,
+        ownerCheck: true,
+      });
+    }
+
+    if (this.isWorkspacePermissionRule(rule)) {
+      return this.ruleEngineService.executeRule({
+        sourceEntity: currentUser,
+        targetEntity: inferredEntities.get(rule.target),
+        scope: AccessScope.WORKSPACE,
+        workspacePermissions: Array.isArray(rule.permission) ? rule.permission : [rule.permission],
+      });
+    }
+
+    return this.ruleEngineService.executeRule(this.normalizeTargetRule(rule as TargetRule, currentUser, inferredEntities));
   }
 
   private normalizeTargetRule(
@@ -165,7 +185,7 @@ export class AccessService {
   }
 
   private isRule(ruleDef: RuleDef): ruleDef is Rule {
-    return 'scope' in ruleDef || 'self' in ruleDef;
+    return 'scope' in ruleDef || 'self' in ruleDef || 'owner' in ruleDef;
   }
 
   private isSelfRule(rule: Rule): rule is SelfRule {
@@ -173,7 +193,15 @@ export class AccessService {
   }
 
   private isPermissionRule(rule: Rule): rule is PermissionRule {
-    return 'permission' in rule;
+    return 'permission' in rule && 'scope' in rule && (rule as PermissionRule).scope === AccessScope.USER;
+  }
+
+  private isWorkspaceOwnerRule(rule: Rule): rule is WorkspaceOwnerRule {
+    return 'owner' in rule;
+  }
+
+  private isWorkspacePermissionRule(rule: Rule): rule is WorkspacePermissionRule {
+    return 'permission' in rule && 'scope' in rule && (rule as WorkspacePermissionRule).scope === AccessScope.WORKSPACE;
   }
 
   private isOperatorOr(ruleDef: RuleDef): ruleDef is RuleOperationOr {

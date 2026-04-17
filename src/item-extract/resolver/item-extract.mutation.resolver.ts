@@ -4,7 +4,7 @@ import { Prisma } from '../../../generated/prisma/client';
 import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
-import { AccessScope, WorkspaceRole } from '../../access/interfaces';
+import { AccessScope, WorkspacePermission } from '../../access/interfaces';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
 import { Infer } from '../../common/decorator/infer.decorator';
@@ -28,11 +28,8 @@ export class ItemExtractMutationResolver {
   @Access.allow({
     or: [
       { role: [UserRole.ADMIN], scope: AccessScope.USER },
-      {
-        target: 'itemWorkspace',
-        scope: AccessScope.WORKSPACE,
-        workspaceRole: [WorkspaceRole.OWNER, WorkspaceRole.MEMBER],
-      },
+      { scope: AccessScope.WORKSPACE, owner: 'itemWorkspace' },
+      { scope: AccessScope.WORKSPACE, target: 'itemWorkspace', permission: WorkspacePermission.EXTRACT_ITEM },
     ],
   })
   @Infer('itemWorkspace', {

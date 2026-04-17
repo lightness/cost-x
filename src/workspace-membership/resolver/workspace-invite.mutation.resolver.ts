@@ -4,7 +4,7 @@ import { Prisma } from '../../../generated/prisma/client';
 import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
-import { AccessScope, WorkspaceRole } from '../../access/interfaces';
+import { AccessScope } from '../../access/interfaces';
 import { Permission } from '../../access/permission.enum';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
@@ -33,10 +33,7 @@ export class WorkspaceInviteMutationResolver {
   @Access.allow({
     or: [
       {
-        and: [
-          { target: 'workspace', scope: AccessScope.WORKSPACE, workspaceRole: [WorkspaceRole.OWNER] },
-          { self: 'inviterUser' },
-        ],
+        and: [{ owner: 'workspace', scope: AccessScope.WORKSPACE }, { self: 'inviterUser' }],
       },
       { role: [UserRole.ADMIN], scope: AccessScope.USER },
     ],
@@ -56,7 +53,12 @@ export class WorkspaceInviteMutationResolver {
   @Mutation(() => WorkspaceInvite)
   @Access.allow({
     or: [
-      { and: [{ self: 'inviteeUser' }, { scope: AccessScope.USER, permission: Permission.ACCEPT_WORKSPACE_INVITE }] },
+      {
+        and: [
+          { self: 'inviteeUser' },
+          { permission: Permission.ACCEPT_WORKSPACE_INVITE, scope: AccessScope.USER },
+        ],
+      },
       { role: [UserRole.ADMIN], scope: AccessScope.USER },
     ],
   })
@@ -74,7 +76,12 @@ export class WorkspaceInviteMutationResolver {
   @Mutation(() => WorkspaceInvite)
   @Access.allow({
     or: [
-      { and: [{ self: 'inviteeUser' }, { scope: AccessScope.USER, permission: Permission.REJECT_WORKSPACE_INVITE }] },
+      {
+        and: [
+          { self: 'inviteeUser' },
+          { permission: Permission.REJECT_WORKSPACE_INVITE, scope: AccessScope.USER },
+        ],
+      },
       { role: [UserRole.ADMIN], scope: AccessScope.USER },
     ],
   })
@@ -91,7 +98,7 @@ export class WorkspaceInviteMutationResolver {
   @Mutation(() => WorkspaceInvite)
   @Access.allow({
     or: [
-      { target: 'workspace', scope: AccessScope.WORKSPACE, workspaceRole: [WorkspaceRole.OWNER] },
+      { owner: 'workspace', scope: AccessScope.WORKSPACE },
       { role: [UserRole.ADMIN], scope: AccessScope.USER },
     ],
   })
