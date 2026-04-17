@@ -7,10 +7,12 @@ import { configureApp } from '../src/configure-app';
 import { GraphqlModule } from '../src/graphql/graphql.module';
 import { TagModule } from '../src/tag/tag.module';
 import { UserRole } from '../src/user/entity/user-role.enum';
+import { WorkspacePermission } from '../generated/prisma/client';
 import { FactoryModule } from './factory/factory.module';
 import { TagFactoryService } from './factory/tag-factory.service';
 import { UserFactoryService } from './factory/user-factory.service';
 import { WorkspaceFactoryService } from './factory/workspace-factory.service';
+import { WorkspaceMemberFactoryService } from './factory/workspace-member-factory.service';
 import { TestGraphqlModule } from './graphql/test-graphql.module';
 import { TestConfigModule } from './test-config.module';
 
@@ -63,6 +65,7 @@ describe('Tag E2E', () => {
   let userFactory: UserFactoryService;
   let workspaceFactory: WorkspaceFactoryService;
   let tagFactory: TagFactoryService;
+  let workspaceMemberFactory: WorkspaceMemberFactoryService;
 
   beforeAll(async () => {
     moduleRef = await Test.createTestingModule({
@@ -77,6 +80,7 @@ describe('Tag E2E', () => {
     userFactory = moduleRef.get(UserFactoryService);
     workspaceFactory = moduleRef.get(WorkspaceFactoryService);
     tagFactory = moduleRef.get(TagFactoryService);
+    workspaceMemberFactory = moduleRef.get(WorkspaceMemberFactoryService);
   });
 
   afterAll(async () => {
@@ -232,12 +236,47 @@ describe('Tag E2E', () => {
       expect(response.body.data.createTag.title).toBe('My Tag');
     });
 
-    it('should not create tag when not workspace owner', async () => {
+    it('should not create tag when non-member', async () => {
       const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
-      const other = await userFactory.create('active');
+      const stranger = await userFactory.create('active');
 
-      const { accessToken } = await authService.authenticateUser(other);
+      const { accessToken } = await authService.authenticateUser(stranger);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: createTagMutation, variables: { workspaceId: workspace.id, dto: { title: 'My Tag' } } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expectResponseError(response, { code: ApplicationErrorCode.NO_ACCESS, status: 'FORBIDDEN' });
+    });
+
+    it('should create tag when workspace member with CREATE_TAG permission', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+      const member = await userFactory.create('active');
+      await workspaceMemberFactory.create(workspace.id, member.id);
+
+      const { accessToken } = await authService.authenticateUser(member);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: createTagMutation, variables: { workspaceId: workspace.id, dto: { title: 'Member Tag' } } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expectResponseSuccess(response);
+      expect(response.body.data.createTag.title).toBe('Member Tag');
+    });
+
+    it('should not create tag when workspace member without CREATE_TAG permission', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+      const member = await userFactory.create('active');
+      await workspaceMemberFactory.create(workspace.id, member.id, { permissions: [] });
+
+      const { accessToken } = await authService.authenticateUser(member);
 
       const response = await request(app.getHttpServer())
         .post('/graphql')
@@ -296,13 +335,50 @@ describe('Tag E2E', () => {
       expect(response.body.data.updateTag.title).toBe('Updated Tag');
     });
 
-    it('should not update tag when not workspace owner', async () => {
+    it('should not update tag when non-member', async () => {
       const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
       const tag = await tagFactory.create(workspace.id);
-      const other = await userFactory.create('active');
+      const stranger = await userFactory.create('active');
 
-      const { accessToken } = await authService.authenticateUser(other);
+      const { accessToken } = await authService.authenticateUser(stranger);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: updateTagMutation, variables: { id: tag.id, dto: { title: 'Updated Tag' } } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expectResponseError(response, { code: ApplicationErrorCode.NO_ACCESS, status: 'FORBIDDEN' });
+    });
+
+    it('should update tag when workspace member with UPDATE_TAG permission', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+      const tag = await tagFactory.create(workspace.id);
+      const member = await userFactory.create('active');
+      await workspaceMemberFactory.create(workspace.id, member.id);
+
+      const { accessToken } = await authService.authenticateUser(member);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: updateTagMutation, variables: { id: tag.id, dto: { title: 'Member Updated' } } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expectResponseSuccess(response);
+      expect(response.body.data.updateTag.title).toBe('Member Updated');
+    });
+
+    it('should not update tag when workspace member without UPDATE_TAG permission', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+      const tag = await tagFactory.create(workspace.id);
+      const member = await userFactory.create('active');
+      await workspaceMemberFactory.create(workspace.id, member.id, { permissions: [] });
+
+      const { accessToken } = await authService.authenticateUser(member);
 
       const response = await request(app.getHttpServer())
         .post('/graphql')
@@ -363,13 +439,50 @@ describe('Tag E2E', () => {
       expect(response.body.data.deleteTag).toBe(true);
     });
 
-    it('should not delete tag when not workspace owner', async () => {
+    it('should not delete tag when non-member', async () => {
       const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
       const tag = await tagFactory.create(workspace.id);
-      const other = await userFactory.create('active');
+      const stranger = await userFactory.create('active');
 
-      const { accessToken } = await authService.authenticateUser(other);
+      const { accessToken } = await authService.authenticateUser(stranger);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: deleteTagMutation, variables: { id: tag.id } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expectResponseError(response, { code: ApplicationErrorCode.NO_ACCESS, status: 'FORBIDDEN' });
+    });
+
+    it('should delete tag when workspace member with DELETE_TAG permission', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+      const tag = await tagFactory.create(workspace.id);
+      const member = await userFactory.create('active');
+      await workspaceMemberFactory.create(workspace.id, member.id);
+
+      const { accessToken } = await authService.authenticateUser(member);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: deleteTagMutation, variables: { id: tag.id } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expectResponseSuccess(response);
+      expect(response.body.data.deleteTag).toBe(true);
+    });
+
+    it('should not delete tag when workspace member without DELETE_TAG permission', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+      const tag = await tagFactory.create(workspace.id);
+      const member = await userFactory.create('active');
+      await workspaceMemberFactory.create(workspace.id, member.id, { permissions: [] });
+
+      const { accessToken } = await authService.authenticateUser(member);
 
       const response = await request(app.getHttpServer())
         .post('/graphql')

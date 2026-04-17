@@ -11,10 +11,12 @@ import { UserRole } from '../src/user/entity/user-role.enum';
 import { WorkspaceInviteStatus } from '../src/workspace-membership/entity/workspace-invite-status.enum';
 import { WorkspaceMembershipModule } from '../src/workspace-membership/workspace-membership.module';
 import { WorkspaceModule } from '../src/workspace/workspace.module';
+import { WorkspacePermission } from '../generated/prisma/client';
 import { FactoryModule } from './factory/factory.module';
 import { UserFactoryService } from './factory/user-factory.service';
 import { WorkspaceFactoryService } from './factory/workspace-factory.service';
 import { WorkspaceInviteFactoryService } from './factory/workspace-invite-factory.service';
+import { WorkspaceMemberFactoryService } from './factory/workspace-member-factory.service';
 import { TestGraphqlModule } from './graphql/test-graphql.module';
 import { TestConfigModule } from './test-config.module';
 
@@ -26,6 +28,7 @@ describe('WorkspaceMembership E2E', () => {
   let userFactory: UserFactoryService;
   let workspaceFactory: WorkspaceFactoryService;
   let workspaceInviteFactory: WorkspaceInviteFactoryService;
+  let workspaceMemberFactory: WorkspaceMemberFactoryService;
 
   beforeAll(async () => {
     moduleRef = await Test.createTestingModule({
@@ -48,6 +51,7 @@ describe('WorkspaceMembership E2E', () => {
     userFactory = moduleRef.get(UserFactoryService);
     workspaceFactory = moduleRef.get(WorkspaceFactoryService);
     workspaceInviteFactory = moduleRef.get(WorkspaceInviteFactoryService);
+    workspaceMemberFactory = moduleRef.get(WorkspaceMemberFactoryService);
   });
 
   afterAll(async () => {
@@ -101,21 +105,74 @@ describe('WorkspaceMembership E2E', () => {
       await expectInvitePending(invite.id);
     });
 
-    it('should not allow non-owner to invite a user', async () => {
+    it('should not allow non-member to invite a user', async () => {
       // Assume
       const owner = await userFactory.create('active');
-      const nonOwner = await userFactory.create('active');
+      const nonMember = await userFactory.create('active');
       const invitee = await userFactory.create('active');
       const workspace = await workspaceFactory.create(owner.id);
 
       // Act
-      const { accessToken } = await authService.authenticateUser(nonOwner);
+      const { accessToken } = await authService.authenticateUser(nonMember);
       const response = await request(app.getHttpServer())
         .post('/graphql')
         .send({
           query: mutation,
           variables: {
-            dto: { inviteeId: invitee.id, inviterId: nonOwner.id, workspaceId: workspace.id },
+            dto: { inviteeId: invitee.id, inviterId: nonMember.id, workspaceId: workspace.id },
+          },
+        })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseError(response, { code: ApplicationErrorCode.NO_ACCESS, status: 'FORBIDDEN' });
+    });
+
+    it('should allow workspace member with CREATE_WORKSPACE_INVITE permission to invite', async () => {
+      // Assume
+      const owner = await userFactory.create('active');
+      const member = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+      await workspaceMemberFactory.create(workspace.id, member.id);
+
+      // Act
+      const { accessToken } = await authService.authenticateUser(member);
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({
+          query: mutation,
+          variables: {
+            dto: { inviteeId: invitee.id, inviterId: member.id, workspaceId: workspace.id },
+          },
+        })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseSuccess(response);
+      await expectInvitePending(response.body.data.createWorkspaceInvite.id);
+    });
+
+    it('should not allow workspace member without CREATE_WORKSPACE_INVITE permission to invite', async () => {
+      // Assume
+      const owner = await userFactory.create('active');
+      const member = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+      await workspaceMemberFactory.create(workspace.id, member.id, {
+        permissions: Object.values(WorkspacePermission).filter((p) => p !== WorkspacePermission.CREATE_WORKSPACE_INVITE),
+      });
+
+      // Act
+      const { accessToken } = await authService.authenticateUser(member);
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({
+          query: mutation,
+          variables: {
+            dto: { inviteeId: invitee.id, inviterId: member.id, workspaceId: workspace.id },
           },
         })
         .set('Content-Type', 'application/json')
@@ -315,6 +372,31 @@ describe('WorkspaceMembership E2E', () => {
       await expectActiveMember(workspace.id, invitee.id);
     });
 
+    it('should allow admin to accept any pending invite', async () => {
+      // Assume
+      const owner = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+      const invite = await workspaceInviteFactory.create('pending', {
+        inviteeId: invitee.id,
+        inviterId: owner.id,
+        workspaceId: workspace.id,
+      });
+
+      // Act
+      const admin = await userFactory.create('active', { role: UserRole.ADMIN });
+      const { accessToken } = await authService.authenticateUser(admin);
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: mutation, variables: { inviteId: invite.id } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseSuccess(response);
+      await expectInviteAccepted(invite.id);
+    });
+
     it('should not allow the workspace owner (inviter) to accept the invite', async () => {
       // Assume
       const owner = await userFactory.create('active');
@@ -393,6 +475,31 @@ describe('WorkspaceMembership E2E', () => {
 
       // Act
       const { accessToken } = await authService.authenticateUser(invitee);
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: mutation, variables: { inviteId: invite.id } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseSuccess(response);
+      await expectInviteRejected(invite.id);
+    });
+
+    it('should allow admin to reject any pending invite', async () => {
+      // Assume
+      const owner = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+      const invite = await workspaceInviteFactory.create('pending', {
+        inviteeId: invitee.id,
+        inviterId: owner.id,
+        workspaceId: workspace.id,
+      });
+
+      // Act
+      const admin = await userFactory.create('active', { role: UserRole.ADMIN });
+      const { accessToken } = await authService.authenticateUser(admin);
       const response = await request(app.getHttpServer())
         .post('/graphql')
         .send({ query: mutation, variables: { inviteId: invite.id } })
@@ -491,6 +598,82 @@ describe('WorkspaceMembership E2E', () => {
       // Assert
       expectResponseSuccess(response);
       await expectInviteCancelled(invite.id);
+    });
+
+    it('should allow inviter to cancel a pending invite', async () => {
+      // Assume
+      const owner = await userFactory.create('active');
+      const inviter = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+      await workspaceMemberFactory.create(workspace.id, inviter.id);
+      const invite = await workspaceInviteFactory.create('pending', {
+        inviteeId: invitee.id,
+        inviterId: inviter.id,
+        workspaceId: workspace.id,
+      });
+
+      // Act
+      const { accessToken } = await authService.authenticateUser(inviter);
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: mutation, variables: { inviteId: invite.id } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseSuccess(response);
+      await expectInviteCancelled(invite.id);
+    });
+
+    it('should allow admin to cancel any pending invite', async () => {
+      // Assume
+      const owner = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+      const invite = await workspaceInviteFactory.create('pending', {
+        inviteeId: invitee.id,
+        inviterId: owner.id,
+        workspaceId: workspace.id,
+      });
+
+      // Act
+      const admin = await userFactory.create('active', { role: UserRole.ADMIN });
+      const { accessToken } = await authService.authenticateUser(admin);
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: mutation, variables: { inviteId: invite.id } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseSuccess(response);
+      await expectInviteCancelled(invite.id);
+    });
+
+    it('should not allow a stranger to cancel an invite', async () => {
+      // Assume
+      const owner = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const stranger = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+      const invite = await workspaceInviteFactory.create('pending', {
+        inviteeId: invitee.id,
+        inviterId: owner.id,
+        workspaceId: workspace.id,
+      });
+
+      // Act
+      const { accessToken } = await authService.authenticateUser(stranger);
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: mutation, variables: { inviteId: invite.id } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseError(response, { code: ApplicationErrorCode.NO_ACCESS, status: 'FORBIDDEN' });
+      await expectInvitePending(invite.id);
     });
 
     it('should not allow invitee to cancel an invite', async () => {

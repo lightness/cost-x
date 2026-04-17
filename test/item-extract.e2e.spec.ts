@@ -15,6 +15,7 @@ import { PaymentFactoryService } from './factory/payment-factory.service';
 import { TagFactoryService } from './factory/tag-factory.service';
 import { UserFactoryService } from './factory/user-factory.service';
 import { WorkspaceFactoryService } from './factory/workspace-factory.service';
+import { WorkspaceMemberFactoryService } from './factory/workspace-member-factory.service';
 import { TestGraphqlModule } from './graphql/test-graphql.module';
 import { TestConfigModule } from './test-config.module';
 
@@ -39,6 +40,7 @@ describe('ItemExtract E2E', () => {
   let itemTagFactory: ItemTagFactoryService;
   let paymentFactory: PaymentFactoryService;
   let tagFactory: TagFactoryService;
+  let workspaceMemberFactory: WorkspaceMemberFactoryService;
 
   beforeAll(async () => {
     moduleRef = await Test.createTestingModule({
@@ -57,6 +59,7 @@ describe('ItemExtract E2E', () => {
     itemTagFactory = moduleRef.get(ItemTagFactoryService);
     paymentFactory = moduleRef.get(PaymentFactoryService);
     tagFactory = moduleRef.get(TagFactoryService);
+    workspaceMemberFactory = moduleRef.get(WorkspaceMemberFactoryService);
   });
 
   afterAll(async () => {
@@ -112,7 +115,7 @@ describe('ItemExtract E2E', () => {
     expectResponseError(response, { code: ApplicationErrorCode.NO_ACCESS, status: 'FORBIDDEN' });
   });
 
-  it('should not extract when user is not a workspace owner', async () => {
+  it('should not extract when non-member', async () => {
     // Assume
     const owner = await userFactory.create('active');
     const stranger = await userFactory.create('active');
@@ -122,6 +125,58 @@ describe('ItemExtract E2E', () => {
 
     // Act
     const { accessToken } = await authService.authenticateUser(stranger);
+
+    const response = await request(app.getHttpServer())
+      .post('/graphql')
+      .send({
+        query: extractAsItemMutation,
+        variables: { dto: { itemId: sourceItem.id, paymentIds: [payment.id], title: 'Extracted' } },
+      })
+      .set('Content-Type', 'application/json')
+      .set('Authorization', `Bearer ${accessToken}`);
+
+    // Assert
+    expectResponseError(response, { code: ApplicationErrorCode.NO_ACCESS, status: 'FORBIDDEN' });
+  });
+
+  it('should extract when workspace member with EXTRACT_ITEM permission', async () => {
+    // Assume
+    const owner = await userFactory.create('active');
+    const workspace = await workspaceFactory.create(owner.id);
+    const sourceItem = await itemFactory.create(workspace.id);
+    const payment1 = await paymentFactory.create(sourceItem.id);
+    await paymentFactory.create(sourceItem.id);
+    const member = await userFactory.create('active');
+    await workspaceMemberFactory.create(workspace.id, member.id);
+
+    // Act
+    const { accessToken } = await authService.authenticateUser(member);
+
+    const response = await request(app.getHttpServer())
+      .post('/graphql')
+      .send({
+        query: extractAsItemMutation,
+        variables: { dto: { itemId: sourceItem.id, paymentIds: [payment1.id], title: 'Extracted' } },
+      })
+      .set('Content-Type', 'application/json')
+      .set('Authorization', `Bearer ${accessToken}`);
+
+    // Assert
+    expectResponseSuccess(response);
+    expect(response.body.data.extractAsItem.workspaceId).toBe(workspace.id);
+  });
+
+  it('should not extract when workspace member without EXTRACT_ITEM permission', async () => {
+    // Assume
+    const owner = await userFactory.create('active');
+    const workspace = await workspaceFactory.create(owner.id);
+    const sourceItem = await itemFactory.create(workspace.id);
+    const payment = await paymentFactory.create(sourceItem.id);
+    const member = await userFactory.create('active');
+    await workspaceMemberFactory.create(workspace.id, member.id, { permissions: [] });
+
+    // Act
+    const { accessToken } = await authService.authenticateUser(member);
 
     const response = await request(app.getHttpServer())
       .post('/graphql')

@@ -12,6 +12,7 @@ import { WorkspaceModule } from '../src/workspace/workspace.module';
 import { FactoryModule } from './factory/factory.module';
 import { UserFactoryService } from './factory/user-factory.service';
 import { WorkspaceFactoryService } from './factory/workspace-factory.service';
+import { WorkspaceMemberFactoryService } from './factory/workspace-member-factory.service';
 import { TestGraphqlModule } from './graphql/test-graphql.module';
 import { TestConfigModule } from './test-config.module';
 
@@ -50,6 +51,7 @@ describe('Workspace E2E', () => {
   let prisma: PrismaService;
   let userFactory: UserFactoryService;
   let workspaceFactory: WorkspaceFactoryService;
+  let workspaceMemberFactory: WorkspaceMemberFactoryService;
 
   beforeAll(async () => {
     moduleRef = await Test.createTestingModule({
@@ -64,6 +66,7 @@ describe('Workspace E2E', () => {
     prisma = moduleRef.get(PrismaService);
     userFactory = moduleRef.get(UserFactoryService);
     workspaceFactory = moduleRef.get(WorkspaceFactoryService);
+    workspaceMemberFactory = moduleRef.get(WorkspaceMemberFactoryService);
   });
 
   afterAll(async () => {
@@ -165,6 +168,29 @@ describe('Workspace E2E', () => {
 
       // Act
       const { accessToken } = await authService.authenticateUser(stranger);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({
+          query: updateWorkspaceMutation,
+          variables: { id: workspace.id, dto: { title: 'New Title', defaultCurrency: Currency.USD } },
+        })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseError(response, { code: ApplicationErrorCode.NO_ACCESS, status: 'FORBIDDEN' });
+    });
+
+    it('should not update when user is a workspace member (not owner)', async () => {
+      // Assume
+      const owner = await userFactory.create('active');
+      const member = await userFactory.create('active');
+      const workspace = await workspaceFactory.create(owner.id);
+      await workspaceMemberFactory.create(workspace.id, member.id);
+
+      // Act
+      const { accessToken } = await authService.authenticateUser(member);
 
       const response = await request(app.getHttpServer())
         .post('/graphql')
