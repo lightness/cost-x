@@ -1,11 +1,24 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { Prisma } from '../../generated/prisma/client';
+import { Permission, Prisma } from '../../generated/prisma/client';
 import { ConfirmEmailService } from '../confirm-email/confirm-email.service';
 import { BcryptService } from '../password/bcrypt.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserInDto, UpdateUserInDto } from './dto';
 import User from './entity/user.entity';
 import { UserAlreadyExistsError } from './error/user-already-exists.error';
+
+const DEFAULT_USER_PERMISSIONS: Permission[] = [
+  Permission.CREATE_WORKSPACE,
+  Permission.UPDATE_PROFILE,
+  Permission.CREATE_CONTACT_INVITE,
+  Permission.ACCEPT_CONTACT_INVITE,
+  Permission.REJECT_CONTACT_INVITE,
+  Permission.BLOCK_USER,
+  Permission.UNBLOCK_USER,
+  Permission.DELETE_CONTACT,
+  Permission.ACCEPT_WORKSPACE_INVITE,
+  Permission.REJECT_WORKSPACE_INVITE,
+];
 
 @Injectable()
 export class UserService {
@@ -32,6 +45,10 @@ export class UserService {
         name: dto.name,
         password: await this.bcryptService.hashPassword(dto.password),
       },
+    });
+
+    await tx.userPermission.createMany({
+      data: DEFAULT_USER_PERMISSIONS.map((permission) => ({ permission, userId: user.id })),
     });
 
     return this.confirmEmailService.runConfirmationProcess(user, tx);

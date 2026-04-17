@@ -22,8 +22,8 @@ export class TagQueryResolver {
   @Query(() => [Tag])
   @Access.allow({
     or: [
-      { target: 'workspace', targetScope: AccessScope.WORKSPACE, workspaceRole: [WorkspaceRole.OWNER, WorkspaceRole.MEMBER] },
-      { role: [UserRole.ADMIN], targetScope: AccessScope.USER },
+      { target: 'workspace', scope: AccessScope.WORKSPACE, workspaceRole: [WorkspaceRole.OWNER, WorkspaceRole.MEMBER] },
+      { role: [UserRole.ADMIN], scope: AccessScope.USER },
     ],
   })
   @Infer('workspace', { from: fromArg('workspaceId'), pipes: [WorkspaceByIdPipe] })
@@ -37,8 +37,8 @@ export class TagQueryResolver {
   @Query(() => Tag)
   @Access.allow({
     or: [
-      { target: 'workspace', targetScope: AccessScope.WORKSPACE, workspaceRole: [WorkspaceRole.OWNER, WorkspaceRole.MEMBER] },
-      { role: [UserRole.ADMIN], targetScope: AccessScope.USER },
+      { target: 'workspace', scope: AccessScope.WORKSPACE, workspaceRole: [WorkspaceRole.OWNER, WorkspaceRole.MEMBER] },
+      { role: [UserRole.ADMIN], scope: AccessScope.USER },
     ],
   })
   @Infer('tag', { from: fromArg('id'), pipes: [TagByIdPipe] })

@@ -5,6 +5,7 @@ import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
 import { AccessScope } from '../../access/interfaces';
+import { Permission } from '../../access/permission.enum';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
 import { Infer } from '../../common/decorator/infer.decorator';
@@ -34,8 +35,8 @@ export class InviteMutationResolver {
   @Mutation(() => Invite)
   @Access.allow({
     or: [
-      { self: 'inviterUser' },
-      { role: UserRole.ADMIN, targetScope: AccessScope.USER },
+      { and: [{ self: 'inviterUser' }, { scope: AccessScope.USER, permission: Permission.CREATE_CONTACT_INVITE }] },
+      { role: UserRole.ADMIN, scope: AccessScope.USER },
     ],
   })
   @Infer('inviterUser', { from: fromArg('dto.inviterUserId'), pipes: [UserByIdPipe] })
@@ -49,8 +50,8 @@ export class InviteMutationResolver {
   @Mutation(() => Invite)
   @Access.allow({
     or: [
-      { self: 'inviterUser' },
-      { role: UserRole.ADMIN, targetScope: AccessScope.USER },
+      { and: [{ self: 'inviterUser' }, { scope: AccessScope.USER, permission: Permission.CREATE_CONTACT_INVITE }] },
+      { role: UserRole.ADMIN, scope: AccessScope.USER },
     ],
   })
   @Infer('inviterUser', { from: fromArg('dto.inviterUserId'), pipes: [UserByIdPipe] })
@@ -68,8 +69,8 @@ export class InviteMutationResolver {
   @Mutation(() => Invite)
   @Access.allow({
     or: [
-      { self: 'inviteeUser' },
-      { role: UserRole.ADMIN, targetScope: AccessScope.USER },
+      { and: [{ self: 'inviteeUser' }, { scope: AccessScope.USER, permission: Permission.ACCEPT_CONTACT_INVITE }] },
+      { role: UserRole.ADMIN, scope: AccessScope.USER },
     ],
   })
   @Infer('invite', { from: fromArg('inviteId'), pipes: [InviteByIdPipe] })
@@ -86,8 +87,8 @@ export class InviteMutationResolver {
   @Mutation(() => Invite)
   @Access.allow({
     or: [
-      { self: 'inviteeUser' },
-      { role: UserRole.ADMIN, targetScope: AccessScope.USER },
+      { and: [{ self: 'inviteeUser' }, { scope: AccessScope.USER, permission: Permission.REJECT_CONTACT_INVITE }] },
+      { role: UserRole.ADMIN, scope: AccessScope.USER },
     ],
   })
   @Infer('invite', { from: fromArg('inviteId'), pipes: [InviteByIdPipe] })
@@ -104,8 +105,8 @@ export class InviteMutationResolver {
   @Mutation(() => Invite)
   @Access.allow({
     or: [
-      { self: 'inviteeUser' },
-      { role: UserRole.ADMIN, targetScope: AccessScope.USER },
+      { and: [{ self: 'inviteeUser' }, { scope: AccessScope.USER, permission: Permission.REJECT_CONTACT_INVITE }] },
+      { role: UserRole.ADMIN, scope: AccessScope.USER },
     ],
   })
   @Infer('invite', { from: fromArg('inviteId'), pipes: [InviteByIdPipe] })

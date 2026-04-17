@@ -5,6 +5,7 @@ import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
 import { AccessScope, WorkspaceRole } from '../../access/interfaces';
+import { Permission } from '../../access/permission.enum';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
 import { Infer } from '../../common/decorator/infer.decorator';
@@ -33,11 +34,11 @@ export class WorkspaceInviteMutationResolver {
     or: [
       {
         and: [
-          { target: 'workspace', targetScope: AccessScope.WORKSPACE, workspaceRole: [WorkspaceRole.OWNER] },
+          { target: 'workspace', scope: AccessScope.WORKSPACE, workspaceRole: [WorkspaceRole.OWNER] },
           { self: 'inviterUser' },
         ],
       },
-      { role: [UserRole.ADMIN], targetScope: AccessScope.USER },
+      { role: [UserRole.ADMIN], scope: AccessScope.USER },
     ],
   })
   @Infer('workspace', { from: fromArg('dto.workspaceId'), pipes: [WorkspaceByIdPipe] })
@@ -55,8 +56,8 @@ export class WorkspaceInviteMutationResolver {
   @Mutation(() => WorkspaceInvite)
   @Access.allow({
     or: [
-      { self: 'inviteeUser' },
-      { role: [UserRole.ADMIN], targetScope: AccessScope.USER },
+      { and: [{ self: 'inviteeUser' }, { scope: AccessScope.USER, permission: Permission.ACCEPT_WORKSPACE_INVITE }] },
+      { role: [UserRole.ADMIN], scope: AccessScope.USER },
     ],
   })
   @Infer('invite', { from: fromArg('inviteId'), pipes: [WorkspaceInviteByIdPipe] })
@@ -73,8 +74,8 @@ export class WorkspaceInviteMutationResolver {
   @Mutation(() => WorkspaceInvite)
   @Access.allow({
     or: [
-      { self: 'inviteeUser' },
-      { role: [UserRole.ADMIN], targetScope: AccessScope.USER },
+      { and: [{ self: 'inviteeUser' }, { scope: AccessScope.USER, permission: Permission.REJECT_WORKSPACE_INVITE }] },
+      { role: [UserRole.ADMIN], scope: AccessScope.USER },
     ],
   })
   @Infer('invite', { from: fromArg('inviteId'), pipes: [WorkspaceInviteByIdPipe] })
@@ -90,8 +91,8 @@ export class WorkspaceInviteMutationResolver {
   @Mutation(() => WorkspaceInvite)
   @Access.allow({
     or: [
-      { target: 'workspace', targetScope: AccessScope.WORKSPACE, workspaceRole: [WorkspaceRole.OWNER] },
-      { role: [UserRole.ADMIN], targetScope: AccessScope.USER },
+      { target: 'workspace', scope: AccessScope.WORKSPACE, workspaceRole: [WorkspaceRole.OWNER] },
+      { role: [UserRole.ADMIN], scope: AccessScope.USER },
     ],
   })
   @Infer('invite', { from: fromArg('inviteId'), pipes: [WorkspaceInviteByIdPipe] })

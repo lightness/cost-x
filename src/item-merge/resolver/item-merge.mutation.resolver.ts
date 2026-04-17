@@ -27,17 +27,17 @@ export class ItemMergeMutationResolver {
   @Mutation(() => Item)
   @Access.allow({
     or: [
-      { role: [UserRole.ADMIN], targetScope: AccessScope.USER },
+      { role: [UserRole.ADMIN], scope: AccessScope.USER },
       {
         and: [
           {
             target: 'hostItemWorkspace',
-            targetScope: AccessScope.WORKSPACE,
+            scope: AccessScope.WORKSPACE,
             workspaceRole: [WorkspaceRole.OWNER, WorkspaceRole.MEMBER],
           },
           {
             target: 'mergingItemWorkspace',
-            targetScope: AccessScope.WORKSPACE,
+            scope: AccessScope.WORKSPACE,
             workspaceRole: [WorkspaceRole.OWNER, WorkspaceRole.MEMBER],
           },
         ],

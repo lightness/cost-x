@@ -27,10 +27,10 @@ export class ItemExtractMutationResolver {
   @Mutation(() => Item)
   @Access.allow({
     or: [
-      { role: [UserRole.ADMIN], targetScope: AccessScope.USER },
+      { role: [UserRole.ADMIN], scope: AccessScope.USER },
       {
         target: 'itemWorkspace',
-        targetScope: AccessScope.WORKSPACE,
+        scope: AccessScope.WORKSPACE,
         workspaceRole: [WorkspaceRole.OWNER, WorkspaceRole.MEMBER],
       },
     ],

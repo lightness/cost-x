@@ -3,6 +3,7 @@ import { ModuleRef } from '@nestjs/core';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { InferEntry } from '../common/decorator/infer.decorator';
 import {
+  PermissionRule,
   Rule,
   RuleDef,
   RuleOperationAnd,
@@ -126,7 +127,15 @@ export class AccessService {
         self: true,
         sourceEntity: currentUser,
         targetEntity: inferredEntities.get(rule.self),
-        targetScope: AccessScope.USER,
+        scope: AccessScope.USER,
+      });
+    }
+
+    if (this.isPermissionRule(rule)) {
+      return this.ruleEngineService.executeRule({
+        sourceEntity: currentUser,
+        scope: AccessScope.USER,
+        permissions: Array.isArray(rule.permission) ? rule.permission : [rule.permission],
       });
     }
 
@@ -156,11 +165,15 @@ export class AccessService {
   }
 
   private isRule(ruleDef: RuleDef): ruleDef is Rule {
-    return 'targetScope' in ruleDef || 'self' in ruleDef;
+    return 'scope' in ruleDef || 'self' in ruleDef;
   }
 
   private isSelfRule(rule: Rule): rule is SelfRule {
     return 'self' in rule;
+  }
+
+  private isPermissionRule(rule: Rule): rule is PermissionRule {
+    return 'permission' in rule;
   }
 
   private isOperatorOr(ruleDef: RuleDef): ruleDef is RuleOperationOr {

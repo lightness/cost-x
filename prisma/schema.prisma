@@ -103,6 +103,7 @@ model User {
   workspaceInvitesReceived WorkspaceInvite[] @relation(name: "workspaceInvitee")
   workspaceMemberships    WorkspaceMember[]  @relation(name: "workspaceMember")
   removedWorkspaceMemberships WorkspaceMember[] @relation(name: "workspaceMemberRemovedBy")
+  userPermissions             UserPermission[]
 
   @@map("user")
 }
@@ -110,6 +111,31 @@ model User {
 enum UserRole {
   USER
   ADMIN
+}
+
+enum Permission {
+  CREATE_WORKSPACE
+  UPDATE_PROFILE
+  CREATE_CONTACT_INVITE
+  ACCEPT_CONTACT_INVITE
+  REJECT_CONTACT_INVITE
+  BLOCK_USER
+  UNBLOCK_USER
+  DELETE_CONTACT
+  ACCEPT_WORKSPACE_INVITE
+  REJECT_WORKSPACE_INVITE
+}
+
+model UserPermission {
+  id         Int        @id(map: "PK_user_permission_id") @default(autoincrement())
+  userId     Int        @map("user_id")
+  permission Permission
+  grantedAt  DateTime   @default(now()) @map("granted_at") @db.Timestamp(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_user_permission_user_id_user_id")
+
+  @@unique([userId, permission], map: "UQ_user_permission_user_id_permission")
+  @@map("user_permission")
 }
 
 model Workspace {

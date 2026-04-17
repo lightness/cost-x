@@ -23,8 +23,8 @@ export class PaymentQueryResolver {
   @Query(() => Payment)
   @Access.allow({
     or: [
-      { target: 'workspace', targetScope: AccessScope.WORKSPACE, workspaceRole: [WorkspaceRole.OWNER, WorkspaceRole.MEMBER] },
-      { role: [UserRole.ADMIN], targetScope: AccessScope.USER },
+      { target: 'workspace', scope: AccessScope.WORKSPACE, workspaceRole: [WorkspaceRole.OWNER, WorkspaceRole.MEMBER] },
+      { role: [UserRole.ADMIN], scope: AccessScope.USER },
     ],
   })
   @Infer('payment', { from: fromArg('id'), pipes: [PaymentByIdPipe] })
@@ -36,8 +36,8 @@ export class PaymentQueryResolver {
   @Query(() => [Payment])
   @Access.allow({
     or: [
-      { target: 'workspace', targetScope: AccessScope.WORKSPACE, workspaceRole: [WorkspaceRole.OWNER, WorkspaceRole.MEMBER] },
-      { role: [UserRole.ADMIN], targetScope: AccessScope.USER },
+      { target: 'workspace', scope: AccessScope.WORKSPACE, workspaceRole: [WorkspaceRole.OWNER, WorkspaceRole.MEMBER] },
+      { role: [UserRole.ADMIN], scope: AccessScope.USER },
     ],
   })
   @Infer('item', { from: fromArg('itemId'), pipes: [ItemByIdPipe] })

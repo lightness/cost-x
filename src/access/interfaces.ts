@@ -1,3 +1,4 @@
+import { Permission } from '../../generated/prisma/client';
 import { UserRole } from '../user/entity/user-role.enum';
 
 export enum AccessAction {
@@ -17,9 +18,10 @@ export enum WorkspaceRole {
 
 export interface ResolvedRule {
   sourceEntity?: unknown;
-  targetScope: AccessScope;
+  scope: AccessScope;
   targetEntity?: unknown;
   role?: UserRole[];
   workspaceRole?: WorkspaceRole[];
   self?: boolean;
+  permissions?: Permission[];
 }

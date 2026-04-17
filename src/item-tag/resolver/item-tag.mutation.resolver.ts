@@ -31,17 +31,17 @@ export class ItemTagMutationResolver {
   @Mutation(() => ItemTag)
   @Access.allow({
     or: [
-      { role: [UserRole.ADMIN], targetScope: AccessScope.USER },
+      { role: [UserRole.ADMIN], scope: AccessScope.USER },
       {
         and: [
           {
             target: 'itemWorkspace',
-            targetScope: AccessScope.WORKSPACE,
+            scope: AccessScope.WORKSPACE,
             workspaceRole: [WorkspaceRole.OWNER, WorkspaceRole.MEMBER],
           },
           {
             target: 'tagWorkspace',
-            targetScope: AccessScope.WORKSPACE,
+            scope: AccessScope.WORKSPACE,
             workspaceRole: [WorkspaceRole.OWNER, WorkspaceRole.MEMBER],
           },
         ],
@@ -66,17 +66,17 @@ export class ItemTagMutationResolver {
   @Mutation(() => Boolean)
   @Access.allow({
     or: [
-      { role: [UserRole.ADMIN], targetScope: AccessScope.USER },
+      { role: [UserRole.ADMIN], scope: AccessScope.USER },
       {
         and: [
           {
             target: 'itemWorkspace',
-            targetScope: AccessScope.WORKSPACE,
+            scope: AccessScope.WORKSPACE,
             workspaceRole: [WorkspaceRole.OWNER, WorkspaceRole.MEMBER],
           },
           {
             target: 'tagWorkspace',
-            targetScope: AccessScope.WORKSPACE,
+            scope: AccessScope.WORKSPACE,
             workspaceRole: [WorkspaceRole.OWNER, WorkspaceRole.MEMBER],
           },
         ],

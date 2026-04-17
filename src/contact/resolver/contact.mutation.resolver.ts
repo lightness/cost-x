@@ -5,6 +5,7 @@ import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
 import { AccessScope } from '../../access/interfaces';
+import { Permission } from '../../access/permission.enum';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
 import { Infer } from '../../common/decorator/infer.decorator';
@@ -28,7 +29,10 @@ export class ContactMutationResolver {
 
   @Mutation(() => Contact)
   @Access.allow({
-    or: [{ self: 'sourceUser' }, { role: UserRole.ADMIN, targetScope: AccessScope.USER }],
+    or: [
+      { and: [{ self: 'sourceUser' }, { scope: AccessScope.USER, permission: Permission.DELETE_CONTACT }] },
+      { role: UserRole.ADMIN, scope: AccessScope.USER },
+    ],
   })
   @Infer('contact', { from: fromArg('contactId'), pipes: [ContactByIdPipe] })
   @Infer('sourceUser', { from: 'contact', pipes: [SourceUserByContactPipe] })

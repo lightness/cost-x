@@ -6,7 +6,7 @@ import { AccessStrategy } from './interface';
 @Injectable()
 export class UserAccessStrategy implements AccessStrategy {
   isApplicable(rule: ResolvedRule): boolean {
-    return rule.targetScope === AccessScope.USER;
+    return rule.scope === AccessScope.USER && rule.permissions === undefined;
   }
 
   async executeRule(rule: ResolvedRule): Promise<boolean> {
