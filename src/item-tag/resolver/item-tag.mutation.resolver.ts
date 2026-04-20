@@ -4,7 +4,7 @@ import { Prisma } from '../../../generated/prisma/client';
 import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
-import { AccessScope } from '../../access/interfaces';
+import { AccessScope, WorkspacePermission } from '../../access/interfaces';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
 import { Infer } from '../../common/decorator/infer.decorator';
@@ -31,18 +31,28 @@ export class ItemTagMutationResolver {
   @Mutation(() => ItemTag)
   @Access.allow({
     or: [
-      { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
+      { role: [UserRole.ADMIN], scope: AccessScope.USER },
       {
         and: [
           {
-            role: [UserRole.USER],
-            target: 'itemWorkspace',
-            targetScope: AccessScope.WORKSPACE,
+            or: [
+              { owner: 'itemWorkspace', scope: AccessScope.WORKSPACE },
+              {
+                permission: WorkspacePermission.ASSIGN_TAG,
+                scope: AccessScope.WORKSPACE,
+                target: 'itemWorkspace',
+              },
+            ],
           },
           {
-            role: [UserRole.USER],
-            target: 'tagWorkspace',
-            targetScope: AccessScope.WORKSPACE,
+            or: [
+              { owner: 'tagWorkspace', scope: AccessScope.WORKSPACE },
+              {
+                permission: WorkspacePermission.ASSIGN_TAG,
+                scope: AccessScope.WORKSPACE,
+                target: 'tagWorkspace',
+              },
+            ],
           },
         ],
       },
@@ -66,18 +76,28 @@ export class ItemTagMutationResolver {
   @Mutation(() => Boolean)
   @Access.allow({
     or: [
-      { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
+      { role: [UserRole.ADMIN], scope: AccessScope.USER },
       {
         and: [
           {
-            role: [UserRole.USER],
-            target: 'itemWorkspace',
-            targetScope: AccessScope.WORKSPACE,
+            or: [
+              { owner: 'itemWorkspace', scope: AccessScope.WORKSPACE },
+              {
+                permission: WorkspacePermission.UNASSIGN_TAG,
+                scope: AccessScope.WORKSPACE,
+                target: 'itemWorkspace',
+              },
+            ],
           },
           {
-            role: [UserRole.USER],
-            target: 'tagWorkspace',
-            targetScope: AccessScope.WORKSPACE,
+            or: [
+              { owner: 'tagWorkspace', scope: AccessScope.WORKSPACE },
+              {
+                permission: WorkspacePermission.UNASSIGN_TAG,
+                scope: AccessScope.WORKSPACE,
+                target: 'tagWorkspace',
+              },
+            ],
           },
         ],
       },

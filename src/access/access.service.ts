@@ -3,12 +3,17 @@ import { ModuleRef } from '@nestjs/core';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { InferEntry } from '../common/decorator/infer.decorator';
 import {
+  PermissionRule,
   Rule,
   RuleDef,
   RuleOperationAnd,
   RuleOperationOr,
+  SelfRule,
+  TargetRule,
+  WorkspaceOwnerRule,
+  WorkspacePermissionRule,
 } from './decorator/access.decorator';
-import { AccessAction, ResolvedRule } from './interfaces';
+import { AccessAction, AccessScope, ResolvedRule } from './interfaces';
 import { RuleEngineService } from './rule-engine.service';
 
 @Injectable()
@@ -46,9 +51,7 @@ export class AccessService {
       const entry = entryByKey.get(key);
 
       if (!entry) {
-        throw new InternalServerErrorException(
-          `@Infer key "${key}" referenced but not defined`,
-        );
+        throw new InternalServerErrorException(`@Infer key "${key}" referenced but not defined`);
       }
 
       const promise = (async () => {
@@ -121,22 +124,94 @@ export class AccessService {
     currentUser: unknown,
     inferredEntities: Map<string, unknown>,
   ): Promise<boolean> {
+    if (this.isSelfRule(rule)) {
+      return this.ruleEngineService.executeRule({
+        scope: AccessScope.USER,
+        self: true,
+        sourceEntity: currentUser,
+        targetEntity: inferredEntities.get(rule.self),
+      });
+    }
+
+    if (this.isPermissionRule(rule)) {
+      return this.ruleEngineService.executeRule({
+        permissions: Array.isArray(rule.permission) ? rule.permission : [rule.permission],
+        scope: AccessScope.USER,
+        sourceEntity: currentUser,
+      });
+    }
+
+    if (this.isWorkspaceOwnerRule(rule)) {
+      return this.ruleEngineService.executeRule({
+        ownerCheck: true,
+        scope: AccessScope.WORKSPACE,
+        sourceEntity: currentUser,
+        targetEntity: inferredEntities.get(rule.owner),
+      });
+    }
+
+    if (this.isWorkspacePermissionRule(rule)) {
+      return this.ruleEngineService.executeRule({
+        scope: AccessScope.WORKSPACE,
+        sourceEntity: currentUser,
+        targetEntity: inferredEntities.get(rule.target),
+        workspacePermissions: Array.isArray(rule.permission) ? rule.permission : [rule.permission],
+      });
+    }
+
+    return this.ruleEngineService.executeRule(
+      this.normalizeTargetRule(rule as TargetRule, currentUser, inferredEntities),
+    );
+  }
+
+  private normalizeTargetRule(
+    rule: TargetRule,
+    currentUser: unknown,
+    inferredEntities: Map<string, unknown>,
+  ): ResolvedRule {
     const { target, ...rest } = rule;
 
-    const normalizedRule: ResolvedRule = {
+    return {
       sourceEntity: currentUser,
       ...rest,
-      role: Array.isArray(rule.role) ? rule.role : [rule.role],
+      ...(rule.role !== undefined && {
+        role: Array.isArray(rule.role) ? rule.role : [rule.role],
+      }),
+      ...(rule.workspaceRole !== undefined && {
+        workspaceRole: Array.isArray(rule.workspaceRole)
+          ? rule.workspaceRole
+          : [rule.workspaceRole],
+      }),
       ...(target !== undefined && {
         targetEntity: inferredEntities.get(target),
       }),
     };
-
-    return this.ruleEngineService.executeRule(normalizedRule);
   }
 
   private isRule(ruleDef: RuleDef): ruleDef is Rule {
-    return 'targetScope' in ruleDef;
+    return 'scope' in ruleDef || 'self' in ruleDef || 'owner' in ruleDef;
+  }
+
+  private isSelfRule(rule: Rule): rule is SelfRule {
+    return 'self' in rule;
+  }
+
+  private isPermissionRule(rule: Rule): rule is PermissionRule {
+    return (
+      'permission' in rule && 'scope' in rule && (rule as PermissionRule).scope === AccessScope.USER
+    );
+  }
+
+  private isWorkspaceOwnerRule(rule: Rule): rule is WorkspaceOwnerRule {
+    return 'owner' in rule;
+  }
+
+  private isWorkspacePermissionRule(rule: Rule): rule is WorkspacePermissionRule {
+    return (
+      'permission' in rule &&
+      'scope' in rule &&
+      (rule as WorkspacePermissionRule).scope === AccessScope.WORKSPACE
+    );
   }
 
   private isOperatorOr(ruleDef: RuleDef): ruleDef is RuleOperationOr {

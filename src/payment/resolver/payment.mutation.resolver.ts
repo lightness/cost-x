@@ -4,7 +4,7 @@ import { Prisma } from '../../../generated/prisma/client';
 import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
-import { AccessScope } from '../../access/interfaces';
+import { AccessScope, WorkspacePermission } from '../../access/interfaces';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
 import { Infer } from '../../common/decorator/infer.decorator';
@@ -29,8 +29,13 @@ export class PaymentMutationResolver {
   @Mutation(() => Payment)
   @Access.allow({
     or: [
-      { role: [UserRole.USER], target: 'workspace', targetScope: AccessScope.WORKSPACE },
-      { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
+      { owner: 'workspace', scope: AccessScope.WORKSPACE },
+      {
+        permission: WorkspacePermission.CREATE_PAYMENT,
+        scope: AccessScope.WORKSPACE,
+        target: 'workspace',
+      },
+      { role: [UserRole.ADMIN], scope: AccessScope.USER },
     ],
   })
   @Infer('item', { from: fromArg('itemId'), pipes: [ItemByIdPipe] })
@@ -47,8 +52,13 @@ export class PaymentMutationResolver {
   @Mutation(() => Payment)
   @Access.allow({
     or: [
-      { role: [UserRole.USER], target: 'workspace', targetScope: AccessScope.WORKSPACE },
-      { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
+      { owner: 'workspace', scope: AccessScope.WORKSPACE },
+      {
+        permission: WorkspacePermission.UPDATE_PAYMENT,
+        scope: AccessScope.WORKSPACE,
+        target: 'workspace',
+      },
+      { role: [UserRole.ADMIN], scope: AccessScope.USER },
     ],
   })
   @Infer('payment', { from: fromArg('paymentId'), pipes: [PaymentByIdPipe] })
@@ -65,8 +75,13 @@ export class PaymentMutationResolver {
   @Mutation(() => Boolean)
   @Access.allow({
     or: [
-      { role: [UserRole.USER], target: 'workspace', targetScope: AccessScope.WORKSPACE },
-      { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
+      { owner: 'workspace', scope: AccessScope.WORKSPACE },
+      {
+        permission: WorkspacePermission.DELETE_PAYMENT,
+        scope: AccessScope.WORKSPACE,
+        target: 'workspace',
+      },
+      { role: [UserRole.ADMIN], scope: AccessScope.USER },
     ],
   })
   @Infer('payment', { from: fromArg('paymentId'), pipes: [PaymentByIdPipe] })

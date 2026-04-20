@@ -6,6 +6,7 @@ import {
   OnItemDeletedEvent,
   OnItemExtractedEvent,
   OnItemUpdatedEvent,
+  OnMemberJoinedEvent,
   OnPaymentCreatedEvent,
   OnPaymentDeletedEvent,
   OnPaymentUpdatedEvent,
@@ -173,5 +174,15 @@ export class WorkspaceHistoryEventListenerService {
   @OnEvent(WorkspaceHistoryEvent.WORKSPACE_DELETED)
   async onWorkspaceDeleted({ tx = this.prisma, ...dto }: OnWorkspaceDeletedEvent) {
     return this.workspaceHistoryService.createWorkspaceDeleted(dto.actorId, dto.workspace, tx);
+  }
+
+  @OnEvent(WorkspaceHistoryEvent.MEMBER_JOINED)
+  async onMemberJoined({ tx = this.prisma, ...dto }: OnMemberJoinedEvent) {
+    return this.workspaceHistoryService.createMemberJoined(
+      dto.workspaceId,
+      dto.actorId,
+      dto.member,
+      tx,
+    );
   }
 }

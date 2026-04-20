@@ -14,10 +14,10 @@ export class AccessGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const accessMetadata = this.reflector.getAllAndOverride<AccessMetadata>(
-      ACCESS_METADATA_KEY,
-      [context.getHandler(), context.getClass()],
-    );
+    const accessMetadata = this.reflector.getAllAndOverride<AccessMetadata>(ACCESS_METADATA_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
 
     if (!accessMetadata) {
       return true;

@@ -99,6 +99,12 @@ model User {
   targetUserBlocks        UserBlock[]        @relation(name: "blocked")
   removedUserBlocks       UserBlock[]        @relation(name: "removedByUser")
   workspaceHistoryEntries WorkspaceHistory[]
+  workspaceInvitesSent    WorkspaceInvite[]  @relation(name: "workspaceInviter")
+  workspaceInvitesReceived WorkspaceInvite[] @relation(name: "workspaceInvitee")
+  workspaceMemberships    WorkspaceMember[]  @relation(name: "workspaceMember")
+  removedWorkspaceMemberships WorkspaceMember[] @relation(name: "workspaceMemberRemovedBy")
+  userPermissions             UserPermission[]
+  userWorkspacePermissions    UserWorkspacePermission[]
 
   @@map("user")
 }
@@ -106,6 +112,63 @@ model User {
 enum UserRole {
   USER
   ADMIN
+}
+
+enum Permission {
+  CREATE_WORKSPACE
+  UPDATE_PROFILE
+  CREATE_CONTACT_INVITE
+  ACCEPT_CONTACT_INVITE
+  REJECT_CONTACT_INVITE
+  BLOCK_USER
+  UNBLOCK_USER
+  DELETE_CONTACT
+  ACCEPT_WORKSPACE_INVITE
+  REJECT_WORKSPACE_INVITE
+}
+
+enum WorkspacePermission {
+  CREATE_ITEM
+  UPDATE_ITEM
+  DELETE_ITEM
+  CREATE_PAYMENT
+  UPDATE_PAYMENT
+  DELETE_PAYMENT
+  CREATE_TAG
+  UPDATE_TAG
+  DELETE_TAG
+  ASSIGN_TAG
+  UNASSIGN_TAG
+  MERGE_ITEMS
+  EXTRACT_ITEM
+  CREATE_WORKSPACE_INVITE
+  CANCEL_WORKSPACE_INVITE
+}
+
+model UserWorkspacePermission {
+  id          Int                 @id(map: "PK_user_workspace_permission_id") @default(autoincrement())
+  userId      Int                 @map("user_id")
+  workspaceId Int                 @map("workspace_id")
+  permission  WorkspacePermission
+  grantedAt   DateTime            @default(now()) @map("granted_at") @db.Timestamp(6)
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_user_workspace_permission_user_id_user_id")
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_user_workspace_permission_workspace_id_workspace_id")
+
+  @@unique([userId, workspaceId, permission], map: "UQ_user_workspace_permission_user_id_workspace_id_permission")
+  @@map("user_workspace_permission")
+}
+
+model UserPermission {
+  id         Int        @id(map: "PK_user_permission_id") @default(autoincrement())
+  userId     Int        @map("user_id")
+  permission Permission
+  grantedAt  DateTime   @default(now()) @map("granted_at") @db.Timestamp(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_user_permission_user_id_user_id")
+
+  @@unique([userId, permission], map: "UQ_user_permission_user_id_permission")
+  @@map("user_permission")
 }
 
 model Workspace {
@@ -118,6 +181,9 @@ model Workspace {
   items           Item[]
   tags            Tag[]
   historyEntries  WorkspaceHistory[]
+  workspaceInvites         WorkspaceInvite[]
+  workspaceMembers         WorkspaceMember[]
+  userWorkspacePermissions UserWorkspacePermission[]
 
   owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_workspace_owner_id_user_id")
 
@@ -197,6 +263,7 @@ enum WorkspaceHistoryAction {
   WORKSPACE_DELETED
   ITEM_MERGED
   ITEM_EXTRACTED
+  MEMBER_JOINED
 }
 
 model WorkspaceHistory {
@@ -211,4 +278,47 @@ model WorkspaceHistory {
   createdAt   DateTime               @default(now()) @map("created_at") @db.Timestamp(6)
 
   @@map("workspace_history")
+}
+
+enum WorkspaceInviteStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+}
+
+model WorkspaceInvite {
+  id          Int                   @id(map: "PK_workspace_invite_id") @default(autoincrement())
+  workspaceId Int                   @map("workspace_id")
+  inviterId   Int                   @map("inviter_id")
+  inviteeId   Int                   @map("invitee_id")
+  status      WorkspaceInviteStatus @default(PENDING) @map("status")
+  createdAt   DateTime              @default(now()) @map("created_at") @db.Timestamp(6)
+  reactedAt   DateTime?             @map("reacted_at") @db.Timestamp(6)
+
+  workspace       Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_workspace_invite_workspace_id_workspace_id")
+  inviter         User             @relation(name: "workspaceInviter", fields: [inviterId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_workspace_invite_inviter_id_user_id")
+  invitee         User             @relation(name: "workspaceInvitee", fields: [inviteeId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_workspace_invite_invitee_id_user_id")
+  workspaceMember WorkspaceMember?
+
+  @@unique([workspaceId, inviteeId], where: { reactedAt: null }, map: "UQ_workspace_invite_workspace_id_invitee_id")
+  @@map("workspace_invite")
+}
+
+model WorkspaceMember {
+  id          Int       @id(map: "PK_workspace_member_id") @default(autoincrement())
+  workspaceId Int       @map("workspace_id")
+  userId      Int       @map("user_id")
+  inviteId    Int       @unique @map("invite_id")
+  joinedAt    DateTime  @default(now()) @map("joined_at") @db.Timestamp(6)
+  removedAt   DateTime? @map("removed_at") @db.Timestamp(6)
+  removedByUserId Int?      @map("removed_by_user_id")
+
+  workspace     Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_workspace_member_workspace_id_workspace_id")
+  user          User            @relation(name: "workspaceMember", fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_workspace_member_user_id_user_id")
+  invite        WorkspaceInvite @relation(fields: [inviteId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_workspace_member_invite_id_workspace_invite_id")
+  removedByUser User?           @relation(name: "workspaceMemberRemovedBy", fields: [removedByUserId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_workspace_member_removed_by_user_id_user_id")
+
+  @@unique([workspaceId, userId], where: { removedAt: null }, map: "UQ_workspace_member_workspace_id_user_id")
+  @@map("workspace_member")
 }

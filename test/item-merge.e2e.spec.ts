@@ -15,6 +15,7 @@ import { PaymentFactoryService } from './factory/payment-factory.service';
 import { TagFactoryService } from './factory/tag-factory.service';
 import { UserFactoryService } from './factory/user-factory.service';
 import { WorkspaceFactoryService } from './factory/workspace-factory.service';
+import { WorkspaceMemberFactoryService } from './factory/workspace-member-factory.service';
 import { TestGraphqlModule } from './graphql/test-graphql.module';
 import { TestConfigModule } from './test-config.module';
 
@@ -37,6 +38,7 @@ describe('ItemMerge E2E', () => {
   let itemTagFactory: ItemTagFactoryService;
   let paymentFactory: PaymentFactoryService;
   let tagFactory: TagFactoryService;
+  let workspaceMemberFactory: WorkspaceMemberFactoryService;
 
   beforeAll(async () => {
     moduleRef = await Test.createTestingModule({
@@ -55,6 +57,7 @@ describe('ItemMerge E2E', () => {
     itemTagFactory = moduleRef.get(ItemTagFactoryService);
     paymentFactory = moduleRef.get(PaymentFactoryService);
     tagFactory = moduleRef.get(TagFactoryService);
+    workspaceMemberFactory = moduleRef.get(WorkspaceMemberFactoryService);
   });
 
   afterAll(async () => {
@@ -64,7 +67,7 @@ describe('ItemMerge E2E', () => {
   it('should merge items when user owns the workspace', async () => {
     // Assume
     const owner = await userFactory.create('active');
-    const workspace = await workspaceFactory.create(owner.id);
+    const workspace = await workspaceFactory.create({ ownerId: owner.id });
     const hostItem = await itemFactory.create(workspace.id);
     const mergingItem = await itemFactory.create(workspace.id);
 
@@ -87,7 +90,7 @@ describe('ItemMerge E2E', () => {
   it('should not merge when request is not authenticated', async () => {
     // Assume
     const owner = await userFactory.create('active');
-    const workspace = await workspaceFactory.create(owner.id);
+    const workspace = await workspaceFactory.create({ ownerId: owner.id });
     const hostItem = await itemFactory.create(workspace.id);
     const mergingItem = await itemFactory.create(workspace.id);
 
@@ -101,11 +104,11 @@ describe('ItemMerge E2E', () => {
     expectResponseError(response, { code: ApplicationErrorCode.NO_ACCESS, status: 'FORBIDDEN' });
   });
 
-  it('should not merge when user is not a workspace owner', async () => {
+  it('should not merge when non-member', async () => {
     // Assume
     const owner = await userFactory.create('active');
     const stranger = await userFactory.create('active');
-    const workspace = await workspaceFactory.create(owner.id);
+    const workspace = await workspaceFactory.create({ ownerId: owner.id });
     const hostItem = await itemFactory.create(workspace.id);
     const mergingItem = await itemFactory.create(workspace.id);
 
@@ -122,11 +125,58 @@ describe('ItemMerge E2E', () => {
     expectResponseError(response, { code: ApplicationErrorCode.NO_ACCESS, status: 'FORBIDDEN' });
   });
 
+  it('should merge items when workspace member with MERGE_ITEMS permission', async () => {
+    // Assume
+    const owner = await userFactory.create('active');
+    const workspace = await workspaceFactory.create({ ownerId: owner.id });
+    const hostItem = await itemFactory.create(workspace.id);
+    const mergingItem = await itemFactory.create(workspace.id);
+    const member = await userFactory.create('active');
+    await workspaceMemberFactory.create(workspace.id, member.id);
+
+    // Act
+    const { accessToken } = await authService.authenticateUser(member);
+
+    const response = await request(app.getHttpServer())
+      .post('/graphql')
+      .send({ query: mergeItemsMutation, variables: { dto: { hostItemId: hostItem.id, mergingItemId: mergingItem.id } } })
+      .set('Content-Type', 'application/json')
+      .set('Authorization', `Bearer ${accessToken}`);
+
+    // Assert
+    expectResponseSuccess(response);
+    expect(response.body.data.mergeItems.id).toBe(hostItem.id);
+    await expectItemExists(hostItem.id);
+    await expectItemNotExists(mergingItem.id);
+  });
+
+  it('should not merge items when workspace member without MERGE_ITEMS permission', async () => {
+    // Assume
+    const owner = await userFactory.create('active');
+    const workspace = await workspaceFactory.create({ ownerId: owner.id });
+    const hostItem = await itemFactory.create(workspace.id);
+    const mergingItem = await itemFactory.create(workspace.id);
+    const member = await userFactory.create('active');
+    await workspaceMemberFactory.create(workspace.id, member.id, { permissions: [] });
+
+    // Act
+    const { accessToken } = await authService.authenticateUser(member);
+
+    const response = await request(app.getHttpServer())
+      .post('/graphql')
+      .send({ query: mergeItemsMutation, variables: { dto: { hostItemId: hostItem.id, mergingItemId: mergingItem.id } } })
+      .set('Content-Type', 'application/json')
+      .set('Authorization', `Bearer ${accessToken}`);
+
+    // Assert
+    expectResponseError(response, { code: ApplicationErrorCode.NO_ACCESS, status: 'FORBIDDEN' });
+  });
+
   it('should allow admin to merge any items', async () => {
     // Assume
     const admin = await userFactory.create('active', { role: UserRole.ADMIN });
     const owner = await userFactory.create('active');
-    const workspace = await workspaceFactory.create(owner.id);
+    const workspace = await workspaceFactory.create({ ownerId: owner.id });
     const hostItem = await itemFactory.create(workspace.id);
     const mergingItem = await itemFactory.create(workspace.id);
 
@@ -148,8 +198,8 @@ describe('ItemMerge E2E', () => {
   it('should not merge when items belong to different workspaces', async () => {
     // Assume
     const owner = await userFactory.create('active');
-    const workspaceA = await workspaceFactory.create(owner.id);
-    const workspaceB = await workspaceFactory.create(owner.id);
+    const workspaceA = await workspaceFactory.create({ ownerId: owner.id });
+    const workspaceB = await workspaceFactory.create({ ownerId: owner.id });
     const hostItem = await itemFactory.create(workspaceA.id);
     const mergingItem = await itemFactory.create(workspaceB.id);
 
@@ -172,7 +222,7 @@ describe('ItemMerge E2E', () => {
   it('should move mergingItem payments to hostItem on merge', async () => {
     // Assume
     const owner = await userFactory.create('active');
-    const workspace = await workspaceFactory.create(owner.id);
+    const workspace = await workspaceFactory.create({ ownerId: owner.id });
     const hostItem = await itemFactory.create(workspace.id);
     const mergingItem = await itemFactory.create(workspace.id);
     const payment1 = await paymentFactory.create(mergingItem.id);
@@ -201,7 +251,7 @@ describe('ItemMerge E2E', () => {
   it('should delete mergingItem tags on merge', async () => {
     // Assume
     const owner = await userFactory.create('active');
-    const workspace = await workspaceFactory.create(owner.id);
+    const workspace = await workspaceFactory.create({ ownerId: owner.id });
     const hostItem = await itemFactory.create(workspace.id);
     const mergingItem = await itemFactory.create(workspace.id);
     const tag = await tagFactory.create(workspace.id);

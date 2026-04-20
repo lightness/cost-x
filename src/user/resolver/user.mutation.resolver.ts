@@ -5,6 +5,7 @@ import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
 import { AccessScope } from '../../access/interfaces';
+import { Permission } from '../../access/permission.enum';
 import { AuthGuard } from '../../auth/guard/auth.guard';
 import { Infer } from '../../common/decorator/infer.decorator';
 import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
@@ -24,8 +25,10 @@ export class UserMutationResolver {
   @Mutation(() => User)
   @Access.allow({
     or: [
-      { role: UserRole.USER, target: 'user', targetScope: AccessScope.USER },
-      { role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL },
+      {
+        and: [{ self: 'user' }, { permission: Permission.UPDATE_PROFILE, scope: AccessScope.USER }],
+      },
+      { role: UserRole.ADMIN, scope: AccessScope.USER },
     ],
   })
   @Infer('user', { from: fromArg('id'), pipes: [UserByIdPipe] })
@@ -38,7 +41,7 @@ export class UserMutationResolver {
   }
 
   @Mutation(() => Boolean)
-  @Access.allow({ role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL })
+  @Access.allow({ role: UserRole.ADMIN, scope: AccessScope.USER })
   async deleteUser(
     @Args('id', { type: () => Int }, UserByIdPipe) user: User,
     @Context('tx') tx: Prisma.TransactionClient,
@@ -49,7 +52,7 @@ export class UserMutationResolver {
   }
 
   @Mutation(() => User)
-  @Access.allow({ role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL })
+  @Access.allow({ role: [UserRole.ADMIN], scope: AccessScope.USER })
   async banUser(
     @Args('id', { type: () => Int }, UserByIdPipe) user: User,
     @Context('tx') tx: Prisma.TransactionClient,
@@ -58,7 +61,7 @@ export class UserMutationResolver {
   }
 
   @Mutation(() => User)
-  @Access.allow({ role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL })
+  @Access.allow({ role: [UserRole.ADMIN], scope: AccessScope.USER })
   async unbanUser(
     @Args('id', { type: () => Int }, UserByIdPipe) user: User,
     @Context('tx') tx: Prisma.TransactionClient,

@@ -5,6 +5,7 @@ import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
 import { AccessScope } from '../../access/interfaces';
+import { Permission } from '../../access/permission.enum';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
 import { Infer } from '../../common/decorator/infer.decorator';
@@ -23,7 +24,12 @@ export class WorkspaceMutationResolver {
   constructor(private workspaceService: WorkspaceService) {}
 
   @Mutation(() => Workspace)
-  @Access.allow({ role: [UserRole.USER, UserRole.ADMIN], targetScope: AccessScope.GLOBAL })
+  @Access.allow({
+    or: [
+      { permission: Permission.CREATE_WORKSPACE, scope: AccessScope.USER },
+      { role: UserRole.ADMIN, scope: AccessScope.USER },
+    ],
+  })
   async createWorkspace(
     @Args('dto') dto: WorkspaceInDto,
     @CurrentUser() currentUser: User,
@@ -35,8 +41,8 @@ export class WorkspaceMutationResolver {
   @Mutation(() => Workspace)
   @Access.allow({
     or: [
-      { role: [UserRole.USER], target: 'workspace', targetScope: AccessScope.WORKSPACE },
-      { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
+      { owner: 'workspace', scope: AccessScope.WORKSPACE },
+      { role: [UserRole.ADMIN], scope: AccessScope.USER },
     ],
   })
   @Infer('workspace', { from: fromArg('id'), pipes: [WorkspaceByIdPipe] })
@@ -52,8 +58,8 @@ export class WorkspaceMutationResolver {
   @Mutation(() => Workspace)
   @Access.allow({
     or: [
-      { role: [UserRole.USER], target: 'workspace', targetScope: AccessScope.WORKSPACE },
-      { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
+      { owner: 'workspace', scope: AccessScope.WORKSPACE },
+      { role: [UserRole.ADMIN], scope: AccessScope.USER },
     ],
   })
   @Infer('workspace', { from: fromArg('id'), pipes: [WorkspaceByIdPipe] })

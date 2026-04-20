@@ -1,9 +1,23 @@
 import { Injectable } from '@nestjs/common';
 import { v4 as uuid } from 'uuid';
 import { UserCreateInput, UserCreateManyInput } from '../../generated/prisma/models';
+import { Permission } from '../../generated/prisma/client';
 import { PrismaService } from '../../src/prisma/prisma.service';
 import User from '../../src/user/entity/user.entity';
 import { KindBasedFactoryService } from './base-factory.service';
+
+const DEFAULT_USER_PERMISSIONS: Permission[] = [
+  Permission.CREATE_WORKSPACE,
+  Permission.UPDATE_PROFILE,
+  Permission.CREATE_CONTACT_INVITE,
+  Permission.ACCEPT_CONTACT_INVITE,
+  Permission.REJECT_CONTACT_INVITE,
+  Permission.BLOCK_USER,
+  Permission.UNBLOCK_USER,
+  Permission.DELETE_CONTACT,
+  Permission.ACCEPT_WORKSPACE_INVITE,
+  Permission.REJECT_WORKSPACE_INVITE,
+];
 
 export type UserKind = 'active' | 'email_not_verified' | 'banned';
 
@@ -17,11 +31,17 @@ export class UserFactoryService
     kind: UserKind = 'active',
     overrides: Partial<UserCreateManyInput> = {},
   ): Promise<User> {
-    return this.prisma.user.create({
+    const user = await this.prisma.user.create({
       data: {
         ...(await this.generate(kind, overrides)),
       },
     });
+
+    await this.prisma.userPermission.createMany({
+      data: DEFAULT_USER_PERMISSIONS.map((permission) => ({ permission, userId: user.id })),
+    });
+
+    return user;
   }
 
   async generate(

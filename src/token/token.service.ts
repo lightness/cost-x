@@ -66,13 +66,7 @@ export class TokenService<T extends object> {
     const expiresInSeconds = exp - Math.floor(Date.now() / 1000) + 1;
 
     if (expiresInSeconds > 0) {
-      await this.redis.set(
-        this.getRedisKey(token),
-        '',
-        'EX',
-        expiresInSeconds,
-        'NX',
-      );
+      await this.redis.set(this.getRedisKey(token), '', 'EX', expiresInSeconds, 'NX');
     }
   }
 

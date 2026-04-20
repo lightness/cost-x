@@ -29,8 +29,7 @@ export class LogoutService {
     let userId: number;
 
     try {
-      const refreshTokenPayload =
-        await this.refreshTokenService.verifyToken(refreshToken);
+      const refreshTokenPayload = await this.refreshTokenService.verifyToken(refreshToken);
 
       userId = refreshTokenPayload.id;
     } catch (_e) {

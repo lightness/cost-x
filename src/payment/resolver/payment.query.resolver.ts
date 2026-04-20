@@ -3,7 +3,7 @@ import { Args, Int, Query, Resolver } from '@nestjs/graphql';
 import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
-import { AccessScope } from '../../access/interfaces';
+import { AccessScope, WorkspaceRole } from '../../access/interfaces';
 import { AuthGuard } from '../../auth/guard/auth.guard';
 import { Infer } from '../../common/decorator/infer.decorator';
 import { ItemByIdPipe } from '../../common/pipe/item-by-id.pipe';
@@ -23,8 +23,12 @@ export class PaymentQueryResolver {
   @Query(() => Payment)
   @Access.allow({
     or: [
-      { role: [UserRole.USER], target: 'workspace', targetScope: AccessScope.WORKSPACE },
-      { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
+      {
+        scope: AccessScope.WORKSPACE,
+        target: 'workspace',
+        workspaceRole: [WorkspaceRole.OWNER, WorkspaceRole.MEMBER],
+      },
+      { role: [UserRole.ADMIN], scope: AccessScope.USER },
     ],
   })
   @Infer('payment', { from: fromArg('id'), pipes: [PaymentByIdPipe] })
@@ -36,8 +40,12 @@ export class PaymentQueryResolver {
   @Query(() => [Payment])
   @Access.allow({
     or: [
-      { role: [UserRole.USER], target: 'workspace', targetScope: AccessScope.WORKSPACE },
-      { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
+      {
+        scope: AccessScope.WORKSPACE,
+        target: 'workspace',
+        workspaceRole: [WorkspaceRole.OWNER, WorkspaceRole.MEMBER],
+      },
+      { role: [UserRole.ADMIN], scope: AccessScope.USER },
     ],
   })
   @Infer('item', { from: fromArg('itemId'), pipes: [ItemByIdPipe] })

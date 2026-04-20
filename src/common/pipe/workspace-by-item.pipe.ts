@@ -1,16 +1,10 @@
-import {
-  Injectable,
-  NotFoundException,
-  type PipeTransform,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, type PipeTransform } from '@nestjs/common';
 import Item from '../../item/entity/item.entity';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Workspace } from '../../workspace/entity/workspace.entity';
 
 @Injectable()
-export class WorkspaceByItemPipe
-  implements PipeTransform<Item, Promise<Workspace>>
-{
+export class WorkspaceByItemPipe implements PipeTransform<Item, Promise<Workspace>> {
   constructor(private prisma: PrismaService) {}
 
   async transform(item: Item): Promise<Workspace> {
