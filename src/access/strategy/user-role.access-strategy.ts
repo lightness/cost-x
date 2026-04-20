@@ -4,20 +4,13 @@ import { AccessScope, ResolvedRule } from '../interfaces';
 import { AccessStrategy } from './interface';
 
 @Injectable()
-export class UserAccessStrategy implements AccessStrategy {
+export class UserRoleAccessStrategy implements AccessStrategy {
   isApplicable(rule: ResolvedRule): boolean {
-    return rule.scope === AccessScope.USER && rule.permissions === undefined;
+    return rule.scope === AccessScope.USER && rule.permissions === undefined && rule.self !== true;
   }
 
   async executeRule(rule: ResolvedRule): Promise<boolean> {
     const sourceUser = rule.sourceEntity as { id: number; role: UserRole };
-
-    if (rule.self) {
-      const targetEntity = rule.targetEntity as { id: number };
-
-      return sourceUser.id === targetEntity.id;
-    }
-
     const requiredRoles = rule.role ?? [];
 
     if (!requiredRoles.includes(sourceUser.role)) {

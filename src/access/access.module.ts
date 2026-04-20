@@ -8,7 +8,8 @@ import { UserPermissionsByUserIdLoader } from './dataloader/user-permissions-by-
 import { UserPermissionQueryResolver } from './resolver/user-permission.query.resolver';
 import { RuleEngineService } from './rule-engine.service';
 import {
-  UserAccessStrategy,
+  UserRoleAccessStrategy,
+  UserSelfAccessStrategy,
   UserPermissionAccessStrategy,
   UserToWorkspaceAccessStrategy,
   WorkspaceOwnerAccessStrategy,
@@ -28,14 +29,16 @@ import { UserPermissionService } from './user-permission.service';
     UserPermissionsByUserIdLoader,
     UserPermissionQueryResolver,
     // access strategies
-    UserAccessStrategy,
+    UserRoleAccessStrategy,
+    UserSelfAccessStrategy,
     UserPermissionAccessStrategy,
     UserToWorkspaceAccessStrategy,
     WorkspaceOwnerAccessStrategy,
     WorkspacePermissionAccessStrategy,
     {
       inject: [
-        UserAccessStrategy,
+        UserRoleAccessStrategy,
+        UserSelfAccessStrategy,
         UserPermissionAccessStrategy,
         UserToWorkspaceAccessStrategy,
         WorkspaceOwnerAccessStrategy,
