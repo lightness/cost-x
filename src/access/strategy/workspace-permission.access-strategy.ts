@@ -18,9 +18,9 @@ export class WorkspacePermissionAccessStrategy implements AccessStrategy {
     const granted = await this.prisma.userWorkspacePermission.findMany({
       select: { permission: true },
       where: {
+        permission: { in: rule.workspacePermissions },
         userId: currentUser.id,
         workspaceId: workspace.id,
-        permission: { in: rule.workspacePermissions },
       },
     });
 

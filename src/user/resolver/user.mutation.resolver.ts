@@ -25,7 +25,9 @@ export class UserMutationResolver {
   @Mutation(() => User)
   @Access.allow({
     or: [
-      { and: [{ self: 'user' }, { scope: AccessScope.USER, permission: Permission.UPDATE_PROFILE }] },
+      {
+        and: [{ self: 'user' }, { permission: Permission.UPDATE_PROFILE, scope: AccessScope.USER }],
+      },
       { role: UserRole.ADMIN, scope: AccessScope.USER },
     ],
   })

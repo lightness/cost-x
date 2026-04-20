@@ -123,9 +123,9 @@ export class WorkspaceInviteService {
   ): Promise<void> {
     await tx.userWorkspacePermission.createMany({
       data: Object.values(WorkspacePermission).map((permission) => ({
+        permission,
         userId,
         workspaceId,
-        permission,
       })),
     });
   }

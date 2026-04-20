@@ -126,40 +126,42 @@ export class AccessService {
   ): Promise<boolean> {
     if (this.isSelfRule(rule)) {
       return this.ruleEngineService.executeRule({
+        scope: AccessScope.USER,
         self: true,
         sourceEntity: currentUser,
         targetEntity: inferredEntities.get(rule.self),
-        scope: AccessScope.USER,
       });
     }
 
     if (this.isPermissionRule(rule)) {
       return this.ruleEngineService.executeRule({
-        sourceEntity: currentUser,
-        scope: AccessScope.USER,
         permissions: Array.isArray(rule.permission) ? rule.permission : [rule.permission],
+        scope: AccessScope.USER,
+        sourceEntity: currentUser,
       });
     }
 
     if (this.isWorkspaceOwnerRule(rule)) {
       return this.ruleEngineService.executeRule({
+        ownerCheck: true,
+        scope: AccessScope.WORKSPACE,
         sourceEntity: currentUser,
         targetEntity: inferredEntities.get(rule.owner),
-        scope: AccessScope.WORKSPACE,
-        ownerCheck: true,
       });
     }
 
     if (this.isWorkspacePermissionRule(rule)) {
       return this.ruleEngineService.executeRule({
+        scope: AccessScope.WORKSPACE,
         sourceEntity: currentUser,
         targetEntity: inferredEntities.get(rule.target),
-        scope: AccessScope.WORKSPACE,
         workspacePermissions: Array.isArray(rule.permission) ? rule.permission : [rule.permission],
       });
     }
 
-    return this.ruleEngineService.executeRule(this.normalizeTargetRule(rule as TargetRule, currentUser, inferredEntities));
+    return this.ruleEngineService.executeRule(
+      this.normalizeTargetRule(rule as TargetRule, currentUser, inferredEntities),
+    );
   }
 
   private normalizeTargetRule(
@@ -176,7 +178,9 @@ export class AccessService {
         role: Array.isArray(rule.role) ? rule.role : [rule.role],
       }),
       ...(rule.workspaceRole !== undefined && {
-        workspaceRole: Array.isArray(rule.workspaceRole) ? rule.workspaceRole : [rule.workspaceRole],
+        workspaceRole: Array.isArray(rule.workspaceRole)
+          ? rule.workspaceRole
+          : [rule.workspaceRole],
       }),
       ...(target !== undefined && {
         targetEntity: inferredEntities.get(target),
@@ -193,7 +197,9 @@ export class AccessService {
   }
 
   private isPermissionRule(rule: Rule): rule is PermissionRule {
-    return 'permission' in rule && 'scope' in rule && (rule as PermissionRule).scope === AccessScope.USER;
+    return (
+      'permission' in rule && 'scope' in rule && (rule as PermissionRule).scope === AccessScope.USER
+    );
   }
 
   private isWorkspaceOwnerRule(rule: Rule): rule is WorkspaceOwnerRule {
@@ -201,7 +207,11 @@ export class AccessService {
   }
 
   private isWorkspacePermissionRule(rule: Rule): rule is WorkspacePermissionRule {
-    return 'permission' in rule && 'scope' in rule && (rule as WorkspacePermissionRule).scope === AccessScope.WORKSPACE;
+    return (
+      'permission' in rule &&
+      'scope' in rule &&
+      (rule as WorkspacePermissionRule).scope === AccessScope.WORKSPACE
+    );
   }
 
   private isOperatorOr(ruleDef: RuleDef): ruleDef is RuleOperationOr {

@@ -56,7 +56,9 @@ export class ResetPasswordService {
     return this.mailService.sendResetPassword(user, token);
   }
 
-  async createTokenFromExistingCode(user: Pick<User, 'id' | 'resetPasswordTempCode'>): Promise<string> {
+  async createTokenFromExistingCode(
+    user: Pick<User, 'id' | 'resetPasswordTempCode'>,
+  ): Promise<string> {
     return this.tokenService.createToken({ id: user.id, tempCode: user.resetPasswordTempCode });
   }
 

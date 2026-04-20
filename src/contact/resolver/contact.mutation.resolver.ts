@@ -30,7 +30,12 @@ export class ContactMutationResolver {
   @Mutation(() => Contact)
   @Access.allow({
     or: [
-      { and: [{ self: 'sourceUser' }, { scope: AccessScope.USER, permission: Permission.DELETE_CONTACT }] },
+      {
+        and: [
+          { self: 'sourceUser' },
+          { permission: Permission.DELETE_CONTACT, scope: AccessScope.USER },
+        ],
+      },
       { role: UserRole.ADMIN, scope: AccessScope.USER },
     ],
   })

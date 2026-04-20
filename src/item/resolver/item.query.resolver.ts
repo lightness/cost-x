@@ -23,7 +23,11 @@ export class ItemQueryResolver {
   @Query(() => Item)
   @Access.allow({
     or: [
-      { target: 'workspace', scope: AccessScope.WORKSPACE, workspaceRole: [WorkspaceRole.OWNER, WorkspaceRole.MEMBER] },
+      {
+        scope: AccessScope.WORKSPACE,
+        target: 'workspace',
+        workspaceRole: [WorkspaceRole.OWNER, WorkspaceRole.MEMBER],
+      },
       { role: [UserRole.ADMIN], scope: AccessScope.USER },
     ],
   })
@@ -36,7 +40,11 @@ export class ItemQueryResolver {
   @Query(() => [Item])
   @Access.allow({
     or: [
-      { target: 'workspace', scope: AccessScope.WORKSPACE, workspaceRole: [WorkspaceRole.OWNER, WorkspaceRole.MEMBER] },
+      {
+        scope: AccessScope.WORKSPACE,
+        target: 'workspace',
+        workspaceRole: [WorkspaceRole.OWNER, WorkspaceRole.MEMBER],
+      },
       { role: [UserRole.ADMIN], scope: AccessScope.USER },
     ],
   })

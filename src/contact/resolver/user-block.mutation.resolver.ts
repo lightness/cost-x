@@ -31,7 +31,12 @@ export class UserBlockMutationResolver {
   @Mutation(() => UserBlock)
   @Access.allow({
     or: [
-      { and: [{ self: 'blockerUser' }, { scope: AccessScope.USER, permission: Permission.BLOCK_USER }] },
+      {
+        and: [
+          { self: 'blockerUser' },
+          { permission: Permission.BLOCK_USER, scope: AccessScope.USER },
+        ],
+      },
       { role: UserRole.ADMIN, scope: AccessScope.USER },
     ],
   })
@@ -49,7 +54,12 @@ export class UserBlockMutationResolver {
   @Mutation(() => UserBlock)
   @Access.allow({
     or: [
-      { and: [{ self: 'blockerUser' }, { scope: AccessScope.USER, permission: Permission.UNBLOCK_USER }] },
+      {
+        and: [
+          { self: 'blockerUser' },
+          { permission: Permission.UNBLOCK_USER, scope: AccessScope.USER },
+        ],
+      },
       { role: UserRole.ADMIN, scope: AccessScope.USER },
     ],
   })

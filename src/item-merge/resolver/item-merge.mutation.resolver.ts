@@ -32,14 +32,22 @@ export class ItemMergeMutationResolver {
         and: [
           {
             or: [
-              { scope: AccessScope.WORKSPACE, owner: 'hostItemWorkspace' },
-              { scope: AccessScope.WORKSPACE, target: 'hostItemWorkspace', permission: WorkspacePermission.MERGE_ITEMS },
+              { owner: 'hostItemWorkspace', scope: AccessScope.WORKSPACE },
+              {
+                permission: WorkspacePermission.MERGE_ITEMS,
+                scope: AccessScope.WORKSPACE,
+                target: 'hostItemWorkspace',
+              },
             ],
           },
           {
             or: [
-              { scope: AccessScope.WORKSPACE, owner: 'mergingItemWorkspace' },
-              { scope: AccessScope.WORKSPACE, target: 'mergingItemWorkspace', permission: WorkspacePermission.MERGE_ITEMS },
+              { owner: 'mergingItemWorkspace', scope: AccessScope.WORKSPACE },
+              {
+                permission: WorkspacePermission.MERGE_ITEMS,
+                scope: AccessScope.WORKSPACE,
+                target: 'mergingItemWorkspace',
+              },
             ],
           },
         ],

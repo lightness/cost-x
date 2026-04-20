@@ -19,10 +19,7 @@ export class RefreshTokenService {
     private authService: AuthService,
   ) {}
 
-  async refreshToken(
-    accessToken: string,
-    refreshToken: string,
-  ): Promise<AuthOutDto> {
+  async refreshToken(accessToken: string, refreshToken: string): Promise<AuthOutDto> {
     if (!refreshToken) {
       throw new InvalidRefreshTokenError();
     }
@@ -30,8 +27,7 @@ export class RefreshTokenService {
     let userId: number;
 
     try {
-      const refreshTokenPayload =
-        await this.refreshTokenService.verifyToken(refreshToken);
+      const refreshTokenPayload = await this.refreshTokenService.verifyToken(refreshToken);
 
       userId = refreshTokenPayload.id;
     } catch (_e) {

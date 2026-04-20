@@ -36,14 +36,22 @@ export class ItemTagMutationResolver {
         and: [
           {
             or: [
-              { scope: AccessScope.WORKSPACE, owner: 'itemWorkspace' },
-              { scope: AccessScope.WORKSPACE, target: 'itemWorkspace', permission: WorkspacePermission.ASSIGN_TAG },
+              { owner: 'itemWorkspace', scope: AccessScope.WORKSPACE },
+              {
+                permission: WorkspacePermission.ASSIGN_TAG,
+                scope: AccessScope.WORKSPACE,
+                target: 'itemWorkspace',
+              },
             ],
           },
           {
             or: [
-              { scope: AccessScope.WORKSPACE, owner: 'tagWorkspace' },
-              { scope: AccessScope.WORKSPACE, target: 'tagWorkspace', permission: WorkspacePermission.ASSIGN_TAG },
+              { owner: 'tagWorkspace', scope: AccessScope.WORKSPACE },
+              {
+                permission: WorkspacePermission.ASSIGN_TAG,
+                scope: AccessScope.WORKSPACE,
+                target: 'tagWorkspace',
+              },
             ],
           },
         ],
@@ -73,14 +81,22 @@ export class ItemTagMutationResolver {
         and: [
           {
             or: [
-              { scope: AccessScope.WORKSPACE, owner: 'itemWorkspace' },
-              { scope: AccessScope.WORKSPACE, target: 'itemWorkspace', permission: WorkspacePermission.UNASSIGN_TAG },
+              { owner: 'itemWorkspace', scope: AccessScope.WORKSPACE },
+              {
+                permission: WorkspacePermission.UNASSIGN_TAG,
+                scope: AccessScope.WORKSPACE,
+                target: 'itemWorkspace',
+              },
             ],
           },
           {
             or: [
-              { scope: AccessScope.WORKSPACE, owner: 'tagWorkspace' },
-              { scope: AccessScope.WORKSPACE, target: 'tagWorkspace', permission: WorkspacePermission.UNASSIGN_TAG },
+              { owner: 'tagWorkspace', scope: AccessScope.WORKSPACE },
+              {
+                permission: WorkspacePermission.UNASSIGN_TAG,
+                scope: AccessScope.WORKSPACE,
+                target: 'tagWorkspace',
+              },
             ],
           },
         ],

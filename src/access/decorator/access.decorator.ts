@@ -32,7 +32,12 @@ export interface WorkspacePermissionRule {
   permission: WorkspacePermission | WorkspacePermission[];
 }
 
-export type Rule = SelfRule | TargetRule | PermissionRule | WorkspaceOwnerRule | WorkspacePermissionRule;
+export type Rule =
+  | SelfRule
+  | TargetRule
+  | PermissionRule
+  | WorkspaceOwnerRule
+  | WorkspacePermissionRule;
 
 export type RuleOperationAnd = { and: (RuleDef | RuleOperationOr)[] };
 export type RuleOperationOr = { or: (RuleDef | RuleOperationAnd)[] };

@@ -1,12 +1,7 @@
 import { Field, InputType } from '@nestjs/graphql';
 import { Transform, Type } from 'class-transformer';
 import { Decimal } from '@prisma/client/runtime/client';
-import {
-  IsDate,
-  IsEnum,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { IsDate, IsEnum, IsOptional, IsString } from 'class-validator';
 import { Currency } from '../../currency-rate/entity/currency.enum';
 import { DateScalar, DecimalScalar } from '../../graphql/scalar';
 

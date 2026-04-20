@@ -12,11 +12,7 @@ interface Filter {
 }
 
 @Injectable({ scope: Scope.REQUEST })
-export class ItemsByWorkspaceIdLoader extends NestedLoader<
-  number,
-  Item[],
-  Filter
-> {
+export class ItemsByWorkspaceIdLoader extends NestedLoader<number, Item[], Filter> {
   constructor(
     private itemService: ItemService,
     private groupService: GroupService,
@@ -24,10 +20,7 @@ export class ItemsByWorkspaceIdLoader extends NestedLoader<
     super();
   }
 
-  protected async loaderWithOptionsFn(
-    workspaceIds: number[],
-    filter: Filter,
-  ): Promise<Item[][]> {
+  protected async loaderWithOptionsFn(workspaceIds: number[], filter: Filter): Promise<Item[][]> {
     const items = await this.itemService.list(
       workspaceIds,
       filter.itemsFilter,
@@ -36,8 +29,6 @@ export class ItemsByWorkspaceIdLoader extends NestedLoader<
 
     const itemsByWorkspaceId = this.groupService.groupBy(items, 'workspaceId');
 
-    return workspaceIds.map(
-      (workspaceId) => itemsByWorkspaceId.get(workspaceId) || [],
-    );
+    return workspaceIds.map((workspaceId) => itemsByWorkspaceId.get(workspaceId) || []);
   }
 }

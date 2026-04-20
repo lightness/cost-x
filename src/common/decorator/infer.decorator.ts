@@ -13,16 +13,12 @@ export interface InferEntry {
   options: InferOptions;
 }
 
-export const Infer = (key: string, options: InferOptions): MethodDecorator =>
+export const Infer =
+  (key: string, options: InferOptions): MethodDecorator =>
   (target, propertyKey, descriptor) => {
-    const existing: InferEntry[] =
-      Reflect.getMetadata(INFER_METADATA_KEY, descriptor.value) ?? [];
+    const existing: InferEntry[] = Reflect.getMetadata(INFER_METADATA_KEY, descriptor.value) ?? [];
 
-    Reflect.defineMetadata(
-      INFER_METADATA_KEY,
-      [...existing, { key, options }],
-      descriptor.value,
-    );
+    Reflect.defineMetadata(INFER_METADATA_KEY, [...existing, { key, options }], descriptor.value);
 
     return descriptor;
   };

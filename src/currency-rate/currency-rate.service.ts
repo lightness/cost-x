@@ -33,9 +33,7 @@ export class CurrencyRateService {
   }
 
   async getMany(dtos: GetCurrencyRateInDto[]): Promise<CurrencyRate[]> {
-    const derivativeMap = await this.populateDerivativeMap(
-      this.getDerivativeMap(dtos),
-    );
+    const derivativeMap = await this.populateDerivativeMap(this.getDerivativeMap(dtos));
 
     return dtos.map((dto) => {
       const { fromCurrency, toCurrency, date } = dto;
@@ -99,12 +97,10 @@ export class CurrencyRateService {
     }, new Map());
   }
 
-  private async populateDerivativeMap(
-    derivativeMap: DerivativeMap,
-  ): Promise<DerivativeMap> {
+  private async populateDerivativeMap(derivativeMap: DerivativeMap): Promise<DerivativeMap> {
     for (const fromCurrency of derivativeMap.keys()) {
-      const dates = Array.from(derivativeMap.get(fromCurrency).keys()).map(
-        (dateStr) => this.dateService.fromString(dateStr),
+      const dates = Array.from(derivativeMap.get(fromCurrency).keys()).map((dateStr) =>
+        this.dateService.fromString(dateStr),
       );
 
       const currencyRates = await this.prisma.currencyRate.findMany({
@@ -125,9 +121,7 @@ export class CurrencyRateService {
         derivativeMap.get(fromCurrency).set(dateStr, currencyRate.rate);
       }
 
-      for (const [datePart, rate] of derivativeMap
-        .get(fromCurrency)
-        .entries()) {
+      for (const [datePart, rate] of derivativeMap.get(fromCurrency).entries()) {
         if (!rate) {
           const pulledRate = await this.pullAndSave(fromCurrency, datePart);
 
@@ -170,10 +164,7 @@ export class CurrencyRateService {
   }
 
   private async pullAndSave(fromCurrency: Currency, datePart: string) {
-    const rate = await this.currencyRateApiService.pullCurrencyRate(
-      fromCurrency,
-      datePart,
-    );
+    const rate = await this.currencyRateApiService.pullCurrencyRate(fromCurrency, datePart);
 
     const createdCurrencyRate = await this.prisma.currencyRate.create({
       data: {

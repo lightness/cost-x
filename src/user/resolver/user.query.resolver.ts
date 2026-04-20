@@ -27,10 +27,7 @@ export class UserQueryResolver {
 
   @Query(() => User)
   @Access.allow({
-    or: [
-      { self: 'user' },
-      { role: UserRole.ADMIN, scope: AccessScope.USER },
-    ],
+    or: [{ self: 'user' }, { role: UserRole.ADMIN, scope: AccessScope.USER }],
   })
   @Infer('user', { from: fromArg('id'), pipes: [UserByIdPipe] })
   async user(@Args('id', { type: () => Int }) id: number) {

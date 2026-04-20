@@ -29,8 +29,12 @@ export class PaymentMutationResolver {
   @Mutation(() => Payment)
   @Access.allow({
     or: [
-      { scope: AccessScope.WORKSPACE, owner: 'workspace' },
-      { scope: AccessScope.WORKSPACE, target: 'workspace', permission: WorkspacePermission.CREATE_PAYMENT },
+      { owner: 'workspace', scope: AccessScope.WORKSPACE },
+      {
+        permission: WorkspacePermission.CREATE_PAYMENT,
+        scope: AccessScope.WORKSPACE,
+        target: 'workspace',
+      },
       { role: [UserRole.ADMIN], scope: AccessScope.USER },
     ],
   })
@@ -48,8 +52,12 @@ export class PaymentMutationResolver {
   @Mutation(() => Payment)
   @Access.allow({
     or: [
-      { scope: AccessScope.WORKSPACE, owner: 'workspace' },
-      { scope: AccessScope.WORKSPACE, target: 'workspace', permission: WorkspacePermission.UPDATE_PAYMENT },
+      { owner: 'workspace', scope: AccessScope.WORKSPACE },
+      {
+        permission: WorkspacePermission.UPDATE_PAYMENT,
+        scope: AccessScope.WORKSPACE,
+        target: 'workspace',
+      },
       { role: [UserRole.ADMIN], scope: AccessScope.USER },
     ],
   })
@@ -67,8 +75,12 @@ export class PaymentMutationResolver {
   @Mutation(() => Boolean)
   @Access.allow({
     or: [
-      { scope: AccessScope.WORKSPACE, owner: 'workspace' },
-      { scope: AccessScope.WORKSPACE, target: 'workspace', permission: WorkspacePermission.DELETE_PAYMENT },
+      { owner: 'workspace', scope: AccessScope.WORKSPACE },
+      {
+        permission: WorkspacePermission.DELETE_PAYMENT,
+        scope: AccessScope.WORKSPACE,
+        target: 'workspace',
+      },
       { role: [UserRole.ADMIN], scope: AccessScope.USER },
     ],
   })

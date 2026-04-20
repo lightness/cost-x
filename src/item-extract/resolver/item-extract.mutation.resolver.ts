@@ -28,8 +28,12 @@ export class ItemExtractMutationResolver {
   @Access.allow({
     or: [
       { role: [UserRole.ADMIN], scope: AccessScope.USER },
-      { scope: AccessScope.WORKSPACE, owner: 'itemWorkspace' },
-      { scope: AccessScope.WORKSPACE, target: 'itemWorkspace', permission: WorkspacePermission.EXTRACT_ITEM },
+      { owner: 'itemWorkspace', scope: AccessScope.WORKSPACE },
+      {
+        permission: WorkspacePermission.EXTRACT_ITEM,
+        scope: AccessScope.WORKSPACE,
+        target: 'itemWorkspace',
+      },
     ],
   })
   @Infer('itemWorkspace', {
@@ -42,6 +46,12 @@ export class ItemExtractMutationResolver {
     @CurrentUser() currentUser: User,
     @Context('tx') tx: Prisma.TransactionClient,
   ) {
-    return this.itemExtractService.extractAsItem(sourceItem, dto.paymentIds, dto.title, currentUser, tx);
+    return this.itemExtractService.extractAsItem(
+      sourceItem,
+      dto.paymentIds,
+      dto.title,
+      currentUser,
+      tx,
+    );
   }
 }

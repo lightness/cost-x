@@ -28,8 +28,12 @@ export class TagMutationResolver {
   @Mutation(() => Tag)
   @Access.allow({
     or: [
-      { scope: AccessScope.WORKSPACE, owner: 'workspace' },
-      { scope: AccessScope.WORKSPACE, target: 'workspace', permission: WorkspacePermission.CREATE_TAG },
+      { owner: 'workspace', scope: AccessScope.WORKSPACE },
+      {
+        permission: WorkspacePermission.CREATE_TAG,
+        scope: AccessScope.WORKSPACE,
+        target: 'workspace',
+      },
       { role: [UserRole.ADMIN], scope: AccessScope.USER },
     ],
   })
@@ -46,8 +50,12 @@ export class TagMutationResolver {
   @Mutation(() => Tag)
   @Access.allow({
     or: [
-      { scope: AccessScope.WORKSPACE, owner: 'workspace' },
-      { scope: AccessScope.WORKSPACE, target: 'workspace', permission: WorkspacePermission.UPDATE_TAG },
+      { owner: 'workspace', scope: AccessScope.WORKSPACE },
+      {
+        permission: WorkspacePermission.UPDATE_TAG,
+        scope: AccessScope.WORKSPACE,
+        target: 'workspace',
+      },
       { role: [UserRole.ADMIN], scope: AccessScope.USER },
     ],
   })
@@ -65,8 +73,12 @@ export class TagMutationResolver {
   @Mutation(() => Boolean)
   @Access.allow({
     or: [
-      { scope: AccessScope.WORKSPACE, owner: 'workspace' },
-      { scope: AccessScope.WORKSPACE, target: 'workspace', permission: WorkspacePermission.DELETE_TAG },
+      { owner: 'workspace', scope: AccessScope.WORKSPACE },
+      {
+        permission: WorkspacePermission.DELETE_TAG,
+        scope: AccessScope.WORKSPACE,
+        target: 'workspace',
+      },
       { role: [UserRole.ADMIN], scope: AccessScope.USER },
     ],
   })

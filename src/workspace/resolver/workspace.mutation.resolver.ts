@@ -26,7 +26,7 @@ export class WorkspaceMutationResolver {
   @Mutation(() => Workspace)
   @Access.allow({
     or: [
-      { scope: AccessScope.USER, permission: Permission.CREATE_WORKSPACE },
+      { permission: Permission.CREATE_WORKSPACE, scope: AccessScope.USER },
       { role: UserRole.ADMIN, scope: AccessScope.USER },
     ],
   })
@@ -41,7 +41,7 @@ export class WorkspaceMutationResolver {
   @Mutation(() => Workspace)
   @Access.allow({
     or: [
-      { scope: AccessScope.WORKSPACE, owner: 'workspace' },
+      { owner: 'workspace', scope: AccessScope.WORKSPACE },
       { role: [UserRole.ADMIN], scope: AccessScope.USER },
     ],
   })
@@ -58,7 +58,7 @@ export class WorkspaceMutationResolver {
   @Mutation(() => Workspace)
   @Access.allow({
     or: [
-      { scope: AccessScope.WORKSPACE, owner: 'workspace' },
+      { owner: 'workspace', scope: AccessScope.WORKSPACE },
       { role: [UserRole.ADMIN], scope: AccessScope.USER },
     ],
   })

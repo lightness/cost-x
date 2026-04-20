@@ -15,12 +15,17 @@ export class RedisService extends Redis implements OnModuleDestroy {
     this.logQuery = configService.get<boolean>('redis.logQuery') || false;
   }
 
-  async sendCommand(command: Command, stream?: Parameters<Redis['sendCommand']>[1]): Promise<unknown> {
+  async sendCommand(
+    command: Command,
+    stream?: Parameters<Redis['sendCommand']>[1],
+  ): Promise<unknown> {
     if (this.logQuery) {
       const start = Date.now();
       const result = await super.sendCommand(command, stream);
 
-      this.logger.log(`${command.name.toUpperCase()} ${command.args.join(' ')} => ${Date.now() - start}ms`);
+      this.logger.log(
+        `${command.name.toUpperCase()} ${command.args.join(' ')} => ${Date.now() - start}ms`,
+      );
 
       return result;
     }

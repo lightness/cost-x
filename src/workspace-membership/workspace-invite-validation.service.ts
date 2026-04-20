@@ -43,7 +43,7 @@ export class WorkspaceInviteValidationService {
     tx: Prisma.TransactionClient,
   ): Promise<void> {
     const existing = await tx.workspaceInvite.findFirst({
-      where: { workspaceId, inviteeId, reactedAt: null },
+      where: { inviteeId, reactedAt: null, workspaceId },
     });
 
     if (existing) {
@@ -57,7 +57,7 @@ export class WorkspaceInviteValidationService {
     tx: Prisma.TransactionClient,
   ): Promise<void> {
     const existing = await tx.workspaceMember.findFirst({
-      where: { workspaceId, userId, removedAt: null },
+      where: { removedAt: null, userId, workspaceId },
     });
 
     if (existing) {
@@ -75,5 +75,4 @@ export class WorkspaceInviteValidationService {
       );
     }
   }
-
 }

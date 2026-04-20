@@ -27,8 +27,12 @@ export class ItemMutationResolver {
   @Mutation(() => Item)
   @Access.allow({
     or: [
-      { scope: AccessScope.WORKSPACE, owner: 'workspace' },
-      { scope: AccessScope.WORKSPACE, target: 'workspace', permission: WorkspacePermission.CREATE_ITEM },
+      { owner: 'workspace', scope: AccessScope.WORKSPACE },
+      {
+        permission: WorkspacePermission.CREATE_ITEM,
+        scope: AccessScope.WORKSPACE,
+        target: 'workspace',
+      },
       { role: [UserRole.ADMIN], scope: AccessScope.USER },
     ],
   })
@@ -45,8 +49,12 @@ export class ItemMutationResolver {
   @Mutation(() => Item)
   @Access.allow({
     or: [
-      { scope: AccessScope.WORKSPACE, owner: 'workspace' },
-      { scope: AccessScope.WORKSPACE, target: 'workspace', permission: WorkspacePermission.UPDATE_ITEM },
+      { owner: 'workspace', scope: AccessScope.WORKSPACE },
+      {
+        permission: WorkspacePermission.UPDATE_ITEM,
+        scope: AccessScope.WORKSPACE,
+        target: 'workspace',
+      },
       { role: [UserRole.ADMIN], scope: AccessScope.USER },
     ],
   })
@@ -64,8 +72,12 @@ export class ItemMutationResolver {
   @Mutation(() => Boolean)
   @Access.allow({
     or: [
-      { scope: AccessScope.WORKSPACE, owner: 'workspace' },
-      { scope: AccessScope.WORKSPACE, target: 'workspace', permission: WorkspacePermission.DELETE_ITEM },
+      { owner: 'workspace', scope: AccessScope.WORKSPACE },
+      {
+        permission: WorkspacePermission.DELETE_ITEM,
+        scope: AccessScope.WORKSPACE,
+        target: 'workspace',
+      },
       { role: [UserRole.ADMIN], scope: AccessScope.USER },
     ],
   })

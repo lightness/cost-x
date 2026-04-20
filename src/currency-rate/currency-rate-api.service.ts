@@ -10,10 +10,7 @@ export class CurrencyRateApiService {
 
   constructor(private readonly httpService: HttpService) {}
 
-  async pullCurrencyRate(
-    currency: Currency,
-    datePart: string,
-  ): Promise<Decimal> {
+  async pullCurrencyRate(currency: Currency, datePart: string): Promise<Decimal> {
     try {
       const response = await firstValueFrom(
         this.httpService.get(
