@@ -9,6 +9,7 @@ import { WorkspaceInviteFieldResolver } from './resolver/workspace-invite.field.
 import { WorkspaceMemberFieldResolver } from './resolver/workspace-member.field.resolver';
 import { WorkspaceMembershipFieldResolver } from './resolver/workspace-membership.field.resolver';
 import { WorkspaceInviteMutationResolver } from './resolver/workspace-invite.mutation.resolver';
+import { WorkspaceMemberMutationResolver } from './resolver/workspace-member.mutation.resolver';
 import { WorkspaceMemberPermissionMutationResolver } from './resolver/workspace-member-permission.mutation.resolver';
 import { WorkspaceInviteValidationService } from './workspace-invite-validation.service';
 import { WorkspaceInviteService } from './workspace-invite.service';
@@ -24,6 +25,7 @@ import { WorkspaceMemberService } from './workspace-member.service';
     WorkspaceMemberPermissionService,
     // resolvers
     WorkspaceInviteMutationResolver,
+    WorkspaceMemberMutationResolver,
     WorkspaceMemberPermissionMutationResolver,
     WorkspaceInviteFieldResolver,
     WorkspaceMemberFieldResolver,

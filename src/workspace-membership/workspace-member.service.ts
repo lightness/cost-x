@@ -4,6 +4,10 @@ import { Prisma } from '../../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { WorkspaceHistoryEvent } from '../workspace-history/entity/workspace-history-event.enum';
 import { WorkspaceMember } from './entity/workspace-member.entity';
+import {
+  CannotRemoveWorkspaceOwnerError,
+  WorkspaceMemberAlreadyRemovedError,
+} from './error';
 
 @Injectable()
 export class WorkspaceMemberService {
@@ -36,6 +40,40 @@ export class WorkspaceMemberService {
     });
 
     return member;
+  }
+
+  async remove(
+    member: WorkspaceMember,
+    actorId: number,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<WorkspaceMember> {
+    if (member.removedAt !== null) {
+      throw new WorkspaceMemberAlreadyRemovedError();
+    }
+
+    const workspace = await tx.workspace.findUnique({ where: { id: member.workspaceId } });
+
+    if (workspace.ownerId === member.userId) {
+      throw new CannotRemoveWorkspaceOwnerError();
+    }
+
+    const removedMember = await tx.workspaceMember.update({
+      data: { removedAt: new Date(), removedByUserId: actorId },
+      where: { id: member.id },
+    });
+
+    await tx.userWorkspacePermission.deleteMany({
+      where: { userId: member.userId, workspaceId: member.workspaceId },
+    });
+
+    await this.eventEmitter.emitAsync(WorkspaceHistoryEvent.WORKSPACE_MEMBER_REMOVED, {
+      actorId,
+      member: removedMember,
+      tx,
+      workspaceId: member.workspaceId,
+    });
+
+    return removedMember;
   }
 
   async listByWorkspaceId(

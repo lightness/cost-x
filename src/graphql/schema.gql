@@ -192,10 +192,12 @@ type Mutation {
   extractAsItem(dto: ExtractAsItemInDto!): Item!
   forgotPassword(dto: ForgotPasswordInDto!): Boolean!
   grantWorkspaceMemberPermissions(memberId: Int!, permissions: [WorkspacePermission!]!): Boolean!
+  leaveWorkspace(memberId: Int!): WorkspaceMember!
   mergeItems(dto: MergeItemsInDto!): Item!
   rejectInvite(inviteId: Int!): Invite!
   rejectInviteAndBlockUser(inviteId: Int!): Invite!
   rejectWorkspaceInvite(inviteId: Int!): WorkspaceInvite!
+  removeWorkspaceMember(memberId: Int!): WorkspaceMember!
   resendConfirmEmail(dto: ResendConfirmEmailInDto!): ResendEmailOutDto!
   resendForgotPasswordEmail(dto: ForgotPasswordInDto!): ResendEmailOutDto!
   resetPassword(dto: ResetPasswordInDto!): Boolean!
@@ -408,6 +410,7 @@ enum WorkspaceHistoryAction {
   WORKSPACE_INVITE_CREATED
   WORKSPACE_INVITE_REJECTED
   WORKSPACE_MEMBER_CREATED
+  WORKSPACE_MEMBER_REMOVED
   WORKSPACE_UPDATED
 }
 
@@ -466,6 +469,7 @@ enum WorkspacePermission {
   EXTRACT_ITEM
   GRANT_WORKSPACE_PERMISSION
   MERGE_ITEMS
+  REMOVE_WORKSPACE_MEMBER
   REVOKE_WORKSPACE_PERMISSION
   UNASSIGN_TAG
   UPDATE_ITEM

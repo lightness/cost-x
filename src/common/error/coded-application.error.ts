@@ -47,6 +47,8 @@ export enum ApplicationErrorCode {
   USER_ALREADY_WORKSPACE_MEMBER = 'user_already_workspace_member',
   INSUFFICIENT_INVITER_PERMISSIONS = 'insufficient_inviter_permissions',
   WORKSPACE_MEMBER_NOT_FOUND = 'workspace_member_not_found',
+  WORKSPACE_MEMBER_ALREADY_REMOVED = 'workspace_member_already_removed',
+  CANNOT_REMOVE_WORKSPACE_OWNER = 'cannot_remove_workspace_owner',
   INSUFFICIENT_ACTOR_PERMISSIONS = 'insufficient_actor_permissions',
 }
 

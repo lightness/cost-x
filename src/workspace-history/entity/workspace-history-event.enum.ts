@@ -20,4 +20,5 @@ export enum WorkspaceHistoryEvent {
   WORKSPACE_INVITE_REJECTED = 'workspace_invite.rejected',
   WORKSPACE_INVITE_CANCELLED = 'workspace_invite.cancelled',
   WORKSPACE_MEMBER_CREATED = 'workspace_member.created',
+  WORKSPACE_MEMBER_REMOVED = 'workspace_member.removed',
 }

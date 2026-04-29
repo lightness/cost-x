@@ -367,6 +367,24 @@ export class WorkspaceHistoryService {
     );
   }
 
+  async createWorkspaceMemberRemoved(
+    workspaceId: number,
+    actorId: number,
+    member: WorkspaceMember,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<WorkspaceHistory> {
+    return this.create(
+      {
+        action: WorkspaceHistoryAction.WORKSPACE_MEMBER_REMOVED,
+        actorId,
+        newValue: null,
+        oldValue: member as unknown as JsonObject,
+        workspaceId,
+      },
+      tx,
+    );
+  }
+
   async createWorkspaceMemberCreated(
     workspaceId: number,
     actorId: number,

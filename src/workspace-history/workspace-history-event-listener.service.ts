@@ -11,6 +11,7 @@ import {
   OnWorkspaceInviteCreatedEvent,
   OnWorkspaceInviteRejectedEvent,
   OnWorkspaceMemberCreatedEvent,
+  OnWorkspaceMemberRemovedEvent,
   OnPaymentCreatedEvent,
   OnPaymentDeletedEvent,
   OnPaymentUpdatedEvent,
@@ -213,6 +214,16 @@ export class WorkspaceHistoryEventListenerService {
   @OnEvent(WorkspaceHistoryEvent.WORKSPACE_MEMBER_CREATED)
   async onWorkspaceMemberCreated({ tx = this.prisma, ...dto }: OnWorkspaceMemberCreatedEvent) {
     return this.workspaceHistoryService.createWorkspaceMemberCreated(
+      dto.workspaceId,
+      dto.actorId,
+      dto.member,
+      tx,
+    );
+  }
+
+  @OnEvent(WorkspaceHistoryEvent.WORKSPACE_MEMBER_REMOVED)
+  async onWorkspaceMemberRemoved({ tx = this.prisma, ...dto }: OnWorkspaceMemberRemovedEvent) {
+    return this.workspaceHistoryService.createWorkspaceMemberRemoved(
       dto.workspaceId,
       dto.actorId,
       dto.member,
