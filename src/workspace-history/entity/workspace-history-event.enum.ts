@@ -15,5 +15,8 @@ export enum WorkspaceHistoryEvent {
   WORKSPACE_DELETED = 'workspace.deleted',
   ITEM_MERGED = 'item.merged',
   ITEM_EXTRACTED = 'item.extracted',
-  MEMBER_JOINED = 'member.joined',
+  WORKSPACE_INVITE_CREATED = 'workspace_invite.created',
+  WORKSPACE_INVITE_ACCEPTED = 'workspace_invite.accepted',
+  WORKSPACE_INVITE_REJECTED = 'workspace_invite.rejected',
+  WORKSPACE_INVITE_CANCELLED = 'workspace_invite.cancelled',
 }

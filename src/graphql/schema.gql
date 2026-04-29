@@ -50,6 +50,7 @@ input CreateUserInDto {
 input CreateWorkspaceInviteInDto {
   inviteeId: Int!
   inviterId: Int!
+  permissions: [WorkspacePermission!]! = []
   workspaceId: Int!
 }
 
@@ -190,6 +191,7 @@ type Mutation {
   deleteWorkspace(id: Int!): Workspace!
   extractAsItem(dto: ExtractAsItemInDto!): Item!
   forgotPassword(dto: ForgotPasswordInDto!): Boolean!
+  grantWorkspaceMemberPermissions(memberId: Int!, permissions: [WorkspacePermission!]!): Boolean!
   mergeItems(dto: MergeItemsInDto!): Item!
   rejectInvite(inviteId: Int!): Invite!
   rejectInviteAndBlockUser(inviteId: Int!): Invite!
@@ -197,6 +199,7 @@ type Mutation {
   resendConfirmEmail(dto: ResendConfirmEmailInDto!): ResendEmailOutDto!
   resendForgotPasswordEmail(dto: ForgotPasswordInDto!): ResendEmailOutDto!
   resetPassword(dto: ResetPasswordInDto!): Boolean!
+  revokeWorkspaceMemberPermissions(memberId: Int!, permissions: [WorkspacePermission!]!): Boolean!
   unassignTag(dto: UnassignTagInDto!): Boolean!
   unbanUser(id: Int!): User!
   unblockUser(dto: RemoveUserBlockInDto!): UserBlock!
@@ -392,7 +395,6 @@ enum WorkspaceHistoryAction {
   ITEM_TAG_ASSIGNED
   ITEM_TAG_UNASSIGNED
   ITEM_UPDATED
-  MEMBER_JOINED
   PAYMENT_CREATED
   PAYMENT_DELETED
   PAYMENT_UPDATED
@@ -401,6 +403,10 @@ enum WorkspaceHistoryAction {
   TAG_UPDATED
   WORKSPACE_CREATED
   WORKSPACE_DELETED
+  WORKSPACE_INVITE_ACCEPTED
+  WORKSPACE_INVITE_CANCELLED
+  WORKSPACE_INVITE_CREATED
+  WORKSPACE_INVITE_REJECTED
   WORKSPACE_UPDATED
 }
 
@@ -420,6 +426,7 @@ type WorkspaceInvite {
   inviteeId: Int!
   inviter: User!
   inviterId: Int!
+  permissions: [WorkspacePermission!]!
   reactedAt: DateIso
   status: WorkspaceInviteStatus!
   workspaceId: Int!
@@ -443,6 +450,26 @@ type WorkspaceMember {
   user: User!
   userId: Int!
   workspaceId: Int!
+}
+
+enum WorkspacePermission {
+  ASSIGN_TAG
+  CANCEL_WORKSPACE_INVITE
+  CREATE_ITEM
+  CREATE_PAYMENT
+  CREATE_TAG
+  CREATE_WORKSPACE_INVITE
+  DELETE_ITEM
+  DELETE_PAYMENT
+  DELETE_TAG
+  EXTRACT_ITEM
+  GRANT_WORKSPACE_PERMISSION
+  MERGE_ITEMS
+  REVOKE_WORKSPACE_PERMISSION
+  UNASSIGN_TAG
+  UPDATE_ITEM
+  UPDATE_PAYMENT
+  UPDATE_TAG
 }
 
 input WorkspacesFilter {

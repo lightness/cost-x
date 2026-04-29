@@ -9,16 +9,20 @@ import { WorkspaceInviteFieldResolver } from './resolver/workspace-invite.field.
 import { WorkspaceMemberFieldResolver } from './resolver/workspace-member.field.resolver';
 import { WorkspaceMembershipFieldResolver } from './resolver/workspace-membership.field.resolver';
 import { WorkspaceInviteMutationResolver } from './resolver/workspace-invite.mutation.resolver';
+import { WorkspaceMemberPermissionMutationResolver } from './resolver/workspace-member-permission.mutation.resolver';
 import { WorkspaceInviteValidationService } from './workspace-invite-validation.service';
 import { WorkspaceInviteService } from './workspace-invite.service';
+import { WorkspaceMemberPermissionService } from './workspace-member-permission.service';
 
 @Module({
   imports: [PrismaModule, AuthModule, AccessModule, GroupModule, UserLoaderModule],
   providers: [
     WorkspaceInviteService,
     WorkspaceInviteValidationService,
+    WorkspaceMemberPermissionService,
     // resolvers
     WorkspaceInviteMutationResolver,
+    WorkspaceMemberPermissionMutationResolver,
     WorkspaceInviteFieldResolver,
     WorkspaceMemberFieldResolver,
     WorkspaceMembershipFieldResolver,

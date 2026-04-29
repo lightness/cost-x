@@ -45,6 +45,9 @@ export enum ApplicationErrorCode {
   WORKSPACE_INVITE_ALREADY_EXISTS = 'workspace_invite_already_exists',
   IMPROPER_WORKSPACE_INVITE_STATUS = 'improper_workspace_invite_status',
   USER_ALREADY_WORKSPACE_MEMBER = 'user_already_workspace_member',
+  INSUFFICIENT_INVITER_PERMISSIONS = 'insufficient_inviter_permissions',
+  WORKSPACE_MEMBER_NOT_FOUND = 'workspace_member_not_found',
+  INSUFFICIENT_ACTOR_PERMISSIONS = 'insufficient_actor_permissions',
 }
 
 @HttpErrorCode(HttpStatus.INTERNAL_SERVER_ERROR)

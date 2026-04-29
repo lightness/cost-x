@@ -1,5 +1,6 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
 import { WorkspaceInvite as PrismaWorkspaceInvite } from '../../../generated/prisma/client';
+import { WorkspacePermission } from '../../access/interfaces';
 import { DateIsoScalar } from '../../graphql/scalar';
 import { WorkspaceInviteStatus } from './workspace-invite-status.enum';
 
@@ -19,6 +20,9 @@ export class WorkspaceInvite implements PrismaWorkspaceInvite {
 
   @Field(() => WorkspaceInviteStatus)
   status: WorkspaceInviteStatus;
+
+  @Field(() => [WorkspacePermission])
+  permissions: WorkspacePermission[];
 
   @Field(() => DateIsoScalar)
   createdAt: Date;

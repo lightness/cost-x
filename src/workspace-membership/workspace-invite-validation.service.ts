@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma, WorkspaceInviteStatus } from '../../generated/prisma/client';
+import { Prisma, WorkspaceInviteStatus, WorkspacePermission } from '../../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { WorkspaceInvite } from './entity/workspace-invite.entity';
 import {
   ImproperWorkspaceInviteStatusError,
+  InsufficientInviterPermissionsError,
   UserAlreadyWorkspaceMemberError,
   WorkspaceInviteAlreadyExistsError,
 } from './error';
@@ -14,11 +15,14 @@ export class WorkspaceInviteValidationService {
 
   async validateCreateInvite(
     workspaceId: number,
+    inviterId: number,
     inviteeId: number,
+    permissions: WorkspacePermission[],
     tx: Prisma.TransactionClient = this.prisma,
   ): Promise<void> {
     await this.validateInviteNotExists(workspaceId, inviteeId, tx);
     await this.validateNotAlreadyMember(workspaceId, inviteeId, tx);
+    await this.validateInviterHasPermissions(workspaceId, inviterId, permissions, tx);
   }
 
   async validateAcceptInvite(
@@ -35,6 +39,26 @@ export class WorkspaceInviteValidationService {
 
   validateCancelInvite(invite: WorkspaceInvite): void {
     this.validateInviteIsInStatus(invite, WorkspaceInviteStatus.PENDING);
+  }
+
+  private async validateInviterHasPermissions(
+    workspaceId: number,
+    inviterId: number,
+    permissions: WorkspacePermission[],
+    tx: Prisma.TransactionClient,
+  ): Promise<void> {
+    if (permissions.length === 0) {
+      return;
+    }
+
+    const granted = await tx.userWorkspacePermission.findMany({
+      select: { permission: true },
+      where: { permission: { in: permissions }, userId: inviterId, workspaceId },
+    });
+
+    if (granted.length !== permissions.length) {
+      throw new InsufficientInviterPermissionsError();
+    }
   }
 
   private async validateInviteNotExists(

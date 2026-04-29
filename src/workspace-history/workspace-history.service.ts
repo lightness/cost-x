@@ -7,7 +7,7 @@ import Payment from '../payment/entity/payment.entity';
 import { PrismaService } from '../prisma/prisma.service';
 import Tag from '../tag/entity/tag.entity';
 import { Workspace } from '../workspace/entity/workspace.entity';
-import { WorkspaceMember } from '../workspace-membership/entity/workspace-member.entity';
+import { WorkspaceInvite } from '../workspace-membership/entity/workspace-invite.entity';
 import { WorkspaceHistoryFilter } from './dto/workspace-history-filter.type';
 import { WorkspaceHistoryAction } from './entity/workspace-history-action.enum';
 import { WorkspaceHistory } from './entity/workspace-history.entity';
@@ -312,18 +312,72 @@ export class WorkspaceHistoryService {
     );
   }
 
-  async createMemberJoined(
+  async createWorkspaceInviteCreated(
     workspaceId: number,
     actorId: number,
-    member: WorkspaceMember,
+    invite: WorkspaceInvite,
     tx: Prisma.TransactionClient = this.prisma,
   ): Promise<WorkspaceHistory> {
     return this.create(
       {
-        action: WorkspaceHistoryAction.MEMBER_JOINED,
+        action: WorkspaceHistoryAction.WORKSPACE_INVITE_CREATED,
         actorId,
-        newValue: member as unknown as JsonObject,
+        newValue: invite as unknown as JsonObject,
         oldValue: null,
+        workspaceId,
+      },
+      tx,
+    );
+  }
+
+  async createWorkspaceInviteAccepted(
+    workspaceId: number,
+    actorId: number,
+    invite: WorkspaceInvite,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<WorkspaceHistory> {
+    return this.create(
+      {
+        action: WorkspaceHistoryAction.WORKSPACE_INVITE_ACCEPTED,
+        actorId,
+        newValue: invite as unknown as JsonObject,
+        oldValue: null,
+        workspaceId,
+      },
+      tx,
+    );
+  }
+
+  async createWorkspaceInviteRejected(
+    workspaceId: number,
+    actorId: number,
+    invite: WorkspaceInvite,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<WorkspaceHistory> {
+    return this.create(
+      {
+        action: WorkspaceHistoryAction.WORKSPACE_INVITE_REJECTED,
+        actorId,
+        newValue: null,
+        oldValue: invite as unknown as JsonObject,
+        workspaceId,
+      },
+      tx,
+    );
+  }
+
+  async createWorkspaceInviteCancelled(
+    workspaceId: number,
+    actorId: number,
+    invite: WorkspaceInvite,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<WorkspaceHistory> {
+    return this.create(
+      {
+        action: WorkspaceHistoryAction.WORKSPACE_INVITE_CANCELLED,
+        actorId,
+        newValue: null,
+        oldValue: invite as unknown as JsonObject,
         workspaceId,
       },
       tx,

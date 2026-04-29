@@ -1,7 +1,10 @@
+import { registerEnumType } from '@nestjs/graphql';
 import { Permission, WorkspacePermission } from '../../generated/prisma/client';
 import { UserRole } from '../user/entity/user-role.enum';
 
 export { WorkspacePermission };
+
+registerEnumType(WorkspacePermission, { name: 'WorkspacePermission' });
 
 export enum AccessAction {
   ALLOW = 'allow',

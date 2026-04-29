@@ -54,13 +54,13 @@ export class WorkspaceInviteMutationResolver {
   @Infer('workspace', { from: fromArg('dto.workspaceId'), pipes: [WorkspaceByIdPipe] })
   @Infer('inviterUser', { from: fromArg('dto.inviterId'), pipes: [UserByIdPipe] })
   async createWorkspaceInvite(
-    @Args('dto') _: CreateWorkspaceInviteInDto,
+    @Args('dto') dto: CreateWorkspaceInviteInDto,
     @DeepArgs('dto.workspaceId', WorkspaceByIdPipe) workspace: Workspace,
     @DeepArgs('dto.inviterId', UserByIdPipe) inviter: User,
     @DeepArgs('dto.inviteeId', UserByIdPipe) invitee: User,
     @Context('tx') tx: Prisma.TransactionClient,
   ) {
-    return this.workspaceInviteService.createInvite(workspace, inviter, invitee, tx);
+    return this.workspaceInviteService.createInvite(workspace, inviter, invitee, dto.permissions, tx);
   }
 
   @Mutation(() => WorkspaceInvite)
@@ -103,9 +103,10 @@ export class WorkspaceInviteMutationResolver {
   async rejectWorkspaceInvite(
     @Args('inviteId', { type: () => Int }) _: number,
     @DeepArgs('inviteId', WorkspaceInviteByIdPipe) invite: WorkspaceInvite,
+    @CurrentUser() currentUser: User,
     @Context('tx') tx: Prisma.TransactionClient,
   ) {
-    return this.workspaceInviteService.rejectInvite(invite, tx);
+    return this.workspaceInviteService.rejectInvite(invite, currentUser, tx);
   }
 
   @Mutation(() => WorkspaceInvite)
@@ -122,8 +123,9 @@ export class WorkspaceInviteMutationResolver {
   async cancelWorkspaceInvite(
     @Args('inviteId', { type: () => Int }) _: number,
     @DeepArgs('inviteId', WorkspaceInviteByIdPipe) invite: WorkspaceInvite,
+    @CurrentUser() currentUser: User,
     @Context('tx') tx: Prisma.TransactionClient,
   ) {
-    return this.workspaceInviteService.cancelInvite(invite, tx);
+    return this.workspaceInviteService.cancelInvite(invite, currentUser, tx);
   }
 }

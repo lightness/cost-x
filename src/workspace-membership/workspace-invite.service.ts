@@ -21,19 +21,36 @@ export class WorkspaceInviteService {
     workspace: Workspace,
     inviter: User,
     invitee: User,
+    permissions: WorkspacePermission[],
     tx: Prisma.TransactionClient = this.prisma,
   ): Promise<WorkspaceInvite> {
-    await this.validationService.validateCreateInvite(workspace.id, invitee.id, tx);
+    await this.validationService.validateCreateInvite(
+      workspace.id,
+      inviter.id,
+      invitee.id,
+      permissions,
+      tx,
+    );
 
-    return tx.workspaceInvite.create({
+    const invite = await tx.workspaceInvite.create({
       data: {
         createdAt: new Date(),
         invitee: { connect: { id: invitee.id } },
         inviter: { connect: { id: inviter.id } },
+        permissions,
         status: WorkspaceInviteStatus.PENDING,
         workspace: { connect: { id: workspace.id } },
       },
     });
+
+    await this.eventEmitter.emitAsync(WorkspaceHistoryEvent.WORKSPACE_INVITE_CREATED, {
+      actorId: inviter.id,
+      invite,
+      tx,
+      workspaceId: workspace.id,
+    });
+
+    return invite;
   }
 
   async acceptInvite(
@@ -48,13 +65,13 @@ export class WorkspaceInviteService {
       where: { id: invite.id },
     });
 
-    const member = await this.createMember(invite.workspaceId, invite.inviteeId, invite.id, tx);
+    await this.createMember(invite.workspaceId, invite.inviteeId, invite.id, tx);
 
-    await this.seedWorkspacePermissions(invite.workspaceId, invite.inviteeId, tx);
+    await this.seedWorkspacePermissions(invite.workspaceId, invite.inviteeId, invite.permissions, tx);
 
-    await this.eventEmitter.emitAsync(WorkspaceHistoryEvent.MEMBER_JOINED, {
+    await this.eventEmitter.emitAsync(WorkspaceHistoryEvent.WORKSPACE_INVITE_ACCEPTED, {
       actorId: actor.id,
-      member,
+      invite: updatedInvite,
       tx,
       workspaceId: invite.workspaceId,
     });
@@ -64,26 +81,46 @@ export class WorkspaceInviteService {
 
   async rejectInvite(
     invite: WorkspaceInvite,
+    actor: User,
     tx: Prisma.TransactionClient = this.prisma,
   ): Promise<WorkspaceInvite> {
     this.validationService.validateRejectInvite(invite);
 
-    return tx.workspaceInvite.update({
+    const updatedInvite = await tx.workspaceInvite.update({
       data: { reactedAt: new Date(), status: WorkspaceInviteStatus.REJECTED },
       where: { id: invite.id },
     });
+
+    await this.eventEmitter.emitAsync(WorkspaceHistoryEvent.WORKSPACE_INVITE_REJECTED, {
+      actorId: actor.id,
+      invite: updatedInvite,
+      tx,
+      workspaceId: invite.workspaceId,
+    });
+
+    return updatedInvite;
   }
 
   async cancelInvite(
     invite: WorkspaceInvite,
+    actor: User,
     tx: Prisma.TransactionClient = this.prisma,
   ): Promise<WorkspaceInvite> {
     this.validationService.validateCancelInvite(invite);
 
-    return tx.workspaceInvite.update({
+    const updatedInvite = await tx.workspaceInvite.update({
       data: { reactedAt: new Date(), status: WorkspaceInviteStatus.CANCELLED },
       where: { id: invite.id },
     });
+
+    await this.eventEmitter.emitAsync(WorkspaceHistoryEvent.WORKSPACE_INVITE_CANCELLED, {
+      actorId: actor.id,
+      invite: updatedInvite,
+      tx,
+      workspaceId: invite.workspaceId,
+    });
+
+    return updatedInvite;
   }
 
   async listPendingByWorkspaceId(
@@ -119,10 +156,15 @@ export class WorkspaceInviteService {
   private async seedWorkspacePermissions(
     workspaceId: number,
     userId: number,
+    permissions: WorkspacePermission[],
     tx: Prisma.TransactionClient,
   ): Promise<void> {
+    if (permissions.length === 0) {
+      return;
+    }
+
     await tx.userWorkspacePermission.createMany({
-      data: Object.values(WorkspacePermission).map((permission) => ({
+      data: permissions.map((permission) => ({
         permission,
         userId,
         workspaceId,
