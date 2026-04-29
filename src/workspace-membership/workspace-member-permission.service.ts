@@ -8,6 +8,21 @@ import { InsufficientActorPermissionsError } from './error';
 export class WorkspaceMemberPermissionService {
   constructor(private prisma: PrismaService) {}
 
+  async seedPermissions(
+    workspaceId: number,
+    userId: number,
+    permissions: WorkspacePermission[],
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<void> {
+    if (permissions.length === 0) {
+      return;
+    }
+
+    await tx.userWorkspacePermission.createMany({
+      data: permissions.map((permission) => ({ permission, userId, workspaceId })),
+    });
+  }
+
   async grantPermissions(
     member: WorkspaceMember,
     permissions: WorkspacePermission[],

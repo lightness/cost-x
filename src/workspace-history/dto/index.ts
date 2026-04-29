@@ -18,4 +18,5 @@ export * from './on-workspace-invite-created.event';
 export * from './on-workspace-invite-accepted.event';
 export * from './on-workspace-invite-rejected.event';
 export * from './on-workspace-invite-cancelled.event';
+export * from './on-workspace-member-created.event';
 export * from './workspace-history-filter.type';

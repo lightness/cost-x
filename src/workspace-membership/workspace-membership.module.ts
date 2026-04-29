@@ -13,12 +13,14 @@ import { WorkspaceMemberPermissionMutationResolver } from './resolver/workspace-
 import { WorkspaceInviteValidationService } from './workspace-invite-validation.service';
 import { WorkspaceInviteService } from './workspace-invite.service';
 import { WorkspaceMemberPermissionService } from './workspace-member-permission.service';
+import { WorkspaceMemberService } from './workspace-member.service';
 
 @Module({
   imports: [PrismaModule, AuthModule, AccessModule, GroupModule, UserLoaderModule],
   providers: [
     WorkspaceInviteService,
     WorkspaceInviteValidationService,
+    WorkspaceMemberService,
     WorkspaceMemberPermissionService,
     // resolvers
     WorkspaceInviteMutationResolver,

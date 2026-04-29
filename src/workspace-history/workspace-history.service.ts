@@ -8,6 +8,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import Tag from '../tag/entity/tag.entity';
 import { Workspace } from '../workspace/entity/workspace.entity';
 import { WorkspaceInvite } from '../workspace-membership/entity/workspace-invite.entity';
+import { WorkspaceMember } from '../workspace-membership/entity/workspace-member.entity';
 import { WorkspaceHistoryFilter } from './dto/workspace-history-filter.type';
 import { WorkspaceHistoryAction } from './entity/workspace-history-action.enum';
 import { WorkspaceHistory } from './entity/workspace-history.entity';
@@ -360,6 +361,24 @@ export class WorkspaceHistoryService {
         actorId,
         newValue: null,
         oldValue: invite as unknown as JsonObject,
+        workspaceId,
+      },
+      tx,
+    );
+  }
+
+  async createWorkspaceMemberCreated(
+    workspaceId: number,
+    actorId: number,
+    member: WorkspaceMember,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<WorkspaceHistory> {
+    return this.create(
+      {
+        action: WorkspaceHistoryAction.WORKSPACE_MEMBER_CREATED,
+        actorId,
+        newValue: member as unknown as JsonObject,
+        oldValue: null,
         workspaceId,
       },
       tx,

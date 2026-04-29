@@ -6,7 +6,8 @@ import User from '../user/entity/user.entity';
 import { WorkspaceHistoryEvent } from '../workspace-history/entity/workspace-history-event.enum';
 import { Workspace } from '../workspace/entity/workspace.entity';
 import { WorkspaceInvite } from './entity/workspace-invite.entity';
-import { WorkspaceMember } from './entity/workspace-member.entity';
+import { WorkspaceMemberPermissionService } from './workspace-member-permission.service';
+import { WorkspaceMemberService } from './workspace-member.service';
 import { WorkspaceInviteValidationService } from './workspace-invite-validation.service';
 
 @Injectable()
@@ -15,6 +16,8 @@ export class WorkspaceInviteService {
     private prisma: PrismaService,
     private eventEmitter: EventEmitter2,
     private validationService: WorkspaceInviteValidationService,
+    private memberService: WorkspaceMemberService,
+    private memberPermissionService: WorkspaceMemberPermissionService,
   ) {}
 
   async createInvite(
@@ -65,9 +68,8 @@ export class WorkspaceInviteService {
       where: { id: invite.id },
     });
 
-    await this.createMember(invite.workspaceId, invite.inviteeId, invite.id, tx);
-
-    await this.seedWorkspacePermissions(invite.workspaceId, invite.inviteeId, invite.permissions, tx);
+    await this.memberService.create(invite.workspaceId, invite.inviteeId, invite.id, actor.id, tx);
+    await this.memberPermissionService.seedPermissions(invite.workspaceId, invite.inviteeId, invite.permissions, tx);
 
     await this.eventEmitter.emitAsync(WorkspaceHistoryEvent.WORKSPACE_INVITE_ACCEPTED, {
       actorId: actor.id,
@@ -140,51 +142,6 @@ export class WorkspaceInviteService {
     return tx.workspaceInvite.findMany({
       orderBy: { createdAt: 'desc' },
       where: { inviteeId },
-    });
-  }
-
-  async listMembersByWorkspaceId(
-    workspaceId: number,
-    tx: Prisma.TransactionClient = this.prisma,
-  ): Promise<WorkspaceMember[]> {
-    return tx.workspaceMember.findMany({
-      orderBy: { joinedAt: 'asc' },
-      where: { removedAt: null, workspaceId },
-    });
-  }
-
-  private async seedWorkspacePermissions(
-    workspaceId: number,
-    userId: number,
-    permissions: WorkspacePermission[],
-    tx: Prisma.TransactionClient,
-  ): Promise<void> {
-    if (permissions.length === 0) {
-      return;
-    }
-
-    await tx.userWorkspacePermission.createMany({
-      data: permissions.map((permission) => ({
-        permission,
-        userId,
-        workspaceId,
-      })),
-    });
-  }
-
-  private async createMember(
-    workspaceId: number,
-    userId: number,
-    inviteId: number,
-    tx: Prisma.TransactionClient,
-  ): Promise<WorkspaceMember> {
-    return tx.workspaceMember.create({
-      data: {
-        invite: { connect: { id: inviteId } },
-        joinedAt: new Date(),
-        user: { connect: { id: userId } },
-        workspace: { connect: { id: workspaceId } },
-      },
     });
   }
 }
