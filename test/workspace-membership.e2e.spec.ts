@@ -473,6 +473,43 @@ describe('WorkspaceMembership E2E', () => {
         status: 'BAD_REQUEST',
       });
     });
+
+    it('should allow only one of two concurrent accepts to succeed', async () => {
+      // Assume
+      const owner = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
+      const invite = await workspaceInviteFactory.create('pending', {
+        inviteeId: invitee.id,
+        inviterId: owner.id,
+        workspaceId: workspace.id,
+      });
+
+      // Act — fire two accepts concurrently with the same token
+      const { accessToken } = await authService.authenticateUser(invitee);
+      const send = () =>
+        request(app.getHttpServer())
+          .post('/graphql')
+          .send({ query: mutation, variables: { inviteId: invite.id } })
+          .set('Content-Type', 'application/json')
+          .set('Authorization', `Bearer ${accessToken}`);
+
+      const [response1, response2] = await Promise.all([send(), send()]);
+
+      // Assert — exactly one request won
+      const responses = [response1, response2];
+      const successes = responses.filter((r) => r.status === 200 && !r.body.errors);
+      expect(successes).toHaveLength(1);
+
+      // Assert — exactly one member row exists (no duplicate)
+      const members = await prisma.workspaceMember.findMany({
+        where: { userId: invitee.id, workspaceId: workspace.id },
+      });
+      expect(members).toHaveLength(1);
+
+      // Assert — invite reached a terminal accepted state
+      await expectInviteAccepted(invite.id);
+    });
   });
 
   // ---------------------------------------------------------------------------

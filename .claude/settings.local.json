@@ -38,7 +38,8 @@
       "Bash(grep -E \"\\\\.ts$\")",
       "Bash(./node_modules/.bin/biome --version)",
       "Bash(gh pr *)",
-      "mcp__github__pull_request_read"
+      "mcp__github__pull_request_read",
+      "Bash(xargs cat *)"
     ]
   },
   "hooks": {

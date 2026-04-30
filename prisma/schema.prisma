@@ -310,6 +310,7 @@ model WorkspaceInvite {
   invitee         User             @relation(name: "workspaceInvitee", fields: [inviteeId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_workspace_invite_invitee_id_user_id")
   workspaceMember WorkspaceMember?
 
+  @@index([inviteeId], map: "IDX_workspace_invite_invitee_id")
   @@unique([workspaceId, inviteeId], where: { reactedAt: null }, map: "UQ_workspace_invite_workspace_id_invitee_id")
   @@map("workspace_invite")
 }
