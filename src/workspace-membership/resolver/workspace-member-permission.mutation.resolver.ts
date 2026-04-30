@@ -9,7 +9,6 @@ import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
 import { Infer } from '../../common/decorator/infer.decorator';
 import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
-import { DeepArgs } from '../../graphql/decorator/deep-args.decorator';
 import { UserRole } from '../../user/entity/user-role.enum';
 import User from '../../user/entity/user.entity';
 import { WorkspaceMember } from '../entity/workspace-member.entity';
@@ -42,9 +41,8 @@ export class WorkspaceMemberPermissionMutationResolver {
   @Infer('member', { from: fromArg('memberId'), pipes: [WorkspaceMemberByIdPipe] })
   @Infer('workspace', { from: 'member', pipes: [WorkspaceByWorkspaceMemberPipe] })
   async grantWorkspaceMemberPermissions(
-    @Args('memberId', { type: () => Int }) _: number,
+    @Args('memberId', { type: () => Int }, WorkspaceMemberByIdPipe) member: WorkspaceMember,
     @Args('permissions', { type: () => [WorkspacePermission] }) permissions: WorkspacePermission[],
-    @DeepArgs('memberId', WorkspaceMemberByIdPipe) member: WorkspaceMember,
     @CurrentUser() currentUser: User,
     @Context('tx') tx: Prisma.TransactionClient,
   ): Promise<boolean> {
@@ -72,9 +70,8 @@ export class WorkspaceMemberPermissionMutationResolver {
   @Infer('member', { from: fromArg('memberId'), pipes: [WorkspaceMemberByIdPipe] })
   @Infer('workspace', { from: 'member', pipes: [WorkspaceByWorkspaceMemberPipe] })
   async revokeWorkspaceMemberPermissions(
-    @Args('memberId', { type: () => Int }) _: number,
+    @Args('memberId', { type: () => Int }, WorkspaceMemberByIdPipe) member: WorkspaceMember,
     @Args('permissions', { type: () => [WorkspacePermission] }) permissions: WorkspacePermission[],
-    @DeepArgs('memberId', WorkspaceMemberByIdPipe) member: WorkspaceMember,
     @CurrentUser() currentUser: User,
     @Context('tx') tx: Prisma.TransactionClient,
   ): Promise<boolean> {

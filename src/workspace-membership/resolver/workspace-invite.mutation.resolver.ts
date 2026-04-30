@@ -60,7 +60,13 @@ export class WorkspaceInviteMutationResolver {
     @DeepArgs('dto.inviteeId', UserByIdPipe) invitee: User,
     @Context('tx') tx: Prisma.TransactionClient,
   ) {
-    return this.workspaceInviteService.createInvite(workspace, inviter, invitee, dto.permissions, tx);
+    return this.workspaceInviteService.createInvite(
+      workspace,
+      inviter,
+      invitee,
+      dto.permissions,
+      tx,
+    );
   }
 
   @Mutation(() => WorkspaceInvite)
@@ -78,8 +84,7 @@ export class WorkspaceInviteMutationResolver {
   @Infer('invite', { from: fromArg('inviteId'), pipes: [WorkspaceInviteByIdPipe] })
   @Infer('inviteeUser', { from: 'invite', pipes: [InviteeByWorkspaceInvitePipe] })
   async acceptWorkspaceInvite(
-    @Args('inviteId', { type: () => Int }) _: number,
-    @DeepArgs('inviteId', WorkspaceInviteByIdPipe) invite: WorkspaceInvite,
+    @Args('inviteId', { type: () => Int }, WorkspaceInviteByIdPipe) invite: WorkspaceInvite,
     @CurrentUser() currentUser: User,
     @Context('tx') tx: Prisma.TransactionClient,
   ) {
@@ -101,8 +106,7 @@ export class WorkspaceInviteMutationResolver {
   @Infer('invite', { from: fromArg('inviteId'), pipes: [WorkspaceInviteByIdPipe] })
   @Infer('inviteeUser', { from: 'invite', pipes: [InviteeByWorkspaceInvitePipe] })
   async rejectWorkspaceInvite(
-    @Args('inviteId', { type: () => Int }) _: number,
-    @DeepArgs('inviteId', WorkspaceInviteByIdPipe) invite: WorkspaceInvite,
+    @Args('inviteId', { type: () => Int }, WorkspaceInviteByIdPipe) invite: WorkspaceInvite,
     @CurrentUser() currentUser: User,
     @Context('tx') tx: Prisma.TransactionClient,
   ) {
@@ -121,8 +125,7 @@ export class WorkspaceInviteMutationResolver {
   @Infer('workspace', { from: 'invite', pipes: [WorkspaceByWorkspaceInvitePipe] })
   @Infer('inviter', { from: 'invite', pipes: [InviterByWorkspaceInvitePipe] })
   async cancelWorkspaceInvite(
-    @Args('inviteId', { type: () => Int }) _: number,
-    @DeepArgs('inviteId', WorkspaceInviteByIdPipe) invite: WorkspaceInvite,
+    @Args('inviteId', { type: () => Int }, WorkspaceInviteByIdPipe) invite: WorkspaceInvite,
     @CurrentUser() currentUser: User,
     @Context('tx') tx: Prisma.TransactionClient,
   ) {
