@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma, WorkspacePermission } from '../../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { UserRole } from '../user/entity/user-role.enum';
+import User from '../user/entity/user.entity';
 import { WorkspaceMember } from './entity/workspace-member.entity';
 import { InsufficientActorPermissionsError } from './error';
 
@@ -26,10 +28,10 @@ export class WorkspaceMemberPermissionService {
   async grantPermissions(
     member: WorkspaceMember,
     permissions: WorkspacePermission[],
-    actorId: number,
+    actor: User,
     tx: Prisma.TransactionClient = this.prisma,
   ): Promise<void> {
-    await this.validateActorCanModify(member.workspaceId, actorId, permissions, tx);
+    await this.validateActorCanModify(member.workspaceId, actor, permissions, tx);
 
     await tx.userWorkspacePermission.createMany({
       data: permissions.map((permission) => ({
@@ -44,10 +46,10 @@ export class WorkspaceMemberPermissionService {
   async revokePermissions(
     member: WorkspaceMember,
     permissions: WorkspacePermission[],
-    actorId: number,
+    actor: User,
     tx: Prisma.TransactionClient = this.prisma,
   ): Promise<void> {
-    await this.validateActorCanModify(member.workspaceId, actorId, permissions, tx);
+    await this.validateActorCanModify(member.workspaceId, actor, permissions, tx);
 
     await tx.userWorkspacePermission.deleteMany({
       where: {
@@ -58,9 +60,18 @@ export class WorkspaceMemberPermissionService {
     });
   }
 
+  /**
+   * Validates that the actor holds every permission they are trying to grant or revoke.
+   *
+   * This is intentionally separate from the `@Access` decorator: `@Access` is coarse-grained
+   * entry control — it answers "can this actor call the mutation at all?" based on static role
+   * or ownership rules. This method answers a finer-grained, input-dependent question: "can the
+   * actor grant/revoke *these specific permissions*?" — something that cannot be expressed in
+   * decorator metadata because the answer depends on the runtime `permissions[]` argument.
+   */
   private async validateActorCanModify(
     workspaceId: number,
-    actorId: number,
+    actor: User,
     permissions: WorkspacePermission[],
     tx: Prisma.TransactionClient,
   ): Promise<void> {
@@ -68,15 +79,19 @@ export class WorkspaceMemberPermissionService {
       return;
     }
 
+    if (actor.role === UserRole.ADMIN) {
+      return;
+    }
+
     const workspace = await tx.workspace.findUnique({ where: { id: workspaceId } });
 
-    if (workspace.ownerId === actorId) {
+    if (workspace.ownerId === actor.id) {
       return;
     }
 
     const granted = await tx.userWorkspacePermission.findMany({
       select: { permission: true },
-      where: { permission: { in: permissions }, userId: actorId, workspaceId },
+      where: { permission: { in: permissions }, userId: actor.id, workspaceId },
     });
 
     if (granted.length !== permissions.length) {

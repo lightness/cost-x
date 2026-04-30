@@ -48,7 +48,7 @@ export class WorkspaceMemberPermissionMutationResolver {
     @CurrentUser() currentUser: User,
     @Context('tx') tx: Prisma.TransactionClient,
   ): Promise<boolean> {
-    await this.permissionService.grantPermissions(member, permissions, currentUser.id, tx);
+    await this.permissionService.grantPermissions(member, permissions, currentUser, tx);
 
     return true;
   }
@@ -78,7 +78,7 @@ export class WorkspaceMemberPermissionMutationResolver {
     @CurrentUser() currentUser: User,
     @Context('tx') tx: Prisma.TransactionClient,
   ): Promise<boolean> {
-    await this.permissionService.revokePermissions(member, permissions, currentUser.id, tx);
+    await this.permissionService.revokePermissions(member, permissions, currentUser, tx);
 
     return true;
   }

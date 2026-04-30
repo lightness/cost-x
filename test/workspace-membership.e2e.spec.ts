@@ -767,6 +767,641 @@ describe('WorkspaceMembership E2E', () => {
   });
 
   // ---------------------------------------------------------------------------
+  // createWorkspaceInvite — permissions seeding
+  // ---------------------------------------------------------------------------
+
+  describe('createWorkspaceInvite — permissions', () => {
+    const createMutation = `
+      mutation CreateWorkspaceInvite($dto: CreateWorkspaceInviteInDto!) {
+        createWorkspaceInvite(dto: $dto) { id }
+      }
+    `;
+    const acceptMutation = `
+      mutation AcceptWorkspaceInvite($inviteId: Int!) {
+        acceptWorkspaceInvite(inviteId: $inviteId) { id }
+      }
+    `;
+
+    it('should seed only the invited permissions on accept', async () => {
+      // Assume
+      const owner = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
+      const permissions = [WorkspacePermission.CREATE_ITEM, WorkspacePermission.CREATE_PAYMENT];
+
+      const { accessToken: ownerToken } = await authService.authenticateUser(owner);
+      const createResponse = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({
+          query: createMutation,
+          variables: { dto: { inviteeId: invitee.id, inviterId: owner.id, workspaceId: workspace.id, permissions } },
+        })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${ownerToken}`);
+
+      expectResponseSuccess(createResponse);
+      const inviteId = createResponse.body.data.createWorkspaceInvite.id;
+
+      // Act
+      const { accessToken: inviteeToken } = await authService.authenticateUser(invitee);
+      await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: acceptMutation, variables: { inviteId } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${inviteeToken}`);
+
+      // Assert
+      await expectWorkspacePermissions(workspace.id, invitee.id, permissions);
+    });
+
+    it('should seed no permissions when invited with empty permissions', async () => {
+      // Assume
+      const owner = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
+
+      const { accessToken: ownerToken } = await authService.authenticateUser(owner);
+      const createResponse = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({
+          query: createMutation,
+          variables: { dto: { inviteeId: invitee.id, inviterId: owner.id, workspaceId: workspace.id, permissions: [] } },
+        })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${ownerToken}`);
+
+      expectResponseSuccess(createResponse);
+      const inviteId = createResponse.body.data.createWorkspaceInvite.id;
+
+      // Act
+      const { accessToken: inviteeToken } = await authService.authenticateUser(invitee);
+      await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: acceptMutation, variables: { inviteId } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${inviteeToken}`);
+
+      // Assert
+      await expectWorkspacePermissions(workspace.id, invitee.id, []);
+    });
+
+    it('should not allow inviting with permissions the inviter does not hold', async () => {
+      // Assume
+      const owner = await userFactory.create('active');
+      const member = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
+      await workspaceMemberFactory.create(workspace.id, member.id, {
+        permissions: [WorkspacePermission.CREATE_WORKSPACE_INVITE],
+      });
+
+      // Act — member tries to grant CREATE_ITEM which they don't have
+      const { accessToken } = await authService.authenticateUser(member);
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({
+          query: createMutation,
+          variables: {
+            dto: {
+              inviteeId: invitee.id,
+              inviterId: member.id,
+              workspaceId: workspace.id,
+              permissions: [WorkspacePermission.CREATE_ITEM],
+            },
+          },
+        })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseError(response, {
+        code: ApplicationErrorCode.INSUFFICIENT_INVITER_PERMISSIONS,
+        status: 'FORBIDDEN',
+      });
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // grantWorkspaceMemberPermissions
+  // ---------------------------------------------------------------------------
+
+  describe('grantWorkspaceMemberPermissions', () => {
+    const mutation = `
+      mutation GrantWorkspaceMemberPermissions($memberId: Int!, $permissions: [WorkspacePermission!]!) {
+        grantWorkspaceMemberPermissions(memberId: $memberId, permissions: $permissions)
+      }
+    `;
+
+    it('should allow workspace owner to grant any permissions', async () => {
+      // Assume
+      const owner = await userFactory.create('active');
+      const user = await userFactory.create('active');
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
+      const member = await workspaceMemberFactory.create(workspace.id, user.id, { permissions: [] });
+
+      // Act
+      const { accessToken } = await authService.authenticateUser(owner);
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: mutation, variables: { memberId: member.id, permissions: [WorkspacePermission.CREATE_ITEM] } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseSuccess(response);
+      await expectWorkspacePermissions(workspace.id, user.id, [WorkspacePermission.CREATE_ITEM]);
+    });
+
+    it('should allow admin to grant any permissions', async () => {
+      // Assume
+      const owner = await userFactory.create('active');
+      const user = await userFactory.create('active');
+      const admin = await userFactory.create('active', { role: UserRole.ADMIN });
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
+      const member = await workspaceMemberFactory.create(workspace.id, user.id, { permissions: [] });
+
+      // Act
+      const { accessToken } = await authService.authenticateUser(admin);
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: mutation, variables: { memberId: member.id, permissions: [WorkspacePermission.CREATE_ITEM] } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseSuccess(response);
+      await expectWorkspacePermissions(workspace.id, user.id, [WorkspacePermission.CREATE_ITEM]);
+    });
+
+    it('should allow member with GRANT_WORKSPACE_PERMISSION to grant permissions they hold', async () => {
+      // Assume
+      const owner = await userFactory.create('active');
+      const granter = await userFactory.create('active');
+      const user = await userFactory.create('active');
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
+      await workspaceMemberFactory.create(workspace.id, granter.id, {
+        permissions: [WorkspacePermission.GRANT_WORKSPACE_PERMISSION, WorkspacePermission.CREATE_ITEM],
+      });
+      const member = await workspaceMemberFactory.create(workspace.id, user.id, { permissions: [] });
+
+      // Act
+      const { accessToken } = await authService.authenticateUser(granter);
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: mutation, variables: { memberId: member.id, permissions: [WorkspacePermission.CREATE_ITEM] } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseSuccess(response);
+      await expectWorkspacePermissions(workspace.id, user.id, [WorkspacePermission.CREATE_ITEM]);
+    });
+
+    it('should not allow member with GRANT_WORKSPACE_PERMISSION to grant permissions they do not hold', async () => {
+      // Assume
+      const owner = await userFactory.create('active');
+      const granter = await userFactory.create('active');
+      const user = await userFactory.create('active');
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
+      await workspaceMemberFactory.create(workspace.id, granter.id, {
+        permissions: [WorkspacePermission.GRANT_WORKSPACE_PERMISSION],
+      });
+      const member = await workspaceMemberFactory.create(workspace.id, user.id, { permissions: [] });
+
+      // Act
+      const { accessToken } = await authService.authenticateUser(granter);
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: mutation, variables: { memberId: member.id, permissions: [WorkspacePermission.CREATE_ITEM] } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseError(response, {
+        code: ApplicationErrorCode.INSUFFICIENT_ACTOR_PERMISSIONS,
+        status: 'FORBIDDEN',
+      });
+    });
+
+    it('should not allow member without GRANT_WORKSPACE_PERMISSION to grant permissions', async () => {
+      // Assume
+      const owner = await userFactory.create('active');
+      const granter = await userFactory.create('active');
+      const user = await userFactory.create('active');
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
+      await workspaceMemberFactory.create(workspace.id, granter.id, {
+        permissions: [WorkspacePermission.CREATE_ITEM],
+      });
+      const member = await workspaceMemberFactory.create(workspace.id, user.id, { permissions: [] });
+
+      // Act
+      const { accessToken } = await authService.authenticateUser(granter);
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: mutation, variables: { memberId: member.id, permissions: [WorkspacePermission.CREATE_ITEM] } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseError(response, { code: ApplicationErrorCode.NO_ACCESS, status: 'FORBIDDEN' });
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // revokeWorkspaceMemberPermissions
+  // ---------------------------------------------------------------------------
+
+  describe('revokeWorkspaceMemberPermissions', () => {
+    const mutation = `
+      mutation RevokeWorkspaceMemberPermissions($memberId: Int!, $permissions: [WorkspacePermission!]!) {
+        revokeWorkspaceMemberPermissions(memberId: $memberId, permissions: $permissions)
+      }
+    `;
+
+    it('should allow workspace owner to revoke any permissions', async () => {
+      // Assume
+      const owner = await userFactory.create('active');
+      const user = await userFactory.create('active');
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
+      const member = await workspaceMemberFactory.create(workspace.id, user.id, {
+        permissions: [WorkspacePermission.CREATE_ITEM],
+      });
+
+      // Act
+      const { accessToken } = await authService.authenticateUser(owner);
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: mutation, variables: { memberId: member.id, permissions: [WorkspacePermission.CREATE_ITEM] } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseSuccess(response);
+      await expectWorkspacePermissions(workspace.id, user.id, []);
+    });
+
+    it('should allow admin to revoke any permissions', async () => {
+      // Assume
+      const owner = await userFactory.create('active');
+      const user = await userFactory.create('active');
+      const admin = await userFactory.create('active', { role: UserRole.ADMIN });
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
+      const member = await workspaceMemberFactory.create(workspace.id, user.id, {
+        permissions: [WorkspacePermission.CREATE_ITEM],
+      });
+
+      // Act
+      const { accessToken } = await authService.authenticateUser(admin);
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: mutation, variables: { memberId: member.id, permissions: [WorkspacePermission.CREATE_ITEM] } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseSuccess(response);
+      await expectWorkspacePermissions(workspace.id, user.id, []);
+    });
+
+    it('should allow member with REVOKE_WORKSPACE_PERMISSION to revoke permissions they hold', async () => {
+      // Assume
+      const owner = await userFactory.create('active');
+      const revoker = await userFactory.create('active');
+      const user = await userFactory.create('active');
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
+      await workspaceMemberFactory.create(workspace.id, revoker.id, {
+        permissions: [WorkspacePermission.REVOKE_WORKSPACE_PERMISSION, WorkspacePermission.CREATE_ITEM],
+      });
+      const member = await workspaceMemberFactory.create(workspace.id, user.id, {
+        permissions: [WorkspacePermission.CREATE_ITEM],
+      });
+
+      // Act
+      const { accessToken } = await authService.authenticateUser(revoker);
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: mutation, variables: { memberId: member.id, permissions: [WorkspacePermission.CREATE_ITEM] } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseSuccess(response);
+      await expectWorkspacePermissions(workspace.id, user.id, []);
+    });
+
+    it('should not allow member with REVOKE_WORKSPACE_PERMISSION to revoke permissions they do not hold', async () => {
+      // Assume
+      const owner = await userFactory.create('active');
+      const revoker = await userFactory.create('active');
+      const user = await userFactory.create('active');
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
+      await workspaceMemberFactory.create(workspace.id, revoker.id, {
+        permissions: [WorkspacePermission.REVOKE_WORKSPACE_PERMISSION],
+      });
+      const member = await workspaceMemberFactory.create(workspace.id, user.id, {
+        permissions: [WorkspacePermission.CREATE_ITEM],
+      });
+
+      // Act
+      const { accessToken } = await authService.authenticateUser(revoker);
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: mutation, variables: { memberId: member.id, permissions: [WorkspacePermission.CREATE_ITEM] } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseError(response, {
+        code: ApplicationErrorCode.INSUFFICIENT_ACTOR_PERMISSIONS,
+        status: 'FORBIDDEN',
+      });
+    });
+
+    it('should not allow member without REVOKE_WORKSPACE_PERMISSION to revoke permissions', async () => {
+      // Assume
+      const owner = await userFactory.create('active');
+      const revoker = await userFactory.create('active');
+      const user = await userFactory.create('active');
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
+      await workspaceMemberFactory.create(workspace.id, revoker.id, {
+        permissions: [WorkspacePermission.CREATE_ITEM],
+      });
+      const member = await workspaceMemberFactory.create(workspace.id, user.id, {
+        permissions: [WorkspacePermission.CREATE_ITEM],
+      });
+
+      // Act
+      const { accessToken } = await authService.authenticateUser(revoker);
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: mutation, variables: { memberId: member.id, permissions: [WorkspacePermission.CREATE_ITEM] } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseError(response, { code: ApplicationErrorCode.NO_ACCESS, status: 'FORBIDDEN' });
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // leaveWorkspace
+  // ---------------------------------------------------------------------------
+
+  describe('leaveWorkspace', () => {
+    const mutation = `
+      mutation LeaveWorkspace($memberId: Int!) {
+        leaveWorkspace(memberId: $memberId) { id removedAt }
+      }
+    `;
+
+    it('should allow member to leave workspace', async () => {
+      // Assume
+      const owner = await userFactory.create('active');
+      const user = await userFactory.create('active');
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
+      const member = await workspaceMemberFactory.create(workspace.id, user.id);
+
+      // Act
+      const { accessToken } = await authService.authenticateUser(user);
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: mutation, variables: { memberId: member.id } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseSuccess(response);
+      await expectRemovedMember(member.id, user.id);
+    });
+
+    it('should remove workspace permissions on leave', async () => {
+      // Assume
+      const owner = await userFactory.create('active');
+      const user = await userFactory.create('active');
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
+      const member = await workspaceMemberFactory.create(workspace.id, user.id, {
+        permissions: [WorkspacePermission.CREATE_ITEM, WorkspacePermission.CREATE_PAYMENT],
+      });
+
+      // Act
+      const { accessToken } = await authService.authenticateUser(user);
+      await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: mutation, variables: { memberId: member.id } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      await expectWorkspacePermissions(workspace.id, user.id, []);
+    });
+
+    it('should not allow owner to leave workspace', async () => {
+      // Assume
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
+      const ownerMember = await workspaceMemberFactory.create(workspace.id, owner.id, { permissions: [] });
+
+      // Act
+      const { accessToken } = await authService.authenticateUser(owner);
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: mutation, variables: { memberId: ownerMember.id } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseError(response, {
+        code: ApplicationErrorCode.CANNOT_REMOVE_WORKSPACE_OWNER,
+        status: 'BAD_REQUEST',
+      });
+    });
+
+    it('should not allow a member to leave on behalf of another member', async () => {
+      // Assume
+      const owner = await userFactory.create('active');
+      const user = await userFactory.create('active');
+      const otherUser = await userFactory.create('active');
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
+      const member = await workspaceMemberFactory.create(workspace.id, user.id);
+      await workspaceMemberFactory.create(workspace.id, otherUser.id);
+
+      // Act
+      const { accessToken } = await authService.authenticateUser(otherUser);
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: mutation, variables: { memberId: member.id } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseError(response, { code: ApplicationErrorCode.NO_ACCESS, status: 'FORBIDDEN' });
+    });
+
+    it('should allow admin to force-leave any member', async () => {
+      // Assume
+      const owner = await userFactory.create('active');
+      const user = await userFactory.create('active');
+      const admin = await userFactory.create('active', { role: UserRole.ADMIN });
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
+      const member = await workspaceMemberFactory.create(workspace.id, user.id);
+
+      // Act
+      const { accessToken } = await authService.authenticateUser(admin);
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: mutation, variables: { memberId: member.id } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseSuccess(response);
+      await expectRemovedMember(member.id, user.id);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // removeWorkspaceMember
+  // ---------------------------------------------------------------------------
+
+  describe('removeWorkspaceMember', () => {
+    const mutation = `
+      mutation RemoveWorkspaceMember($memberId: Int!) {
+        removeWorkspaceMember(memberId: $memberId) { id removedAt }
+      }
+    `;
+
+    it('should allow workspace owner to remove a member', async () => {
+      // Assume
+      const owner = await userFactory.create('active');
+      const user = await userFactory.create('active');
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
+      const member = await workspaceMemberFactory.create(workspace.id, user.id);
+
+      // Act
+      const { accessToken } = await authService.authenticateUser(owner);
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: mutation, variables: { memberId: member.id } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseSuccess(response);
+      await expectRemovedMember(member.id, user.id);
+    });
+
+    it('should remove workspace permissions on removal', async () => {
+      // Assume
+      const owner = await userFactory.create('active');
+      const user = await userFactory.create('active');
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
+      const member = await workspaceMemberFactory.create(workspace.id, user.id, {
+        permissions: [WorkspacePermission.CREATE_ITEM, WorkspacePermission.CREATE_PAYMENT],
+      });
+
+      // Act
+      const { accessToken } = await authService.authenticateUser(owner);
+      await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: mutation, variables: { memberId: member.id } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      await expectWorkspacePermissions(workspace.id, user.id, []);
+    });
+
+    it('should allow member with REMOVE_WORKSPACE_MEMBER to remove another member', async () => {
+      // Assume
+      const owner = await userFactory.create('active');
+      const remover = await userFactory.create('active');
+      const user = await userFactory.create('active');
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
+      await workspaceMemberFactory.create(workspace.id, remover.id, {
+        permissions: [WorkspacePermission.REMOVE_WORKSPACE_MEMBER],
+      });
+      const member = await workspaceMemberFactory.create(workspace.id, user.id);
+
+      // Act
+      const { accessToken } = await authService.authenticateUser(remover);
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: mutation, variables: { memberId: member.id } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseSuccess(response);
+      await expectRemovedMember(member.id, user.id);
+    });
+
+    it('should not allow member without REMOVE_WORKSPACE_MEMBER to remove a member', async () => {
+      // Assume
+      const owner = await userFactory.create('active');
+      const remover = await userFactory.create('active');
+      const user = await userFactory.create('active');
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
+      await workspaceMemberFactory.create(workspace.id, remover.id, {
+        permissions: [WorkspacePermission.CREATE_ITEM],
+      });
+      const member = await workspaceMemberFactory.create(workspace.id, user.id);
+
+      // Act
+      const { accessToken } = await authService.authenticateUser(remover);
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: mutation, variables: { memberId: member.id } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseError(response, { code: ApplicationErrorCode.NO_ACCESS, status: 'FORBIDDEN' });
+    });
+
+    it('should not allow removing the workspace owner', async () => {
+      // Assume
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
+      const ownerMember = await workspaceMemberFactory.create(workspace.id, owner.id, { permissions: [] });
+
+      // Act
+      const { accessToken } = await authService.authenticateUser(owner);
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: mutation, variables: { memberId: ownerMember.id } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseError(response, {
+        code: ApplicationErrorCode.CANNOT_REMOVE_WORKSPACE_OWNER,
+        status: 'BAD_REQUEST',
+      });
+    });
+
+    it('should allow admin to remove any member', async () => {
+      // Assume
+      const owner = await userFactory.create('active');
+      const user = await userFactory.create('active');
+      const admin = await userFactory.create('active', { role: UserRole.ADMIN });
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
+      const member = await workspaceMemberFactory.create(workspace.id, user.id);
+
+      // Act
+      const { accessToken } = await authService.authenticateUser(admin);
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: mutation, variables: { memberId: member.id } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseSuccess(response);
+      await expectRemovedMember(member.id, user.id);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
   // Workspace.members and Workspace.pendingInvites field resolvers
   // ---------------------------------------------------------------------------
 
@@ -922,5 +1557,26 @@ describe('WorkspaceMembership E2E', () => {
     });
     expect(member).toBeDefined();
     expect(member.userId).toBe(userId);
+  }
+
+  async function expectRemovedMember(memberId: number, userId: number) {
+    const member = await prisma.workspaceMember.findUnique({ where: { id: memberId } });
+    expect(member).toBeDefined();
+    expect(member.userId).toBe(userId);
+    expect(member.removedAt).toEqual(expect.any(Date));
+    expect(member.removedByUserId).toBeDefined();
+  }
+
+  async function expectWorkspacePermissions(
+    workspaceId: number,
+    userId: number,
+    permissions: WorkspacePermission[],
+  ) {
+    const granted = await prisma.userWorkspacePermission.findMany({
+      select: { permission: true },
+      where: { userId, workspaceId },
+    });
+    const grantedSet = new Set(granted.map((r) => r.permission));
+    expect(grantedSet).toEqual(new Set(permissions));
   }
 });

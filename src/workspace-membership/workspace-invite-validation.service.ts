@@ -51,6 +51,12 @@ export class WorkspaceInviteValidationService {
       return;
     }
 
+    const workspace = await tx.workspace.findUnique({ where: { id: workspaceId } });
+
+    if (workspace.ownerId === inviterId) {
+      return;
+    }
+
     const granted = await tx.userWorkspacePermission.findMany({
       select: { permission: true },
       where: { permission: { in: permissions }, userId: inviterId, workspaceId },
