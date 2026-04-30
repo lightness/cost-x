@@ -4,16 +4,15 @@ import { Prisma } from '../../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { WorkspaceHistoryEvent } from '../workspace-history/entity/workspace-history-event.enum';
 import { WorkspaceMember } from './entity/workspace-member.entity';
-import {
-  CannotRemoveWorkspaceOwnerError,
-  WorkspaceMemberAlreadyRemovedError,
-} from './error';
+import { CannotRemoveWorkspaceOwnerError, WorkspaceMemberAlreadyRemovedError } from './error';
+import { WorkspaceMemberPermissionService } from './workspace-member-permission.service';
 
 @Injectable()
 export class WorkspaceMemberService {
   constructor(
     private prisma: PrismaService,
     private eventEmitter: EventEmitter2,
+    private memberPermissionService: WorkspaceMemberPermissionService,
   ) {}
 
   async create(
@@ -62,9 +61,7 @@ export class WorkspaceMemberService {
       where: { id: member.id },
     });
 
-    await tx.userWorkspacePermission.deleteMany({
-      where: { userId: member.userId, workspaceId: member.workspaceId },
-    });
+    await this.memberPermissionService.revokeAllPermissions(removedMember, tx);
 
     await this.eventEmitter.emitAsync(WorkspaceHistoryEvent.WORKSPACE_MEMBER_REMOVED, {
       actorId,

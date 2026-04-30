@@ -43,6 +43,15 @@ export class WorkspaceMemberPermissionService {
     });
   }
 
+  async revokeAllPermissions(
+    member: WorkspaceMember,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<void> {
+    await tx.userWorkspacePermission.deleteMany({
+      where: { userId: member.userId, workspaceId: member.workspaceId },
+    });
+  }
+
   async revokePermissions(
     member: WorkspaceMember,
     permissions: WorkspacePermission[],
