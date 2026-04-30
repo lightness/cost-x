@@ -98,6 +98,17 @@ export class WorkspaceMemberPermissionService {
       return;
     }
 
+    const activeMember = await tx.workspaceMember.findFirst({
+      select: { id: true },
+      where: { removedAt: null, userId: actor.id, workspaceId },
+    });
+
+    if (!activeMember) {
+      throw new InsufficientActorPermissionsError(
+        'Current user is not an active member in workspace',
+      );
+    }
+
     const granted = await tx.userWorkspacePermission.findMany({
       select: { permission: true },
       where: { permission: { in: permissions }, userId: actor.id, workspaceId },

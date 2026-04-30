@@ -162,7 +162,9 @@ describe('WorkspaceMembership E2E', () => {
       const invitee = await userFactory.create('active');
       const workspace = await workspaceFactory.create({ ownerId: owner.id });
       await workspaceMemberFactory.create(workspace.id, member.id, {
-        permissions: Object.values(WorkspacePermission).filter((p) => p !== WorkspacePermission.CREATE_WORKSPACE_INVITE),
+        permissions: Object.values(WorkspacePermission).filter(
+          (p) => p !== WorkspacePermission.CREATE_WORKSPACE_INVITE,
+        ),
       });
 
       // Act
@@ -794,7 +796,14 @@ describe('WorkspaceMembership E2E', () => {
         .post('/graphql')
         .send({
           query: createMutation,
-          variables: { dto: { inviteeId: invitee.id, inviterId: owner.id, workspaceId: workspace.id, permissions } },
+          variables: {
+            dto: {
+              inviteeId: invitee.id,
+              inviterId: owner.id,
+              permissions,
+              workspaceId: workspace.id,
+            },
+          },
         })
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${ownerToken}`);
@@ -825,7 +834,14 @@ describe('WorkspaceMembership E2E', () => {
         .post('/graphql')
         .send({
           query: createMutation,
-          variables: { dto: { inviteeId: invitee.id, inviterId: owner.id, workspaceId: workspace.id, permissions: [] } },
+          variables: {
+            dto: {
+              inviteeId: invitee.id,
+              inviterId: owner.id,
+              permissions: [],
+              workspaceId: workspace.id,
+            },
+          },
         })
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${ownerToken}`);
@@ -865,8 +881,8 @@ describe('WorkspaceMembership E2E', () => {
             dto: {
               inviteeId: invitee.id,
               inviterId: member.id,
-              workspaceId: workspace.id,
               permissions: [WorkspacePermission.CREATE_ITEM],
+              workspaceId: workspace.id,
             },
           },
         })
@@ -897,13 +913,18 @@ describe('WorkspaceMembership E2E', () => {
       const owner = await userFactory.create('active');
       const user = await userFactory.create('active');
       const workspace = await workspaceFactory.create({ ownerId: owner.id });
-      const member = await workspaceMemberFactory.create(workspace.id, user.id, { permissions: [] });
+      const member = await workspaceMemberFactory.create(workspace.id, user.id, {
+        permissions: [],
+      });
 
       // Act
       const { accessToken } = await authService.authenticateUser(owner);
       const response = await request(app.getHttpServer())
         .post('/graphql')
-        .send({ query: mutation, variables: { memberId: member.id, permissions: [WorkspacePermission.CREATE_ITEM] } })
+        .send({
+          query: mutation,
+          variables: { memberId: member.id, permissions: [WorkspacePermission.CREATE_ITEM] },
+        })
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${accessToken}`);
 
@@ -918,13 +939,18 @@ describe('WorkspaceMembership E2E', () => {
       const user = await userFactory.create('active');
       const admin = await userFactory.create('active', { role: UserRole.ADMIN });
       const workspace = await workspaceFactory.create({ ownerId: owner.id });
-      const member = await workspaceMemberFactory.create(workspace.id, user.id, { permissions: [] });
+      const member = await workspaceMemberFactory.create(workspace.id, user.id, {
+        permissions: [],
+      });
 
       // Act
       const { accessToken } = await authService.authenticateUser(admin);
       const response = await request(app.getHttpServer())
         .post('/graphql')
-        .send({ query: mutation, variables: { memberId: member.id, permissions: [WorkspacePermission.CREATE_ITEM] } })
+        .send({
+          query: mutation,
+          variables: { memberId: member.id, permissions: [WorkspacePermission.CREATE_ITEM] },
+        })
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${accessToken}`);
 
@@ -940,15 +966,23 @@ describe('WorkspaceMembership E2E', () => {
       const user = await userFactory.create('active');
       const workspace = await workspaceFactory.create({ ownerId: owner.id });
       await workspaceMemberFactory.create(workspace.id, granter.id, {
-        permissions: [WorkspacePermission.GRANT_WORKSPACE_PERMISSION, WorkspacePermission.CREATE_ITEM],
+        permissions: [
+          WorkspacePermission.GRANT_WORKSPACE_PERMISSION,
+          WorkspacePermission.CREATE_ITEM,
+        ],
       });
-      const member = await workspaceMemberFactory.create(workspace.id, user.id, { permissions: [] });
+      const member = await workspaceMemberFactory.create(workspace.id, user.id, {
+        permissions: [],
+      });
 
       // Act
       const { accessToken } = await authService.authenticateUser(granter);
       const response = await request(app.getHttpServer())
         .post('/graphql')
-        .send({ query: mutation, variables: { memberId: member.id, permissions: [WorkspacePermission.CREATE_ITEM] } })
+        .send({
+          query: mutation,
+          variables: { memberId: member.id, permissions: [WorkspacePermission.CREATE_ITEM] },
+        })
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${accessToken}`);
 
@@ -966,13 +1000,18 @@ describe('WorkspaceMembership E2E', () => {
       await workspaceMemberFactory.create(workspace.id, granter.id, {
         permissions: [WorkspacePermission.GRANT_WORKSPACE_PERMISSION],
       });
-      const member = await workspaceMemberFactory.create(workspace.id, user.id, { permissions: [] });
+      const member = await workspaceMemberFactory.create(workspace.id, user.id, {
+        permissions: [],
+      });
 
       // Act
       const { accessToken } = await authService.authenticateUser(granter);
       const response = await request(app.getHttpServer())
         .post('/graphql')
-        .send({ query: mutation, variables: { memberId: member.id, permissions: [WorkspacePermission.CREATE_ITEM] } })
+        .send({
+          query: mutation,
+          variables: { memberId: member.id, permissions: [WorkspacePermission.CREATE_ITEM] },
+        })
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${accessToken}`);
 
@@ -992,13 +1031,18 @@ describe('WorkspaceMembership E2E', () => {
       await workspaceMemberFactory.create(workspace.id, granter.id, {
         permissions: [WorkspacePermission.CREATE_ITEM],
       });
-      const member = await workspaceMemberFactory.create(workspace.id, user.id, { permissions: [] });
+      const member = await workspaceMemberFactory.create(workspace.id, user.id, {
+        permissions: [],
+      });
 
       // Act
       const { accessToken } = await authService.authenticateUser(granter);
       const response = await request(app.getHttpServer())
         .post('/graphql')
-        .send({ query: mutation, variables: { memberId: member.id, permissions: [WorkspacePermission.CREATE_ITEM] } })
+        .send({
+          query: mutation,
+          variables: { memberId: member.id, permissions: [WorkspacePermission.CREATE_ITEM] },
+        })
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${accessToken}`);
 
@@ -1031,7 +1075,10 @@ describe('WorkspaceMembership E2E', () => {
       const { accessToken } = await authService.authenticateUser(owner);
       const response = await request(app.getHttpServer())
         .post('/graphql')
-        .send({ query: mutation, variables: { memberId: member.id, permissions: [WorkspacePermission.CREATE_ITEM] } })
+        .send({
+          query: mutation,
+          variables: { memberId: member.id, permissions: [WorkspacePermission.CREATE_ITEM] },
+        })
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${accessToken}`);
 
@@ -1054,7 +1101,10 @@ describe('WorkspaceMembership E2E', () => {
       const { accessToken } = await authService.authenticateUser(admin);
       const response = await request(app.getHttpServer())
         .post('/graphql')
-        .send({ query: mutation, variables: { memberId: member.id, permissions: [WorkspacePermission.CREATE_ITEM] } })
+        .send({
+          query: mutation,
+          variables: { memberId: member.id, permissions: [WorkspacePermission.CREATE_ITEM] },
+        })
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${accessToken}`);
 
@@ -1070,7 +1120,10 @@ describe('WorkspaceMembership E2E', () => {
       const user = await userFactory.create('active');
       const workspace = await workspaceFactory.create({ ownerId: owner.id });
       await workspaceMemberFactory.create(workspace.id, revoker.id, {
-        permissions: [WorkspacePermission.REVOKE_WORKSPACE_PERMISSION, WorkspacePermission.CREATE_ITEM],
+        permissions: [
+          WorkspacePermission.REVOKE_WORKSPACE_PERMISSION,
+          WorkspacePermission.CREATE_ITEM,
+        ],
       });
       const member = await workspaceMemberFactory.create(workspace.id, user.id, {
         permissions: [WorkspacePermission.CREATE_ITEM],
@@ -1080,7 +1133,10 @@ describe('WorkspaceMembership E2E', () => {
       const { accessToken } = await authService.authenticateUser(revoker);
       const response = await request(app.getHttpServer())
         .post('/graphql')
-        .send({ query: mutation, variables: { memberId: member.id, permissions: [WorkspacePermission.CREATE_ITEM] } })
+        .send({
+          query: mutation,
+          variables: { memberId: member.id, permissions: [WorkspacePermission.CREATE_ITEM] },
+        })
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${accessToken}`);
 
@@ -1106,7 +1162,10 @@ describe('WorkspaceMembership E2E', () => {
       const { accessToken } = await authService.authenticateUser(revoker);
       const response = await request(app.getHttpServer())
         .post('/graphql')
-        .send({ query: mutation, variables: { memberId: member.id, permissions: [WorkspacePermission.CREATE_ITEM] } })
+        .send({
+          query: mutation,
+          variables: { memberId: member.id, permissions: [WorkspacePermission.CREATE_ITEM] },
+        })
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${accessToken}`);
 
@@ -1134,7 +1193,10 @@ describe('WorkspaceMembership E2E', () => {
       const { accessToken } = await authService.authenticateUser(revoker);
       const response = await request(app.getHttpServer())
         .post('/graphql')
-        .send({ query: mutation, variables: { memberId: member.id, permissions: [WorkspacePermission.CREATE_ITEM] } })
+        .send({
+          query: mutation,
+          variables: { memberId: member.id, permissions: [WorkspacePermission.CREATE_ITEM] },
+        })
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${accessToken}`);
 
@@ -1199,7 +1261,9 @@ describe('WorkspaceMembership E2E', () => {
       // Assume
       const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create({ ownerId: owner.id });
-      const ownerMember = await workspaceMemberFactory.create(workspace.id, owner.id, { permissions: [] });
+      const ownerMember = await workspaceMemberFactory.create(workspace.id, owner.id, {
+        permissions: [],
+      });
 
       // Act
       const { accessToken } = await authService.authenticateUser(owner);
@@ -1362,7 +1426,9 @@ describe('WorkspaceMembership E2E', () => {
       // Assume
       const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create({ ownerId: owner.id });
-      const ownerMember = await workspaceMemberFactory.create(workspace.id, owner.id, { permissions: [] });
+      const ownerMember = await workspaceMemberFactory.create(workspace.id, owner.id, {
+        permissions: [],
+      });
 
       // Act
       const { accessToken } = await authService.authenticateUser(owner);
@@ -1398,6 +1464,124 @@ describe('WorkspaceMembership E2E', () => {
       // Assert
       expectResponseSuccess(response);
       await expectRemovedMember(member.id, user.id);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Removed member with orphaned permission rows
+  // ---------------------------------------------------------------------------
+
+  describe('removed member with orphaned permissions', () => {
+    const removeWorkspaceMemberMutation = `
+      mutation RemoveWorkspaceMember($memberId: Int!) {
+        removeWorkspaceMember(memberId: $memberId) { id }
+      }
+    `;
+
+    it('should deny permission-gated mutation to a removed member with orphaned permission rows', async () => {
+      // Assume
+      const owner = await userFactory.create('active');
+      const user = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
+      const member = await workspaceMemberFactory.create(workspace.id, user.id, {
+        permissions: [WorkspacePermission.CREATE_WORKSPACE_INVITE],
+      });
+
+      const { accessToken: ownerToken } = await authService.authenticateUser(owner);
+      await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: removeWorkspaceMemberMutation, variables: { memberId: member.id } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${ownerToken}`);
+
+      // Simulate a failed revokeAllPermissions — re-insert the orphaned row
+      await prisma.userWorkspacePermission.create({
+        data: {
+          permission: WorkspacePermission.CREATE_WORKSPACE_INVITE,
+          userId: user.id,
+          workspaceId: workspace.id,
+        },
+      });
+
+      // Act — removed member tries to use the permission
+      const { accessToken: memberToken } = await authService.authenticateUser(user);
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({
+          query: `
+            mutation CreateWorkspaceInvite($dto: CreateWorkspaceInviteInDto!) {
+              createWorkspaceInvite(dto: $dto) { id }
+            }
+          `,
+          variables: {
+            dto: { inviteeId: invitee.id, inviterId: user.id, workspaceId: workspace.id },
+          },
+        })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${memberToken}`);
+
+      // Assert
+      expectResponseError(response, { code: ApplicationErrorCode.NO_ACCESS, status: 'FORBIDDEN' });
+    });
+
+    it('should deny removed member from granting permissions even with orphaned permission rows', async () => {
+      // Assume
+      const owner = await userFactory.create('active');
+      const granter = await userFactory.create('active');
+      const user = await userFactory.create('active');
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
+      const granterMember = await workspaceMemberFactory.create(workspace.id, granter.id, {
+        permissions: [
+          WorkspacePermission.GRANT_WORKSPACE_PERMISSION,
+          WorkspacePermission.CREATE_ITEM,
+        ],
+      });
+      const targetMember = await workspaceMemberFactory.create(workspace.id, user.id, {
+        permissions: [],
+      });
+
+      const { accessToken: ownerToken } = await authService.authenticateUser(owner);
+      await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: removeWorkspaceMemberMutation, variables: { memberId: granterMember.id } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${ownerToken}`);
+
+      // Simulate orphaned permission rows for the removed granter
+      await prisma.userWorkspacePermission.createMany({
+        data: [
+          {
+            permission: WorkspacePermission.GRANT_WORKSPACE_PERMISSION,
+            userId: granter.id,
+            workspaceId: workspace.id,
+          },
+          {
+            permission: WorkspacePermission.CREATE_ITEM,
+            userId: granter.id,
+            workspaceId: workspace.id,
+          },
+        ],
+      });
+
+      // Act — removed granter tries to grant a permission
+      const { accessToken: granterToken } = await authService.authenticateUser(granter);
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({
+          query: `
+            mutation GrantWorkspaceMemberPermissions($memberId: Int!, $permissions: [WorkspacePermission!]!) {
+              grantWorkspaceMemberPermissions(memberId: $memberId, permissions: $permissions)
+            }
+          `,
+          variables: { memberId: targetMember.id, permissions: [WorkspacePermission.CREATE_ITEM] },
+        })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${granterToken}`);
+
+      // Assert
+      expectResponseError(response, { code: ApplicationErrorCode.NO_ACCESS, status: 'FORBIDDEN' });
+      await expectWorkspacePermissions(workspace.id, user.id, []);
     });
   });
 
@@ -1502,7 +1686,9 @@ describe('WorkspaceMembership E2E', () => {
       expect(ids).toContain(pendingInvite.id);
       expect(ids).not.toContain(acceptedInvite.id);
       expect(ids).not.toContain(rejectedInvite.id);
-      expect(invites.every((i: WorkspaceInvite) => i.status === WorkspaceInviteStatus.PENDING)).toBe(true);
+      expect(
+        invites.every((i: WorkspaceInvite) => i.status === WorkspaceInviteStatus.PENDING),
+      ).toBe(true);
     });
   });
 

@@ -1,18 +1,4 @@
 {
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Write|Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "jq -r '.tool_input.file_path // empty' | { read -r f; [ -n \"$f\" ] && npx biome check --write \"$f\"; } 2>/dev/null || true",
-            "statusMessage": "Sorting imports..."
-          }
-        ]
-      }
-    ]
-  },
   "permissions": {
     "allow": [
       "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")",
@@ -50,7 +36,23 @@
       "Bash(git remote *)",
       "mcp__github__search_pull_requests",
       "Bash(grep -E \"\\\\.ts$\")",
-      "Bash(./node_modules/.bin/biome --version)"
+      "Bash(./node_modules/.bin/biome --version)",
+      "Bash(gh pr *)",
+      "mcp__github__pull_request_read"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path // empty' | { read -r f; [ -n \"$f\" ] && npx biome check --write \"$f\"; } 2>/dev/null || true",
+            "statusMessage": "Sorting imports..."
+          }
+        ]
+      }
     ]
   }
 }

@@ -15,6 +15,15 @@ export class WorkspacePermissionAccessStrategy implements AccessStrategy {
     const currentUser = rule.sourceEntity as { id: number };
     const workspace = rule.targetEntity as { id: number };
 
+    const activeMember = await this.prisma.workspaceMember.findFirst({
+      select: { id: true },
+      where: { removedAt: null, userId: currentUser.id, workspaceId: workspace.id },
+    });
+
+    if (!activeMember) {
+      return false;
+    }
+
     const granted = await this.prisma.userWorkspacePermission.findMany({
       select: { permission: true },
       where: {
