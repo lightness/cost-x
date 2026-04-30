@@ -447,6 +447,32 @@ describe('WorkspaceMembership E2E', () => {
         status: 'BAD_REQUEST',
       });
     });
+
+    it('should not allow accepting a cancelled invite', async () => {
+      // Assume
+      const owner = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
+      const invite = await workspaceInviteFactory.create('cancelled', {
+        inviteeId: invitee.id,
+        inviterId: owner.id,
+        workspaceId: workspace.id,
+      });
+
+      // Act
+      const { accessToken } = await authService.authenticateUser(invitee);
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: mutation, variables: { inviteId: invite.id } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseError(response, {
+        code: ApplicationErrorCode.IMPROPER_WORKSPACE_INVITE_STATUS,
+        status: 'BAD_REQUEST',
+      });
+    });
   });
 
   // ---------------------------------------------------------------------------
@@ -542,6 +568,32 @@ describe('WorkspaceMembership E2E', () => {
       const invitee = await userFactory.create('active');
       const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const invite = await workspaceInviteFactory.create('accepted', {
+        inviteeId: invitee.id,
+        inviterId: owner.id,
+        workspaceId: workspace.id,
+      });
+
+      // Act
+      const { accessToken } = await authService.authenticateUser(invitee);
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: mutation, variables: { inviteId: invite.id } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseError(response, {
+        code: ApplicationErrorCode.IMPROPER_WORKSPACE_INVITE_STATUS,
+        status: 'BAD_REQUEST',
+      });
+    });
+
+    it('should not allow rejecting a cancelled invite', async () => {
+      // Assume
+      const owner = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
+      const invite = await workspaceInviteFactory.create('cancelled', {
         inviteeId: invitee.id,
         inviterId: owner.id,
         workspaceId: workspace.id,
@@ -707,6 +759,32 @@ describe('WorkspaceMembership E2E', () => {
       const invitee = await userFactory.create('active');
       const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const invite = await workspaceInviteFactory.create('accepted', {
+        inviteeId: invitee.id,
+        inviterId: owner.id,
+        workspaceId: workspace.id,
+      });
+
+      // Act
+      const { accessToken } = await authService.authenticateUser(owner);
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: mutation, variables: { inviteId: invite.id } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseError(response, {
+        code: ApplicationErrorCode.IMPROPER_WORKSPACE_INVITE_STATUS,
+        status: 'BAD_REQUEST',
+      });
+    });
+
+    it('should not allow cancelling an already cancelled invite', async () => {
+      // Assume
+      const owner = await userFactory.create('active');
+      const invitee = await userFactory.create('active');
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
+      const invite = await workspaceInviteFactory.create('cancelled', {
         inviteeId: invitee.id,
         inviterId: owner.id,
         workspaceId: workspace.id,

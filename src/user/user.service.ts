@@ -7,7 +7,7 @@ import { CreateUserInDto, UpdateUserInDto } from './dto';
 import User from './entity/user.entity';
 import { UserAlreadyExistsError } from './error/user-already-exists.error';
 
-const DEFAULT_USER_PERMISSIONS: Permission[] = [
+export const DEFAULT_USER_PERMISSIONS: Permission[] = [
   Permission.CREATE_WORKSPACE,
   Permission.UPDATE_PROFILE,
   Permission.CREATE_CONTACT_INVITE,

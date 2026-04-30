@@ -4,7 +4,7 @@ import { PrismaService } from '../../src/prisma/prisma.service';
 import { UserFactoryService } from './user-factory.service';
 import { WorkspaceFactoryService } from './workspace-factory.service';
 
-export type WorkspaceInviteKind = 'pending' | 'accepted' | 'rejected';
+export type WorkspaceInviteKind = 'pending' | 'accepted' | 'rejected' | 'cancelled';
 
 @Injectable()
 export class WorkspaceInviteFactoryService {
@@ -19,17 +19,18 @@ export class WorkspaceInviteFactoryService {
     overrides: Partial<{ workspaceId: number; inviterId: number; inviteeId: number }> = {},
   ): Promise<WorkspaceInvite> {
     const inviterId = overrides.inviterId ?? (await this.userFactory.create('active')).id;
-    const workspaceId = overrides.workspaceId ?? (await this.workspaceFactory.create({ ownerId: inviterId })).id;
+    const workspaceId =
+      overrides.workspaceId ?? (await this.workspaceFactory.create({ ownerId: inviterId })).id;
     const inviteeId = overrides.inviteeId ?? (await this.userFactory.create('active')).id;
 
     return this.prisma.workspaceInvite.create({
       data: {
-        workspace: { connect: { id: workspaceId } },
-        inviter: { connect: { id: inviterId } },
-        invitee: { connect: { id: inviteeId } },
-        status: this.generateStatus(kind),
         createdAt: new Date(),
+        invitee: { connect: { id: inviteeId } },
+        inviter: { connect: { id: inviterId } },
         reactedAt: kind === 'pending' ? null : new Date(),
+        status: this.generateStatus(kind),
+        workspace: { connect: { id: workspaceId } },
       },
     });
   }
@@ -42,6 +43,8 @@ export class WorkspaceInviteFactoryService {
         return WorkspaceInviteStatus.ACCEPTED;
       case 'rejected':
         return WorkspaceInviteStatus.REJECTED;
+      case 'cancelled':
+        return WorkspaceInviteStatus.CANCELLED;
     }
   }
 }
