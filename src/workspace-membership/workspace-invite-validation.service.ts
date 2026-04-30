@@ -53,7 +53,7 @@ export class WorkspaceInviteValidationService {
 
     const workspace = await tx.workspace.findUnique({ where: { id: workspaceId } });
 
-    if (workspace.ownerId === inviterId) {
+    if (workspace?.ownerId === inviterId) {
       return;
     }
 

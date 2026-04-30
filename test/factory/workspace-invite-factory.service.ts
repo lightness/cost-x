@@ -28,6 +28,7 @@ export class WorkspaceInviteFactoryService {
         createdAt: new Date(),
         invitee: { connect: { id: inviteeId } },
         inviter: { connect: { id: inviterId } },
+        permissions: [],
         reactedAt: kind === 'pending' ? null : new Date(),
         status: this.generateStatus(kind),
         workspace: { connect: { id: workspaceId } },

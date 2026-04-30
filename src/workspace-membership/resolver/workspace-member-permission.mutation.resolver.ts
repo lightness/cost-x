@@ -12,8 +12,8 @@ import { TransactionInterceptor } from '../../common/interceptor/transaction.int
 import { UserRole } from '../../user/entity/user-role.enum';
 import User from '../../user/entity/user.entity';
 import { WorkspaceMember } from '../entity/workspace-member.entity';
-import { WorkspaceMemberByIdPipe } from '../pipe/workspace-member-by-id.pipe';
 import { WorkspaceByWorkspaceMemberPipe } from '../pipe/workspace-by-workspace-member.pipe';
+import { WorkspaceMemberByIdPipe } from '../pipe/workspace-member-by-id.pipe';
 import { WorkspaceMemberPermissionService } from '../workspace-member-permission.service';
 
 @Resolver()
@@ -25,15 +25,11 @@ export class WorkspaceMemberPermissionMutationResolver {
   @Mutation(() => Boolean)
   @Access.allow({
     or: [
+      { owner: 'workspace', scope: AccessScope.WORKSPACE },
       {
-        or: [
-          { owner: 'workspace', scope: AccessScope.WORKSPACE },
-          {
-            permission: WorkspacePermission.GRANT_WORKSPACE_PERMISSION,
-            scope: AccessScope.WORKSPACE,
-            target: 'workspace',
-          },
-        ],
+        permission: WorkspacePermission.GRANT_WORKSPACE_PERMISSION,
+        scope: AccessScope.WORKSPACE,
+        target: 'workspace',
       },
       { role: [UserRole.ADMIN], scope: AccessScope.USER },
     ],
@@ -54,15 +50,11 @@ export class WorkspaceMemberPermissionMutationResolver {
   @Mutation(() => Boolean)
   @Access.allow({
     or: [
+      { owner: 'workspace', scope: AccessScope.WORKSPACE },
       {
-        or: [
-          { owner: 'workspace', scope: AccessScope.WORKSPACE },
-          {
-            permission: WorkspacePermission.REVOKE_WORKSPACE_PERMISSION,
-            scope: AccessScope.WORKSPACE,
-            target: 'workspace',
-          },
-        ],
+        permission: WorkspacePermission.REVOKE_WORKSPACE_PERMISSION,
+        scope: AccessScope.WORKSPACE,
+        target: 'workspace',
       },
       { role: [UserRole.ADMIN], scope: AccessScope.USER },
     ],

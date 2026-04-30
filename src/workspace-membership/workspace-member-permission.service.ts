@@ -94,7 +94,7 @@ export class WorkspaceMemberPermissionService {
 
     const workspace = await tx.workspace.findUnique({ where: { id: workspaceId } });
 
-    if (workspace.ownerId === actor.id) {
+    if (workspace?.ownerId === actor.id) {
       return;
     }
 

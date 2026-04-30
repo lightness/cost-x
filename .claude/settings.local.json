@@ -39,7 +39,8 @@
       "Bash(./node_modules/.bin/biome --version)",
       "Bash(gh pr *)",
       "mcp__github__pull_request_read",
-      "Bash(xargs cat *)"
+      "Bash(xargs cat *)",
+      "mcp__github__pull_request_review_write"
     ]
   },
   "hooks": {

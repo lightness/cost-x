@@ -52,7 +52,7 @@ export class WorkspaceMemberService {
 
     const workspace = await tx.workspace.findUnique({ where: { id: member.workspaceId } });
 
-    if (workspace.ownerId === member.userId) {
+    if (workspace?.ownerId === member.userId) {
       throw new CannotRemoveWorkspaceOwnerError();
     }
 

@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { WorkspaceInviteStatus, WorkspaceMember, WorkspacePermission } from '../../generated/prisma/client';
+import {
+  WorkspaceInviteStatus,
+  WorkspaceMember,
+  WorkspacePermission,
+} from '../../generated/prisma/client';
 import { PrismaService } from '../../src/prisma/prisma.service';
 
 @Injectable()
@@ -16,12 +20,13 @@ export class WorkspaceMemberFactoryService {
 
     const invite = await this.prisma.workspaceInvite.create({
       data: {
-        workspace: { connect: { id: workspaceId } },
-        inviter: { connect: { id: workspace.ownerId } },
-        invitee: { connect: { id: userId } },
-        status: WorkspaceInviteStatus.ACCEPTED,
         createdAt: new Date(),
+        invitee: { connect: { id: userId } },
+        inviter: { connect: { id: workspace.ownerId } },
+        permissions: [],
         reactedAt: new Date(),
+        status: WorkspaceInviteStatus.ACCEPTED,
+        workspace: { connect: { id: workspaceId } },
       },
     });
 
@@ -36,7 +41,7 @@ export class WorkspaceMemberFactoryService {
 
     if (permissions.length > 0) {
       await this.prisma.userWorkspacePermission.createMany({
-        data: permissions.map((permission) => ({ userId, workspaceId, permission })),
+        data: permissions.map((permission) => ({ permission, userId, workspaceId })),
       });
     }
 
