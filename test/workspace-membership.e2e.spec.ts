@@ -1,7 +1,7 @@
 import { NestApplication } from '@nestjs/core';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
-import { WorkspaceInvite } from '../generated/prisma/client';
+import { WorkspaceInvite, WorkspacePermission } from '../generated/prisma/client';
 import { AuthService } from '../src/auth/auth.service';
 import { ApplicationErrorCode } from '../src/common/error/coded-application.error';
 import { configureApp } from '../src/configure-app';
@@ -11,7 +11,6 @@ import { UserRole } from '../src/user/entity/user-role.enum';
 import { WorkspaceInviteStatus } from '../src/workspace-membership/entity/workspace-invite-status.enum';
 import { WorkspaceMembershipModule } from '../src/workspace-membership/workspace-membership.module';
 import { WorkspaceModule } from '../src/workspace/workspace.module';
-import { WorkspacePermission } from '../generated/prisma/client';
 import { FactoryModule } from './factory/factory.module';
 import { UserFactoryService } from './factory/user-factory.service';
 import { WorkspaceFactoryService } from './factory/workspace-factory.service';

@@ -6,9 +6,9 @@ import User from '../user/entity/user.entity';
 import { WorkspaceHistoryEvent } from '../workspace-history/entity/workspace-history-event.enum';
 import { Workspace } from '../workspace/entity/workspace.entity';
 import { WorkspaceInvite } from './entity/workspace-invite.entity';
+import { WorkspaceInviteValidationService } from './workspace-invite-validation.service';
 import { WorkspaceMemberPermissionService } from './workspace-member-permission.service';
 import { WorkspaceMemberService } from './workspace-member.service';
-import { WorkspaceInviteValidationService } from './workspace-invite-validation.service';
 
 @Injectable()
 export class WorkspaceInviteService {
@@ -69,7 +69,12 @@ export class WorkspaceInviteService {
     });
 
     await this.memberService.create(invite.workspaceId, invite.inviteeId, invite.id, actor.id, tx);
-    await this.memberPermissionService.seedPermissions(invite.workspaceId, invite.inviteeId, invite.permissions, tx);
+    await this.memberPermissionService.seedPermissions(
+      invite.workspaceId,
+      invite.inviteeId,
+      invite.permissions,
+      tx,
+    );
 
     await this.eventEmitter.emitAsync(WorkspaceHistoryEvent.WORKSPACE_INVITE_ACCEPTED, {
       actorId: actor.id,
