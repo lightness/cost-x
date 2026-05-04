@@ -47,12 +47,12 @@ export class WorkspaceMutationResolver {
   })
   @Infer('workspace', { from: fromArg('id'), pipes: [WorkspaceByIdPipe] })
   async updateWorkspace(
-    @Args('id', { type: () => Int }) id: number,
+    @Args('id', { type: () => Int }, WorkspaceByIdPipe) workspace: Workspace,
     @Args('dto') dto: WorkspaceInDto,
     @CurrentUser() currentUser: User,
     @Context('tx') tx: Prisma.TransactionClient,
   ) {
-    return this.workspaceService.update(id, dto, currentUser, tx);
+    return this.workspaceService.update(workspace, dto, currentUser, tx);
   }
 
   @Mutation(() => Workspace)
@@ -64,10 +64,10 @@ export class WorkspaceMutationResolver {
   })
   @Infer('workspace', { from: fromArg('id'), pipes: [WorkspaceByIdPipe] })
   async deleteWorkspace(
-    @Args('id', { type: () => Int }) id: number,
+    @Args('id', { type: () => Int }, WorkspaceByIdPipe) workspace: Workspace,
     @CurrentUser() currentUser: User,
     @Context('tx') tx: Prisma.TransactionClient,
   ) {
-    return this.workspaceService.delete(id, currentUser, tx);
+    return this.workspaceService.delete(workspace, currentUser, tx);
   }
 }

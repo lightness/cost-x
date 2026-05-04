@@ -92,7 +92,7 @@ export class ChangesService {
   }
 
   getWorkspaceDiff(oldWorkspace: Workspace, newWorkspace: Workspace) {
-    return this.getDiff(oldWorkspace, newWorkspace, ['title', 'defaultCurrency']);
+    return this.getDiff(oldWorkspace, newWorkspace, ['title', 'defaultCurrency', 'stakeRule']);
   }
 
   getMergedItemDiff(

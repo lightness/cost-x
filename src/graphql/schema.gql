@@ -210,6 +210,7 @@ type Mutation {
   updateTag(dto: TagInDto!, id: Int!): Tag!
   updateUser(dto: UpdateUserInDto!, id: Int!): User!
   updateWorkspace(dto: WorkspaceInDto!, id: Int!): Workspace!
+  updateWorkspaceStakeRule(stakeRule: StakeRule!, workspaceId: Int!): Workspace!
 }
 
 type Payment {
@@ -288,6 +289,12 @@ type ResendEmailOutDto {
 input ResetPasswordInDto {
   password: String!
   token: String!
+}
+
+enum StakeRule {
+  ALL_OWNER
+  ALL_REPORTER
+  EQUALLY
 }
 
 type Tag {
@@ -371,6 +378,7 @@ type Workspace {
   members: [WorkspaceMember!]!
   ownerId: Int!
   pendingInvites: [WorkspaceInvite!]!
+  stakeRule: StakeRule!
   tags(tagsFilter: TagsFilter): [Tag!]!
   title: String!
   updatedAt: DateIso!
@@ -459,6 +467,7 @@ type WorkspaceMember {
 enum WorkspacePermission {
   ASSIGN_TAG
   CANCEL_WORKSPACE_INVITE
+  CHANGE_ITEM_STAKE
   CREATE_ITEM
   CREATE_PAYMENT
   CREATE_TAG
@@ -475,6 +484,7 @@ enum WorkspacePermission {
   UPDATE_ITEM
   UPDATE_PAYMENT
   UPDATE_TAG
+  UPDATE_WORKSPACE_STAKE_RULE
 }
 
 input WorkspacesFilter {

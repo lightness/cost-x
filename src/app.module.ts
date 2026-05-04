@@ -21,6 +21,7 @@ import { TagModule } from './tag/tag.module';
 import { UserModule } from './user/user.module';
 import { WorkspaceHistoryModule } from './workspace-history/workspace-history.module';
 import { WorkspaceMembershipModule } from './workspace-membership/workspace-membership.module';
+import { WorkspaceStakeModule } from './workspace-stake/workspace-stake.module';
 import { WorkspaceModule } from './workspace/workspace.module';
 
 @Module({
@@ -44,6 +45,7 @@ import { WorkspaceModule } from './workspace/workspace.module';
     WorkspaceModule,
     WorkspaceMembershipModule,
     WorkspaceHistoryModule,
+    WorkspaceStakeModule,
     ResetPasswordModule,
     ResendEmailModule,
     ContactModule,

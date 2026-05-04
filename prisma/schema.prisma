@@ -20,14 +20,16 @@ model CurrencyRate {
 }
 
 model Item {
-  id          Int       @id(map: "PK_item_id") @default(autoincrement())
-  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
-  updatedAt   DateTime  @default(now()) @map("updated_at") @db.Timestamp(6)
-  title       String    @db.VarChar(255)
-  workspaceId Int       @map("workspace_id")
-  itemTag     ItemTag[]
-  payment     Payment[]
-  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_item_workspace_id_workspace_id")
+  id          Int      @id(map: "PK_item_id") @default(autoincrement())
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt   DateTime @default(now()) @map("updated_at") @db.Timestamp(6)
+  title       String   @db.VarChar(255)
+  workspaceId Int      @map("workspace_id")
+
+  itemTag    ItemTag[]
+  payment    Payment[]
+  itemStakes ItemStake[]
+  workspace  Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_item_workspace_id_workspace_id")
 
   @@map("item")
 }
@@ -79,30 +81,30 @@ enum Currency {
 }
 
 model User {
-  id                      Int                @id(map: "PK_user_id") @default(autoincrement())
-  createdAt               DateTime           @default(now()) @map("created_at") @db.Timestamp(6)
-  updatedAt               DateTime           @default(now()) @map("updated_at") @db.Timestamp(6)
-  email                   String             @unique @db.VarChar(255)
-  password                String             @db.VarChar(72)
-  name                    String             @db.VarChar(50)
-  role                    UserRole           @default(USER)
-  isBanned                Boolean            @default(false) @map("is_banned")
-  confirmEmailTempCode    String?            @map("confirm_email_temp_code")
-  resetPasswordTempCode   String?            @map("reset_password_temp_code")
-  workspaces              Workspace[]
-  inviters                Invite[]           @relation(name: "inviter")
-  invitees                Invite[]           @relation(name: "invitee")
-  sourceContacts          Contact[]          @relation(name: "sourceUser")
-  targetContacts          Contact[]          @relation(name: "targetUser")
-  removedContacts         Contact[]          @relation(name: "removedByUser")
-  sourceUserBlocks        UserBlock[]        @relation(name: "blocker")
-  targetUserBlocks        UserBlock[]        @relation(name: "blocked")
-  removedUserBlocks       UserBlock[]        @relation(name: "removedByUser")
-  workspaceHistoryEntries WorkspaceHistory[]
-  workspaceInvitesSent    WorkspaceInvite[]  @relation(name: "workspaceInviter")
-  workspaceInvitesReceived WorkspaceInvite[] @relation(name: "workspaceInvitee")
-  workspaceMemberships    WorkspaceMember[]  @relation(name: "workspaceMember")
-  removedWorkspaceMemberships WorkspaceMember[] @relation(name: "workspaceMemberRemovedBy")
+  id                          Int                       @id(map: "PK_user_id") @default(autoincrement())
+  createdAt                   DateTime                  @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt                   DateTime                  @default(now()) @map("updated_at") @db.Timestamp(6)
+  email                       String                    @unique @db.VarChar(255)
+  password                    String                    @db.VarChar(72)
+  name                        String                    @db.VarChar(50)
+  role                        UserRole                  @default(USER)
+  isBanned                    Boolean                   @default(false) @map("is_banned")
+  confirmEmailTempCode        String?                   @map("confirm_email_temp_code")
+  resetPasswordTempCode       String?                   @map("reset_password_temp_code")
+  workspaces                  Workspace[]
+  inviters                    Invite[]                  @relation(name: "inviter")
+  invitees                    Invite[]                  @relation(name: "invitee")
+  sourceContacts              Contact[]                 @relation(name: "sourceUser")
+  targetContacts              Contact[]                 @relation(name: "targetUser")
+  removedContacts             Contact[]                 @relation(name: "removedByUser")
+  sourceUserBlocks            UserBlock[]               @relation(name: "blocker")
+  targetUserBlocks            UserBlock[]               @relation(name: "blocked")
+  removedUserBlocks           UserBlock[]               @relation(name: "removedByUser")
+  workspaceHistoryEntries     WorkspaceHistory[]
+  workspaceInvitesSent        WorkspaceInvite[]         @relation(name: "workspaceInviter")
+  workspaceInvitesReceived    WorkspaceInvite[]         @relation(name: "workspaceInvitee")
+  workspaceMemberships        WorkspaceMember[]         @relation(name: "workspaceMember")
+  removedWorkspaceMemberships WorkspaceMember[]         @relation(name: "workspaceMemberRemovedBy")
   userPermissions             UserPermission[]
   userWorkspacePermissions    UserWorkspacePermission[]
 
@@ -146,6 +148,8 @@ enum WorkspacePermission {
   GRANT_WORKSPACE_PERMISSION
   REVOKE_WORKSPACE_PERMISSION
   REMOVE_WORKSPACE_MEMBER
+  UPDATE_WORKSPACE_STAKE_RULE
+  CHANGE_ITEM_STAKE
 }
 
 model UserWorkspacePermission {
@@ -175,15 +179,16 @@ model UserPermission {
 }
 
 model Workspace {
-  id              Int                @id(map: "PK_workspace_id") @default(autoincrement())
-  createdAt       DateTime           @default(now()) @map("created_at") @db.Timestamp(6)
-  updatedAt       DateTime           @default(now()) @map("updated_at") @db.Timestamp(6)
-  title           String             @db.VarChar(255)
-  ownerId         Int                @map("owner_id")
-  defaultCurrency Currency           @map("default_currency")
-  items           Item[]
-  tags            Tag[]
-  historyEntries  WorkspaceHistory[]
+  id                       Int                       @id(map: "PK_workspace_id") @default(autoincrement())
+  createdAt                DateTime                  @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt                DateTime                  @default(now()) @map("updated_at") @db.Timestamp(6)
+  title                    String                    @db.VarChar(255)
+  ownerId                  Int                       @map("owner_id")
+  defaultCurrency          Currency                  @map("default_currency")
+  stakeRule                StakeRule                 @default(ALL_REPORTER) @map("stake_rule")
+  items                    Item[]
+  tags                     Tag[]
+  historyEntries           WorkspaceHistory[]
   workspaceInvites         WorkspaceInvite[]
   workspaceMembers         WorkspaceMember[]
   userWorkspacePermissions UserWorkspacePermission[]
@@ -191,6 +196,12 @@ model Workspace {
   owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_workspace_owner_id_user_id")
 
   @@map("workspace")
+}
+
+enum StakeRule {
+  ALL_REPORTER
+  ALL_OWNER
+  EQUALLY
 }
 
 enum InviteStatus {
@@ -310,25 +321,39 @@ model WorkspaceInvite {
   invitee         User             @relation(name: "workspaceInvitee", fields: [inviteeId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_workspace_invite_invitee_id_user_id")
   workspaceMember WorkspaceMember?
 
-  @@index([inviteeId], map: "IDX_workspace_invite_invitee_id")
   @@unique([workspaceId, inviteeId], where: { reactedAt: null }, map: "UQ_workspace_invite_workspace_id_invitee_id")
+  @@index([inviteeId], map: "IDX_workspace_invite_invitee_id")
   @@map("workspace_invite")
 }
 
 model WorkspaceMember {
-  id          Int       @id(map: "PK_workspace_member_id") @default(autoincrement())
-  workspaceId Int       @map("workspace_id")
-  userId      Int       @map("user_id")
-  inviteId    Int       @unique @map("invite_id")
-  joinedAt    DateTime  @default(now()) @map("joined_at") @db.Timestamp(6)
-  removedAt   DateTime? @map("removed_at") @db.Timestamp(6)
+  id              Int       @id(map: "PK_workspace_member_id") @default(autoincrement())
+  workspaceId     Int       @map("workspace_id")
+  userId          Int       @map("user_id")
+  inviteId        Int       @unique @map("invite_id")
+  joinedAt        DateTime  @default(now()) @map("joined_at") @db.Timestamp(6)
+  removedAt       DateTime? @map("removed_at") @db.Timestamp(6)
   removedByUserId Int?      @map("removed_by_user_id")
 
   workspace     Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_workspace_member_workspace_id_workspace_id")
   user          User            @relation(name: "workspaceMember", fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_workspace_member_user_id_user_id")
   invite        WorkspaceInvite @relation(fields: [inviteId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_workspace_member_invite_id_workspace_invite_id")
   removedByUser User?           @relation(name: "workspaceMemberRemovedBy", fields: [removedByUserId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_workspace_member_removed_by_user_id_user_id")
+  itemStakes    ItemStake[]
 
   @@unique([workspaceId, userId], where: { removedAt: null }, map: "UQ_workspace_member_workspace_id_user_id")
   @@map("workspace_member")
+}
+
+model ItemStake {
+  id                Int   @id(map: "PK_item_stake_id") @default(autoincrement())
+  itemId            Int   @map("item_id")
+  workspaceMemberId Int   @map("workspace_member_id")
+  value             Float
+
+  item            Item            @relation(fields: [itemId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_item_stake_item_id_item_id")
+  workspaceMember WorkspaceMember @relation(fields: [workspaceMemberId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_item_stake_workspace_member_id_workspace_member_id")
+
+  @@unique([itemId, workspaceMemberId], map: "UQ_item_stake_item_id_workspace_member_id")
+  @@map("item_stake")
 }

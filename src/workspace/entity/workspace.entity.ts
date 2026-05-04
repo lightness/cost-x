@@ -1,5 +1,9 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
-import { Currency, Workspace as PrismaWorkspace } from '../../../generated/prisma/client';
+import {
+  Currency,
+  Workspace as PrismaWorkspace,
+  StakeRule,
+} from '../../../generated/prisma/client';
 import { DateIsoScalar } from '../../graphql/scalar';
 
 @ObjectType()
@@ -21,4 +25,7 @@ export class Workspace implements PrismaWorkspace {
 
   @Field(() => Currency)
   defaultCurrency: Currency;
+
+  @Field(() => StakeRule)
+  stakeRule: StakeRule;
 }
