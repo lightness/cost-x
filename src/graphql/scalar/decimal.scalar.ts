@@ -6,11 +6,7 @@ export const DecimalScalar = new GraphQLScalarType({
   name: 'Decimal',
 
   parseLiteral: (ast: ValueNode): Decimal => {
-    if (
-      ast.kind === Kind.STRING ||
-      ast.kind === Kind.INT ||
-      ast.kind === Kind.FLOAT
-    ) {
+    if (ast.kind === Kind.STRING || ast.kind === Kind.INT || ast.kind === Kind.FLOAT) {
       return new Decimal(ast.value);
     }
 

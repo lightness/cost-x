@@ -11,11 +11,7 @@ interface Filter {
 }
 
 @Injectable({ scope: Scope.REQUEST })
-export class ItemsAggregationsByTagIdLoader extends NestedLoader<
-  number,
-  ItemsAggregation,
-  Filter
-> {
+export class ItemsAggregationsByTagIdLoader extends NestedLoader<number, ItemsAggregation, Filter> {
   constructor(private itemsAggregationService: ItemsAggregationService) {
     super();
   }
@@ -24,11 +20,10 @@ export class ItemsAggregationsByTagIdLoader extends NestedLoader<
     tagIds: number[],
     filter: Filter,
   ): Promise<ItemsAggregation[]> {
-    const itemIdsByTagId =
-      await this.itemsAggregationService.getIdsGroupedByTagId(
-        { ...filter.itemsFilter, tagIds },
-        filter.paymentsFilter,
-      );
+    const itemIdsByTagId = await this.itemsAggregationService.getIdsGroupedByTagId(
+      { ...filter.itemsFilter, tagIds },
+      filter.paymentsFilter,
+    );
 
     return tagIds.map((tagId) => {
       const itemIds = itemIdsByTagId.get(tagId) || [];

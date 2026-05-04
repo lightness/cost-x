@@ -22,10 +22,7 @@ export class TagService {
     return tag;
   }
 
-  async listByWorkspaceIds(
-    workspaceIds: number[],
-    query: TagsFilter,
-  ): Promise<Tag[]> {
+  async listByWorkspaceIds(workspaceIds: number[], query: TagsFilter): Promise<Tag[]> {
     const { title } = query || {};
 
     const tags = await this.prisma.tag.findMany({

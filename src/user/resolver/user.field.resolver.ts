@@ -1,4 +1,6 @@
 import { Args, Parent, ResolveField, Resolver } from '@nestjs/graphql';
+import { UserPermissionsByUserIdLoader } from '../../access/dataloader/user-permissions-by-user-id.loader';
+import { UserPermission } from '../../access/entity/user-permission.entity';
 import { BlockedUsersByUserIdLoader } from '../../contact/dataloader/blocked-users-by-user-id.loader';
 import { ContactsByUserIdLoader } from '../../contact/dataloader/contacts-by-user-id.loader';
 import { IncomingInvitesByUserIdLoader } from '../../contact/dataloader/incoming-invites-by-user-id.loader';
@@ -20,6 +22,7 @@ export class UserFieldResolver {
     private outgoingInvitesByUserIdLoader: OutgoingInvitesByUserIdLoader,
     private contactsByUserIdLoader: ContactsByUserIdLoader,
     private blockedUsersByUserIdLoader: BlockedUsersByUserIdLoader,
+    private userPermissionsByUserIdLoader: UserPermissionsByUserIdLoader,
   ) {}
 
   @ResolveField(() => [Workspace])
@@ -73,5 +76,10 @@ export class UserFieldResolver {
     const blockedUsers = await this.blockedUsersByUserIdLoader.load(user.id);
 
     return blockedUsers;
+  }
+
+  @ResolveField(() => [UserPermission])
+  async permissions(@Parent() user: User): Promise<UserPermission[]> {
+    return this.userPermissionsByUserIdLoader.load(user.id);
   }
 }

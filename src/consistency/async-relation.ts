@@ -8,10 +8,7 @@ export class AsyncRelation<T1, T2> {
   ) {}
 
   async isBelonging(t1: T1, t2: T2): Promise<boolean> {
-    const [t1Id, t2Id] = await Promise.all([
-      this.t1Getter(t1),
-      this.t2Getter(t2),
-    ]);
+    const [t1Id, t2Id] = await Promise.all([this.t1Getter(t1), this.t2Getter(t2)]);
 
     return t1Id === t2Id;
   }

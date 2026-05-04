@@ -18,11 +18,10 @@ export class CostInDefaultCurrencyByItemIdLoader extends NestedLoader<
     itemIds: number[],
     filter: PaymentsFilter,
   ): Promise<Decimal[]> {
-    const map =
-      await this.paymentsAggregationService.getCostInDefaultCurrencyByItemIds(
-        itemIds,
-        filter,
-      );
+    const map = await this.paymentsAggregationService.getCostInDefaultCurrencyByItemIds(
+      itemIds,
+      filter,
+    );
 
     return itemIds.map((itemId) => map.get(itemId) || new Decimal(0));
   }

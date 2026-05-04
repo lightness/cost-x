@@ -13,10 +13,7 @@ import { ACCESS_TOKEN_SERVICE, REFRESH_TOKEN_SERVICE } from './symbols';
 
 @Module({
   controllers: [AuthController],
-  exports: [
-    AuthGuard,
-    TokenModule.register(ACCESS_TOKEN_SERVICE, 'authenticate.access.jwt'),
-  ],
+  exports: [AuthGuard, TokenModule.register(ACCESS_TOKEN_SERVICE, 'authenticate.access.jwt')],
   imports: [
     PrismaModule,
     PasswordModule,
@@ -24,12 +21,6 @@ import { ACCESS_TOKEN_SERVICE, REFRESH_TOKEN_SERVICE } from './symbols';
     TokenModule.register(ACCESS_TOKEN_SERVICE, 'authenticate.access.jwt'),
     TokenModule.register(REFRESH_TOKEN_SERVICE, 'authenticate.refresh.jwt'),
   ],
-  providers: [
-    AuthService,
-    AuthGuard,
-    CookieService,
-    RefreshTokenService,
-    LogoutService,
-  ],
+  providers: [AuthService, AuthGuard, CookieService, RefreshTokenService, LogoutService],
 })
 export class AuthModule {}

@@ -4,8 +4,8 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { UserByUserIdLoader } from './dataloader/user-by-user-id.loader';
 
 @Module({
+  exports: [UserByUserIdLoader],
   imports: [PrismaModule, GroupModule],
   providers: [UserByUserIdLoader],
-  exports: [UserByUserIdLoader],
 })
 export class UserLoaderModule {}

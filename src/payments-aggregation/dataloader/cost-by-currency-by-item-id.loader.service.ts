@@ -20,11 +20,7 @@ export class CostByCurrencyByItemIdLoader extends NestedLoader<
     itemIds: number[],
     filter: PaymentsFilter,
   ): Promise<CostByCurrency[]> {
-    const map =
-      await this.paymentsAggregationService.getCostByCurrencyByItemIds(
-        itemIds,
-        filter,
-      );
+    const map = await this.paymentsAggregationService.getCostByCurrencyByItemIds(itemIds, filter);
 
     return itemIds.map((itemId) => map.get(itemId) || this.defaultValue);
   }

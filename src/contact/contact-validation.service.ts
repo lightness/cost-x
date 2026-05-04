@@ -8,7 +8,7 @@ import { ContactAlreadyRemovedError } from './error/contact-already-removed.erro
 export class ContactValidationService {
   constructor(private prisma: PrismaService) {}
 
-  async validateDeleteContact(contact: Contact, tx: Prisma.TransactionClient = this.prisma) {
+  async validateDeleteContact(contact: Contact, _tx: Prisma.TransactionClient = this.prisma) {
     this.validateContactIsActive(contact);
   }
 

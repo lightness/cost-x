@@ -4,7 +4,7 @@ import { Prisma } from '../../../generated/prisma/client';
 import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
-import { AccessScope } from '../../access/interfaces';
+import { AccessScope, WorkspacePermission } from '../../access/interfaces';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
 import { Infer } from '../../common/decorator/infer.decorator';
@@ -27,18 +27,28 @@ export class ItemMergeMutationResolver {
   @Mutation(() => Item)
   @Access.allow({
     or: [
-      { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
+      { role: [UserRole.ADMIN], scope: AccessScope.USER },
       {
         and: [
           {
-            role: [UserRole.USER],
-            target: 'hostItemWorkspace',
-            targetScope: AccessScope.WORKSPACE,
+            or: [
+              { owner: 'hostItemWorkspace', scope: AccessScope.WORKSPACE },
+              {
+                permission: WorkspacePermission.MERGE_ITEMS,
+                scope: AccessScope.WORKSPACE,
+                target: 'hostItemWorkspace',
+              },
+            ],
           },
           {
-            role: [UserRole.USER],
-            target: 'mergingItemWorkspace',
-            targetScope: AccessScope.WORKSPACE,
+            or: [
+              { owner: 'mergingItemWorkspace', scope: AccessScope.WORKSPACE },
+              {
+                permission: WorkspacePermission.MERGE_ITEMS,
+                scope: AccessScope.WORKSPACE,
+                target: 'mergingItemWorkspace',
+              },
+            ],
           },
         ],
       },

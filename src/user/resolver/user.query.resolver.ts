@@ -20,17 +20,14 @@ export class UserQueryResolver {
   constructor(private userService: UserService) {}
 
   @Query(() => [User])
-  @Access.allow({ role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL })
+  @Access.allow({ role: UserRole.ADMIN, scope: AccessScope.USER })
   async users() {
     return this.userService.list();
   }
 
   @Query(() => User)
   @Access.allow({
-    or: [
-      { role: UserRole.USER, target: 'user', targetScope: AccessScope.USER },
-      { role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL },
-    ],
+    or: [{ self: 'user' }, { role: UserRole.ADMIN, scope: AccessScope.USER }],
   })
   @Infer('user', { from: fromArg('id'), pipes: [UserByIdPipe] })
   async user(@Args('id', { type: () => Int }) id: number) {

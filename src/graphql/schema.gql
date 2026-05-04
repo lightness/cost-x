@@ -47,6 +47,13 @@ input CreateUserInDto {
   password: String!
 }
 
+input CreateWorkspaceInviteInDto {
+  inviteeId: Int!
+  inviterId: Int!
+  permissions: [WorkspacePermission!]! = []
+  workspaceId: Int!
+}
+
 enum Currency {
   BYN
   EUR
@@ -163,9 +170,11 @@ input MergeItemsInDto {
 
 type Mutation {
   acceptInvite(inviteId: Int!): Invite!
+  acceptWorkspaceInvite(inviteId: Int!): WorkspaceInvite!
   assignTag(dto: AssignTagInDto!): ItemTag!
   banUser(id: Int!): User!
   blockUser(dto: CreateUserBlockInDto!): UserBlock!
+  cancelWorkspaceInvite(inviteId: Int!): WorkspaceInvite!
   createInvite(dto: CreateInviteInDto!): Invite!
   createInviteByEmail(dto: CreateInviteByEmailInDto!): Invite!
   createItem(dto: ItemInDto!, workspaceId: Int!): Item!
@@ -173,6 +182,7 @@ type Mutation {
   createTag(dto: TagInDto!, workspaceId: Int!): Tag!
   createUser(dto: CreateUserInDto!): User!
   createWorkspace(dto: WorkspaceInDto!): Workspace!
+  createWorkspaceInvite(dto: CreateWorkspaceInviteInDto!): WorkspaceInvite!
   deleteContact(contactId: Int!): Contact!
   deleteItem(id: Int!): Boolean!
   deletePayment(paymentId: Int!): Boolean!
@@ -181,12 +191,17 @@ type Mutation {
   deleteWorkspace(id: Int!): Workspace!
   extractAsItem(dto: ExtractAsItemInDto!): Item!
   forgotPassword(dto: ForgotPasswordInDto!): Boolean!
+  grantWorkspaceMemberPermissions(memberId: Int!, permissions: [WorkspacePermission!]!): Boolean!
+  leaveWorkspace(memberId: Int!): WorkspaceMember!
   mergeItems(dto: MergeItemsInDto!): Item!
   rejectInvite(inviteId: Int!): Invite!
   rejectInviteAndBlockUser(inviteId: Int!): Invite!
+  rejectWorkspaceInvite(inviteId: Int!): WorkspaceInvite!
+  removeWorkspaceMember(memberId: Int!): WorkspaceMember!
   resendConfirmEmail(dto: ResendConfirmEmailInDto!): ResendEmailOutDto!
   resendForgotPasswordEmail(dto: ForgotPasswordInDto!): ResendEmailOutDto!
   resetPassword(dto: ResetPasswordInDto!): Boolean!
+  revokeWorkspaceMemberPermissions(memberId: Int!, permissions: [WorkspacePermission!]!): Boolean!
   unassignTag(dto: UnassignTagInDto!): Boolean!
   unbanUser(id: Int!): User!
   unblockUser(dto: RemoveUserBlockInDto!): UserBlock!
@@ -229,6 +244,19 @@ input PaymentsFilter {
   dateTo: Date
 }
 
+enum Permission {
+  ACCEPT_CONTACT_INVITE
+  ACCEPT_WORKSPACE_INVITE
+  BLOCK_USER
+  CREATE_CONTACT_INVITE
+  CREATE_WORKSPACE
+  DELETE_CONTACT
+  REJECT_CONTACT_INVITE
+  REJECT_WORKSPACE_INVITE
+  UNBLOCK_USER
+  UPDATE_PROFILE
+}
+
 type Query {
   currencyRate(date: Date!, fromCurrency: Currency!, toCurrency: Currency!): CurrencyRate!
   item(id: Int!): Item!
@@ -240,6 +268,7 @@ type Query {
   tag(id: Int!): Tag!
   tags(dto: TagsFilter, workspaceId: Int!): [Tag!]!
   user(id: Int!): User!
+  userPermissions(userId: Int!): [UserPermission!]!
   users: [User!]!
 }
 
@@ -303,6 +332,7 @@ type User {
   isEmailVerified: Boolean!
   name: String!
   outgoingInvites(invitesFilter: InvitesFilter): [Invite!]!
+  permissions: [UserPermission!]!
   role: UserRole!
   updatedAt: DateIso!
   workspaces(workspacesFilter: WorkspacesFilter): [Workspace!]!
@@ -319,6 +349,13 @@ type UserBlock {
   removedByUserId: Int
 }
 
+type UserPermission {
+  grantedAt: DateIso!
+  id: Int!
+  permission: Permission!
+  userId: Int!
+}
+
 enum UserRole {
   ADMIN
   USER
@@ -331,7 +368,9 @@ type Workspace {
   id: Int!
   items(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): [Item!]!
   itemsAggregation(itemsFilter: ItemsFilter, paymentsFilter: PaymentsFilter): ItemsAggregation!
+  members: [WorkspaceMember!]!
   ownerId: Int!
+  pendingInvites: [WorkspaceInvite!]!
   tags(tagsFilter: TagsFilter): [Tag!]!
   title: String!
   updatedAt: DateIso!
@@ -366,6 +405,12 @@ enum WorkspaceHistoryAction {
   TAG_UPDATED
   WORKSPACE_CREATED
   WORKSPACE_DELETED
+  WORKSPACE_INVITE_ACCEPTED
+  WORKSPACE_INVITE_CANCELLED
+  WORKSPACE_INVITE_CREATED
+  WORKSPACE_INVITE_REJECTED
+  WORKSPACE_MEMBER_CREATED
+  WORKSPACE_MEMBER_REMOVED
   WORKSPACE_UPDATED
 }
 
@@ -376,6 +421,60 @@ input WorkspaceHistoryFilter {
 input WorkspaceInDto {
   defaultCurrency: Currency!
   title: String!
+}
+
+type WorkspaceInvite {
+  createdAt: DateIso!
+  id: Int!
+  invitee: User!
+  inviteeId: Int!
+  inviter: User!
+  inviterId: Int!
+  permissions: [WorkspacePermission!]!
+  reactedAt: DateIso
+  status: WorkspaceInviteStatus!
+  workspaceId: Int!
+}
+
+enum WorkspaceInviteStatus {
+  ACCEPTED
+  CANCELLED
+  PENDING
+  REJECTED
+}
+
+type WorkspaceMember {
+  id: Int!
+  invite: WorkspaceInvite!
+  inviteId: Int!
+  joinedAt: DateIso!
+  removedAt: DateIso
+  removedByUser: User
+  removedByUserId: Int
+  user: User!
+  userId: Int!
+  workspaceId: Int!
+}
+
+enum WorkspacePermission {
+  ASSIGN_TAG
+  CANCEL_WORKSPACE_INVITE
+  CREATE_ITEM
+  CREATE_PAYMENT
+  CREATE_TAG
+  CREATE_WORKSPACE_INVITE
+  DELETE_ITEM
+  DELETE_PAYMENT
+  DELETE_TAG
+  EXTRACT_ITEM
+  GRANT_WORKSPACE_PERMISSION
+  MERGE_ITEMS
+  REMOVE_WORKSPACE_MEMBER
+  REVOKE_WORKSPACE_PERMISSION
+  UNASSIGN_TAG
+  UPDATE_ITEM
+  UPDATE_PAYMENT
+  UPDATE_TAG
 }
 
 input WorkspacesFilter {

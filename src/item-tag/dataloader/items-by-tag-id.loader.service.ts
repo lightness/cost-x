@@ -20,10 +20,7 @@ export class ItemsByTagIdLoader extends NestedLoader<number, Item[], Filter> {
     super();
   }
 
-  protected async loaderWithOptionsFn(
-    tagIds: number[],
-    filter: Filter,
-  ): Promise<Item[][]> {
+  protected async loaderWithOptionsFn(tagIds: number[], filter: Filter): Promise<Item[][]> {
     const itemTags = await this.itemTagService.findByTagIds(
       tagIds,
       filter.itemsFilter,
@@ -32,8 +29,6 @@ export class ItemsByTagIdLoader extends NestedLoader<number, Item[], Filter> {
 
     const itemsByTagId = this.groupService.groupBy(itemTags, 'tagId');
 
-    return tagIds.map((tagId) =>
-      (itemsByTagId.get(tagId) || []).map((itemTag) => itemTag.item),
-    );
+    return tagIds.map((tagId) => (itemsByTagId.get(tagId) || []).map((itemTag) => itemTag.item));
   }
 }

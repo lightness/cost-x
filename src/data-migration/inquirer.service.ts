@@ -9,9 +9,7 @@ export class InquirerService {
 
   private emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  async askForDefaultCurrency(
-    message: string = 'Pick workspace currency:',
-  ): Promise<Currency> {
+  async askForDefaultCurrency(message: string = 'Pick workspace currency:'): Promise<Currency> {
     const questions = [
       {
         choices: Object.values(Currency),
@@ -44,9 +42,7 @@ export class InquirerService {
     return { email, name, password };
   }
 
-  private async askForName(
-    message: string = 'Enter your name:',
-  ): Promise<string> {
+  private async askForName(message: string = 'Enter your name:'): Promise<string> {
     const questions = [
       {
         message,
@@ -63,18 +59,14 @@ export class InquirerService {
     return answers.name;
   }
 
-  private async askForEmail(
-    message: string = 'Enter your email:',
-  ): Promise<string> {
+  private async askForEmail(message: string = 'Enter your email:'): Promise<string> {
     const questions = [
       {
         message,
         name: 'email',
         type: 'input',
         validate: (input: string) => {
-          return (
-            this.emailRegex.test(input) || 'Please enter a valid email address'
-          );
+          return this.emailRegex.test(input) || 'Please enter a valid email address';
         },
       },
     ];
@@ -95,9 +87,7 @@ export class InquirerService {
         name: 'password',
         type: mask ? 'password' : 'input',
         validate: (input: string) => {
-          return (
-            input.length >= 6 || 'Password must be at least 6 characters long'
-          );
+          return input.length >= 6 || 'Password must be at least 6 characters long';
         },
       },
     ];

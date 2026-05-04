@@ -1,4 +1,10 @@
+import { registerEnumType } from '@nestjs/graphql';
+import { Permission, WorkspacePermission } from '../../generated/prisma/client';
 import { UserRole } from '../user/entity/user-role.enum';
+
+export { WorkspacePermission };
+
+registerEnumType(WorkspacePermission, { name: 'WorkspacePermission' });
 
 export enum AccessAction {
   ALLOW = 'allow',
@@ -8,12 +14,21 @@ export enum AccessAction {
 export enum AccessScope {
   USER = 'user',
   WORKSPACE = 'workspace',
-  GLOBAL = 'global',
+}
+
+export enum WorkspaceRole {
+  OWNER = 'owner',
+  MEMBER = 'member',
 }
 
 export interface ResolvedRule {
   sourceEntity?: unknown;
-  targetScope: AccessScope;
+  scope: AccessScope;
   targetEntity?: unknown;
-  role: UserRole | UserRole[];
+  role?: UserRole[];
+  workspaceRole?: WorkspaceRole[];
+  self?: boolean;
+  permissions?: Permission[];
+  ownerCheck?: boolean;
+  workspacePermissions?: WorkspacePermission[];
 }

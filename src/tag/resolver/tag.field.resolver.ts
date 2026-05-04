@@ -36,6 +36,8 @@ export class TagFieldResolver {
     @Args('itemsFilter', { nullable: true }) itemsFilter: ItemsFilter,
     @Args('paymentsFilter', { nullable: true }) paymentsFilter: PaymentsFilter,
   ) {
-    return this.itemsAggregationsByTagIdLoader.withOptions({ itemsFilter, paymentsFilter }).load(tag.id);
+    return this.itemsAggregationsByTagIdLoader
+      .withOptions({ itemsFilter, paymentsFilter })
+      .load(tag.id);
   }
 }

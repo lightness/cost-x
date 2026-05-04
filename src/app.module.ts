@@ -20,6 +20,7 @@ import { ResetPasswordModule } from './reset-password/reset-password.module';
 import { TagModule } from './tag/tag.module';
 import { UserModule } from './user/user.module';
 import { WorkspaceHistoryModule } from './workspace-history/workspace-history.module';
+import { WorkspaceMembershipModule } from './workspace-membership/workspace-membership.module';
 import { WorkspaceModule } from './workspace/workspace.module';
 
 @Module({
@@ -41,6 +42,7 @@ import { WorkspaceModule } from './workspace/workspace.module';
     ItemsAggregationModule,
     UserModule,
     WorkspaceModule,
+    WorkspaceMembershipModule,
     WorkspaceHistoryModule,
     ResetPasswordModule,
     ResendEmailModule,

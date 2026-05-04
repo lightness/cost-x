@@ -6,6 +6,12 @@ import {
   OnItemDeletedEvent,
   OnItemExtractedEvent,
   OnItemUpdatedEvent,
+  OnWorkspaceInviteAcceptedEvent,
+  OnWorkspaceInviteCancelledEvent,
+  OnWorkspaceInviteCreatedEvent,
+  OnWorkspaceInviteRejectedEvent,
+  OnWorkspaceMemberCreatedEvent,
+  OnWorkspaceMemberRemovedEvent,
   OnPaymentCreatedEvent,
   OnPaymentDeletedEvent,
   OnPaymentUpdatedEvent,
@@ -173,5 +179,65 @@ export class WorkspaceHistoryEventListenerService {
   @OnEvent(WorkspaceHistoryEvent.WORKSPACE_DELETED)
   async onWorkspaceDeleted({ tx = this.prisma, ...dto }: OnWorkspaceDeletedEvent) {
     return this.workspaceHistoryService.createWorkspaceDeleted(dto.actorId, dto.workspace, tx);
+  }
+
+  @OnEvent(WorkspaceHistoryEvent.WORKSPACE_INVITE_CREATED)
+  async onWorkspaceInviteCreated({ tx = this.prisma, ...dto }: OnWorkspaceInviteCreatedEvent) {
+    return this.workspaceHistoryService.createWorkspaceInviteCreated(
+      dto.workspaceId,
+      dto.actorId,
+      dto.invite,
+      tx,
+    );
+  }
+
+  @OnEvent(WorkspaceHistoryEvent.WORKSPACE_INVITE_ACCEPTED)
+  async onWorkspaceInviteAccepted({ tx = this.prisma, ...dto }: OnWorkspaceInviteAcceptedEvent) {
+    return this.workspaceHistoryService.createWorkspaceInviteAccepted(
+      dto.workspaceId,
+      dto.actorId,
+      dto.invite,
+      tx,
+    );
+  }
+
+  @OnEvent(WorkspaceHistoryEvent.WORKSPACE_INVITE_REJECTED)
+  async onWorkspaceInviteRejected({ tx = this.prisma, ...dto }: OnWorkspaceInviteRejectedEvent) {
+    return this.workspaceHistoryService.createWorkspaceInviteRejected(
+      dto.workspaceId,
+      dto.actorId,
+      dto.invite,
+      tx,
+    );
+  }
+
+  @OnEvent(WorkspaceHistoryEvent.WORKSPACE_MEMBER_CREATED)
+  async onWorkspaceMemberCreated({ tx = this.prisma, ...dto }: OnWorkspaceMemberCreatedEvent) {
+    return this.workspaceHistoryService.createWorkspaceMemberCreated(
+      dto.workspaceId,
+      dto.actorId,
+      dto.member,
+      tx,
+    );
+  }
+
+  @OnEvent(WorkspaceHistoryEvent.WORKSPACE_MEMBER_REMOVED)
+  async onWorkspaceMemberRemoved({ tx = this.prisma, ...dto }: OnWorkspaceMemberRemovedEvent) {
+    return this.workspaceHistoryService.createWorkspaceMemberRemoved(
+      dto.workspaceId,
+      dto.actorId,
+      dto.member,
+      tx,
+    );
+  }
+
+  @OnEvent(WorkspaceHistoryEvent.WORKSPACE_INVITE_CANCELLED)
+  async onWorkspaceInviteCancelled({ tx = this.prisma, ...dto }: OnWorkspaceInviteCancelledEvent) {
+    return this.workspaceHistoryService.createWorkspaceInviteCancelled(
+      dto.workspaceId,
+      dto.actorId,
+      dto.invite,
+      tx,
+    );
   }
 }

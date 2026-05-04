@@ -5,11 +5,7 @@ import Payment from '../entity/payment.entity';
 import { PaymentService } from '../payment.service';
 
 @Injectable({ scope: Scope.REQUEST })
-export class PaymentsByItemIdLoader extends NestedLoader<
-  number,
-  Payment[],
-  PaymentsFilter
-> {
+export class PaymentsByItemIdLoader extends NestedLoader<number, Payment[], PaymentsFilter> {
   constructor(private paymentService: PaymentService) {
     super();
   }
@@ -18,10 +14,7 @@ export class PaymentsByItemIdLoader extends NestedLoader<
     itemIds: number[],
     filter: PaymentsFilter,
   ): Promise<Payment[][]> {
-    const paymentsByItemId = await this.paymentService.getPaymentsByItemIds(
-      itemIds,
-      filter,
-    );
+    const paymentsByItemId = await this.paymentService.getPaymentsByItemIds(itemIds, filter);
 
     return itemIds.map((itemId) => paymentsByItemId.get(itemId) || []);
   }

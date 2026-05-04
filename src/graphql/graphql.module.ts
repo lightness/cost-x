@@ -17,7 +17,6 @@ import { DateIsoScalar, DateScalar, DecimalScalar, JsonScalar } from './scalar';
         autoSchemaFile: configService.getOrThrow('graphql.writeSchema')
           ? join(process.cwd(), 'src/graphql/schema.gql')
           : true,
-        sortSchema: true,
         context: async () => ({}),
         formatError: (err) => {
           return {
@@ -38,6 +37,7 @@ import { DateIsoScalar, DateScalar, DecimalScalar, JsonScalar } from './scalar';
         resolverValidationOptions: {
           requireResolversToMatchSchema: 'ignore',
         },
+        sortSchema: true,
       }),
     }),
   ],

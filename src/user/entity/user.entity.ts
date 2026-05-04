@@ -1,5 +1,6 @@
 import { Field, HideField, Int, ObjectType } from '@nestjs/graphql';
 import { type User as PrismaUser } from '../../../generated/prisma/client';
+import { UserPermission } from '../../access/entity/user-permission.entity';
 import { DateIsoScalar } from '../../graphql/scalar';
 import { UserRole } from './user-role.enum';
 
@@ -28,6 +29,9 @@ class User implements PrismaUser {
 
   @Field(() => UserRole)
   role: UserRole;
+
+  @Field(() => [UserPermission])
+  permissions?: UserPermission[];
 
   @HideField()
   password: string;

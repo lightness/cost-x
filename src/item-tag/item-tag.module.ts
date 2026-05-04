@@ -12,13 +12,7 @@ import { ItemTagMutationResolver } from './resolver/item-tag.mutation.resolver';
 
 @Module({
   exports: [ItemTagService, ItemsByTagIdLoader, TagsByItemIdLoader],
-  imports: [
-    PrismaModule,
-    AuthModule,
-    AccessModule,
-    GroupModule,
-    ConsistencyModule,
-  ],
+  imports: [PrismaModule, AuthModule, AccessModule, GroupModule, ConsistencyModule],
   providers: [
     ItemTagService,
     // dataloaders

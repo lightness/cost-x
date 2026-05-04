@@ -1,0 +1,4 @@
+ALTER TYPE "WorkspacePermission" ADD VALUE IF NOT EXISTS 'GRANT_WORKSPACE_PERMISSION';
+ALTER TYPE "WorkspacePermission" ADD VALUE IF NOT EXISTS 'REVOKE_WORKSPACE_PERMISSION';
+
+ALTER TABLE "workspace_invite" ADD COLUMN "permissions" "WorkspacePermission"[] NOT NULL DEFAULT '{}';

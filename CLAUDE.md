@@ -4,9 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Cost-X** is a NestJS GraphQL API backend for expense tracking with multi-user workspace collaboration.
+**Cost-X** is a NestJS GraphQL API backend for expense tracking with multi-user workspace collaboration. Users own workspaces containing items (expense categories) and payments (individual records). Workspaces support member invitations with fine-grained permissions, full audit history, tag labels, currency conversion (BYN/USD/EUR), and a social contact graph with invite and blocking flows.
 
 **Stack**: NestJS 11 · TypeScript · Apollo GraphQL · Prisma ORM · PostgreSQL · Redis · Biome
+
+For full architecture, module details, data flows, and navigation guide, see [docs/CODEBASE_MAP.md](docs/CODEBASE_MAP.md).
 
 ## Setup
 

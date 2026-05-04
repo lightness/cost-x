@@ -5,13 +5,8 @@ import { ApplicationErrorCode } from './coded-application.error';
 import { DetailedApplicationError } from './detailed-application.error';
 
 @HttpErrorCode(HttpStatus.BAD_REQUEST)
-export class ValidationError extends DetailedApplicationError<
-  ClassValidatorError[]
-> {
-  constructor(
-    classValidatorErrors: ClassValidatorError[],
-    message: string = `Invalid input`,
-  ) {
+export class ValidationError extends DetailedApplicationError<ClassValidatorError[]> {
+  constructor(classValidatorErrors: ClassValidatorError[], message: string = `Invalid input`) {
     super(classValidatorErrors, ApplicationErrorCode.VALIDATION, message);
     this.name = 'ValidationError';
 

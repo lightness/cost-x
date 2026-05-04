@@ -4,7 +4,7 @@ import { Prisma } from '../../../generated/prisma/client';
 import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
-import { AccessScope } from '../../access/interfaces';
+import { AccessScope, WorkspacePermission } from '../../access/interfaces';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
 import { Infer } from '../../common/decorator/infer.decorator';
@@ -28,8 +28,13 @@ export class TagMutationResolver {
   @Mutation(() => Tag)
   @Access.allow({
     or: [
-      { role: [UserRole.USER], target: 'workspace', targetScope: AccessScope.WORKSPACE },
-      { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
+      { owner: 'workspace', scope: AccessScope.WORKSPACE },
+      {
+        permission: WorkspacePermission.CREATE_TAG,
+        scope: AccessScope.WORKSPACE,
+        target: 'workspace',
+      },
+      { role: [UserRole.ADMIN], scope: AccessScope.USER },
     ],
   })
   @Infer('workspace', { from: fromArg('workspaceId'), pipes: [WorkspaceByIdPipe] })
@@ -45,8 +50,13 @@ export class TagMutationResolver {
   @Mutation(() => Tag)
   @Access.allow({
     or: [
-      { role: [UserRole.USER], target: 'workspace', targetScope: AccessScope.WORKSPACE },
-      { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
+      { owner: 'workspace', scope: AccessScope.WORKSPACE },
+      {
+        permission: WorkspacePermission.UPDATE_TAG,
+        scope: AccessScope.WORKSPACE,
+        target: 'workspace',
+      },
+      { role: [UserRole.ADMIN], scope: AccessScope.USER },
     ],
   })
   @Infer('tag', { from: fromArg('id'), pipes: [TagByIdPipe] })
@@ -63,8 +73,13 @@ export class TagMutationResolver {
   @Mutation(() => Boolean)
   @Access.allow({
     or: [
-      { role: [UserRole.USER], target: 'workspace', targetScope: AccessScope.WORKSPACE },
-      { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
+      { owner: 'workspace', scope: AccessScope.WORKSPACE },
+      {
+        permission: WorkspacePermission.DELETE_TAG,
+        scope: AccessScope.WORKSPACE,
+        target: 'workspace',
+      },
+      { role: [UserRole.ADMIN], scope: AccessScope.USER },
     ],
   })
   @Infer('tag', { from: fromArg('id'), pipes: [TagByIdPipe] })

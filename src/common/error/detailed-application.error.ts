@@ -1,11 +1,6 @@
-import {
-  ApplicationErrorCode,
-  CodedApplicationError,
-} from './coded-application.error';
+import { ApplicationErrorCode, CodedApplicationError } from './coded-application.error';
 
-export abstract class DetailedApplicationError<
-  T,
-> extends CodedApplicationError {
+export abstract class DetailedApplicationError<T> extends CodedApplicationError {
   public readonly details: T;
 
   constructor(details: T, code: ApplicationErrorCode, message: string) {

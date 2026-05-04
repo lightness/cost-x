@@ -5,6 +5,7 @@ import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
 import { AccessScope } from '../../access/interfaces';
+import { Permission } from '../../access/permission.enum';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
 import { Infer } from '../../common/decorator/infer.decorator';
@@ -30,8 +31,13 @@ export class UserBlockMutationResolver {
   @Mutation(() => UserBlock)
   @Access.allow({
     or: [
-      { role: UserRole.USER, target: 'blockerUser', targetScope: AccessScope.USER },
-      { role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL },
+      {
+        and: [
+          { self: 'blockerUser' },
+          { permission: Permission.BLOCK_USER, scope: AccessScope.USER },
+        ],
+      },
+      { role: UserRole.ADMIN, scope: AccessScope.USER },
     ],
   })
   @Infer('blockerUser', { from: fromArg('dto.blockerId'), pipes: [UserByIdPipe] })
@@ -48,8 +54,13 @@ export class UserBlockMutationResolver {
   @Mutation(() => UserBlock)
   @Access.allow({
     or: [
-      { role: UserRole.USER, target: 'blockerUser', targetScope: AccessScope.USER },
-      { role: UserRole.ADMIN, targetScope: AccessScope.GLOBAL },
+      {
+        and: [
+          { self: 'blockerUser' },
+          { permission: Permission.UNBLOCK_USER, scope: AccessScope.USER },
+        ],
+      },
+      { role: UserRole.ADMIN, scope: AccessScope.USER },
     ],
   })
   @Infer('blockerUser', { from: fromArg('dto.blockerId'), pipes: [UserByIdPipe] })

@@ -6,11 +6,7 @@ import { GetCurrencyRateInDto } from '../dto';
 import CurrencyRate from '../entity/currency-rate.entity';
 
 @Injectable({ scope: Scope.REQUEST })
-export class CurrencyRateLoader extends BaseLoader<
-  GetCurrencyRateInDto,
-  CurrencyRate,
-  string
-> {
+export class CurrencyRateLoader extends BaseLoader<GetCurrencyRateInDto, CurrencyRate, string> {
   constructor(
     private currencyRateService: CurrencyRateService,
     private dateService: DateService,
@@ -18,9 +14,7 @@ export class CurrencyRateLoader extends BaseLoader<
     super();
   }
 
-  protected async loaderFn(
-    requests: GetCurrencyRateInDto[],
-  ): Promise<CurrencyRate[]> {
+  protected async loaderFn(requests: GetCurrencyRateInDto[]): Promise<CurrencyRate[]> {
     return this.currencyRateService.getMany(requests);
   }
 

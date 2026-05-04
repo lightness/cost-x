@@ -60,9 +60,7 @@ export class DefaultCurrencyCostService {
     for (const payment of payments || []) {
       cost = Decimal.add(
         cost,
-        payment.cost.times(
-          this.getRate(payment, currencyRates, defaultCurrency),
-        ),
+        payment.cost.times(this.getRate(payment, currencyRates, defaultCurrency)),
       );
     }
 

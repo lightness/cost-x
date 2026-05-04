@@ -4,11 +4,7 @@ import { PaymentsFilter } from '../../payment/dto';
 import { PaymentsAggregationService } from '../payments-aggregation.service';
 
 @Injectable({ scope: Scope.REQUEST })
-export class PaymentsCountByItemIdLoader extends NestedLoader<
-  number,
-  number,
-  PaymentsFilter
-> {
+export class PaymentsCountByItemIdLoader extends NestedLoader<number, number, PaymentsFilter> {
   constructor(private paymentsAggregationService: PaymentsAggregationService) {
     super();
   }
@@ -17,10 +13,7 @@ export class PaymentsCountByItemIdLoader extends NestedLoader<
     itemIds: number[],
     filter: PaymentsFilter,
   ): Promise<number[]> {
-    const map = await this.paymentsAggregationService.getPaymentsCountByItemIds(
-      itemIds,
-      filter,
-    );
+    const map = await this.paymentsAggregationService.getPaymentsCountByItemIds(itemIds, filter);
 
     return itemIds.map((itemId) => map.get(itemId) || 0);
   }

@@ -3,6 +3,7 @@ import { v4 as uuid } from 'uuid';
 import { UserCreateInput, UserCreateManyInput } from '../../generated/prisma/models';
 import { PrismaService } from '../../src/prisma/prisma.service';
 import User from '../../src/user/entity/user.entity';
+import { DEFAULT_USER_PERMISSIONS } from '../../src/user/user.service';
 import { KindBasedFactoryService } from './base-factory.service';
 
 export type UserKind = 'active' | 'email_not_verified' | 'banned';
@@ -17,11 +18,17 @@ export class UserFactoryService
     kind: UserKind = 'active',
     overrides: Partial<UserCreateManyInput> = {},
   ): Promise<User> {
-    return this.prisma.user.create({
+    const user = await this.prisma.user.create({
       data: {
         ...(await this.generate(kind, overrides)),
       },
     });
+
+    await this.prisma.userPermission.createMany({
+      data: DEFAULT_USER_PERMISSIONS.map((permission) => ({ permission, userId: user.id })),
+    });
+
+    return user;
   }
 
   async generate(

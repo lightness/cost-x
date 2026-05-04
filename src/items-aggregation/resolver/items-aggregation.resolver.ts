@@ -1,11 +1,4 @@
-import {
-  Args,
-  Int,
-  Parent,
-  Query,
-  ResolveField,
-  Resolver,
-} from '@nestjs/graphql';
+import { Args, Int, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import { ItemsFilter } from '../../item/dto';
 import { PaymentsFilter } from '../../payment/dto';
 import { PaymentsAggregation } from '../../payments-aggregation/entity/payments-aggregation.entity';
@@ -21,10 +14,7 @@ export class ItemsAggregationResolver {
     @Args('itemsFilter', { nullable: true }) itemsFilter: ItemsFilter,
     @Args('paymentsFilter', { nullable: true }) paymentsFilter: PaymentsFilter,
   ) {
-    const itemIds = await this.itemsAggregationService.getIds(
-      itemsFilter,
-      paymentsFilter,
-    );
+    const itemIds = await this.itemsAggregationService.getIds(itemsFilter, paymentsFilter);
 
     return { itemIds, itemsFilter, paymentsFilter };
   }

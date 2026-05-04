@@ -44,9 +44,7 @@ export class PaymentsAggregationService {
       },
     });
 
-    return new Map(
-      rows.map(({ itemId, _count: { _all: count } }) => [itemId, count]),
-    );
+    return new Map(rows.map(({ itemId, _count: { _all: count } }) => [itemId, count]));
   }
 
   // costInDefaultCurrency
@@ -62,19 +60,14 @@ export class PaymentsAggregationService {
     const allPayments = Array.from(paymentsByItemId.values()).flat();
 
     const defaultCurrency =
-      await this.defaultCurrencyCostService.getDefaultCurrencyByItemIds(
-        itemIds,
-      );
+      await this.defaultCurrencyCostService.getDefaultCurrencyByItemIds(itemIds);
 
-    const requiredCurrencyRateRequests =
-      this.defaultCurrencyCostService.getRequiredCurrencyRates(
-        allPayments,
-        defaultCurrency,
-      );
-
-    const currencyRates = await this.currencyRateService.getMany(
-      requiredCurrencyRateRequests,
+    const requiredCurrencyRateRequests = this.defaultCurrencyCostService.getRequiredCurrencyRates(
+      allPayments,
+      defaultCurrency,
     );
+
+    const currencyRates = await this.currencyRateService.getMany(requiredCurrencyRateRequests);
 
     return new Map(
       Array.from(paymentsByItemId, ([itemId, payments]) => [

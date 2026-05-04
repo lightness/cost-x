@@ -40,6 +40,16 @@ export enum ApplicationErrorCode {
   VALIDATION = 'validation',
   // access
   NO_ACCESS = 'no_access',
+  // workspace-membership
+  WORKSPACE_INVITE_NOT_FOUND = 'workspace_invite_not_found',
+  WORKSPACE_INVITE_ALREADY_EXISTS = 'workspace_invite_already_exists',
+  IMPROPER_WORKSPACE_INVITE_STATUS = 'improper_workspace_invite_status',
+  USER_ALREADY_WORKSPACE_MEMBER = 'user_already_workspace_member',
+  INSUFFICIENT_INVITER_PERMISSIONS = 'insufficient_inviter_permissions',
+  WORKSPACE_MEMBER_NOT_FOUND = 'workspace_member_not_found',
+  WORKSPACE_MEMBER_ALREADY_REMOVED = 'workspace_member_already_removed',
+  CANNOT_REMOVE_WORKSPACE_OWNER = 'cannot_remove_workspace_owner',
+  INSUFFICIENT_ACTOR_PERMISSIONS = 'insufficient_actor_permissions',
 }
 
 @HttpErrorCode(HttpStatus.INTERNAL_SERVER_ERROR)

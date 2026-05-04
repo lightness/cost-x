@@ -34,8 +34,5 @@ export abstract class NestedLoader<K, V, O, C = K> {
     })();
   }
 
-  protected abstract loaderWithOptionsFn(
-    requests: K[],
-    options: O,
-  ): Promise<V[]>;
+  protected abstract loaderWithOptionsFn(requests: K[], options: O): Promise<V[]>;
 }

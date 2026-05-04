@@ -4,7 +4,7 @@ import { Prisma } from '../../../generated/prisma/client';
 import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
-import { AccessScope } from '../../access/interfaces';
+import { AccessScope, WorkspacePermission } from '../../access/interfaces';
 import { CurrentUser } from '../../auth/decorator/current-user.decorator';
 import { AuthGuard } from '../../auth/guard/auth.guard';
 import { Infer } from '../../common/decorator/infer.decorator';
@@ -27,11 +27,12 @@ export class ItemExtractMutationResolver {
   @Mutation(() => Item)
   @Access.allow({
     or: [
-      { role: [UserRole.ADMIN], targetScope: AccessScope.GLOBAL },
+      { role: [UserRole.ADMIN], scope: AccessScope.USER },
+      { owner: 'itemWorkspace', scope: AccessScope.WORKSPACE },
       {
-        role: [UserRole.USER],
+        permission: WorkspacePermission.EXTRACT_ITEM,
+        scope: AccessScope.WORKSPACE,
         target: 'itemWorkspace',
-        targetScope: AccessScope.WORKSPACE,
       },
     ],
   })
@@ -45,6 +46,12 @@ export class ItemExtractMutationResolver {
     @CurrentUser() currentUser: User,
     @Context('tx') tx: Prisma.TransactionClient,
   ) {
-    return this.itemExtractService.extractAsItem(sourceItem, dto.paymentIds, dto.title, currentUser, tx);
+    return this.itemExtractService.extractAsItem(
+      sourceItem,
+      dto.paymentIds,
+      dto.title,
+      currentUser,
+      tx,
+    );
   }
 }

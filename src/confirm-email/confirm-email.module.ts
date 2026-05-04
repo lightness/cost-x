@@ -18,10 +18,6 @@ import { CONFIRM_EMAIL_TOKEN_SERVICE } from './symbols';
     TokenModule.register(CONFIRM_EMAIL_TOKEN_SERVICE, 'confirmEmail.jwt'),
     MailModule,
   ],
-  providers: [
-    ConfirmEmailService,
-    ManualConfirmEmailService,
-    AutoConfirmEmailService,
-  ],
+  providers: [ConfirmEmailService, ManualConfirmEmailService, AutoConfirmEmailService],
 })
 export class ConfirmEmailModule {}

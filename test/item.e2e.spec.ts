@@ -11,6 +11,7 @@ import { FactoryModule } from './factory/factory.module';
 import { ItemFactoryService } from './factory/item-factory.service';
 import { UserFactoryService } from './factory/user-factory.service';
 import { WorkspaceFactoryService } from './factory/workspace-factory.service';
+import { WorkspaceMemberFactoryService } from './factory/workspace-member-factory.service';
 import { TestGraphqlModule } from './graphql/test-graphql.module';
 import { TestConfigModule } from './test-config.module';
 
@@ -63,6 +64,7 @@ describe('Item E2E', () => {
   let userFactory: UserFactoryService;
   let workspaceFactory: WorkspaceFactoryService;
   let itemFactory: ItemFactoryService;
+  let workspaceMemberFactory: WorkspaceMemberFactoryService;
 
   beforeAll(async () => {
     moduleRef = await Test.createTestingModule({
@@ -77,6 +79,7 @@ describe('Item E2E', () => {
     userFactory = moduleRef.get(UserFactoryService);
     workspaceFactory = moduleRef.get(WorkspaceFactoryService);
     itemFactory = moduleRef.get(ItemFactoryService);
+    workspaceMemberFactory = moduleRef.get(WorkspaceMemberFactoryService);
   });
 
   afterAll(async () => {
@@ -86,7 +89,7 @@ describe('Item E2E', () => {
   describe('item', () => {
     it('should return item when workspace owner', async () => {
       const user = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(user.id);
+      const workspace = await workspaceFactory.create({ ownerId: user.id });
       const item = await itemFactory.create(workspace.id);
 
       const { accessToken } = await authService.authenticateUser(user);
@@ -103,7 +106,7 @@ describe('Item E2E', () => {
 
     it('should not return item when not workspace owner', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
       const other = await userFactory.create('active');
 
@@ -120,7 +123,7 @@ describe('Item E2E', () => {
 
     it('should not return item when not authenticated', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
 
       const response = await request(app.getHttpServer())
@@ -133,7 +136,7 @@ describe('Item E2E', () => {
 
     it('should return item when admin', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
       const admin = await userFactory.create('active', { role: UserRole.ADMIN });
 
@@ -153,7 +156,7 @@ describe('Item E2E', () => {
   describe('items', () => {
     it('should return items when workspace owner', async () => {
       const user = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(user.id);
+      const workspace = await workspaceFactory.create({ ownerId: user.id });
       await itemFactory.create(workspace.id);
 
       const { accessToken } = await authService.authenticateUser(user);
@@ -170,7 +173,7 @@ describe('Item E2E', () => {
 
     it('should not return items when not workspace owner', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const other = await userFactory.create('active');
 
       const { accessToken } = await authService.authenticateUser(other);
@@ -186,7 +189,7 @@ describe('Item E2E', () => {
 
     it('should not return items when not authenticated', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
 
       const response = await request(app.getHttpServer())
         .post('/graphql')
@@ -198,7 +201,7 @@ describe('Item E2E', () => {
 
     it('should return items when admin', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       await itemFactory.create(workspace.id);
       const admin = await userFactory.create('active', { role: UserRole.ADMIN });
 
@@ -218,13 +221,16 @@ describe('Item E2E', () => {
   describe('createItem', () => {
     it('should create item when workspace owner', async () => {
       const user = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(user.id);
+      const workspace = await workspaceFactory.create({ ownerId: user.id });
 
       const { accessToken } = await authService.authenticateUser(user);
 
       const response = await request(app.getHttpServer())
         .post('/graphql')
-        .send({ query: createItemMutation, variables: { workspaceId: workspace.id, dto: { title: 'My Item' } } })
+        .send({
+          query: createItemMutation,
+          variables: { dto: { title: 'My Item' }, workspaceId: workspace.id },
+        })
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${accessToken}`);
 
@@ -232,16 +238,60 @@ describe('Item E2E', () => {
       expect(response.body.data.createItem.title).toBe('My Item');
     });
 
-    it('should not create item when not workspace owner', async () => {
+    it('should not create item when non-member', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
-      const other = await userFactory.create('active');
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
+      const stranger = await userFactory.create('active');
 
-      const { accessToken } = await authService.authenticateUser(other);
+      const { accessToken } = await authService.authenticateUser(stranger);
 
       const response = await request(app.getHttpServer())
         .post('/graphql')
-        .send({ query: createItemMutation, variables: { workspaceId: workspace.id, dto: { title: 'My Item' } } })
+        .send({
+          query: createItemMutation,
+          variables: { dto: { title: 'My Item' }, workspaceId: workspace.id },
+        })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expectResponseError(response, { code: ApplicationErrorCode.NO_ACCESS, status: 'FORBIDDEN' });
+    });
+
+    it('should create item when workspace member with CREATE_ITEM permission', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
+      const member = await userFactory.create('active');
+      await workspaceMemberFactory.create(workspace.id, member.id);
+
+      const { accessToken } = await authService.authenticateUser(member);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({
+          query: createItemMutation,
+          variables: { dto: { title: 'Member Item' }, workspaceId: workspace.id },
+        })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expectResponseSuccess(response);
+      expect(response.body.data.createItem.title).toBe('Member Item');
+    });
+
+    it('should not create item when workspace member without CREATE_ITEM permission', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
+      const member = await userFactory.create('active');
+      await workspaceMemberFactory.create(workspace.id, member.id, { permissions: [] });
+
+      const { accessToken } = await authService.authenticateUser(member);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({
+          query: createItemMutation,
+          variables: { dto: { title: 'My Item' }, workspaceId: workspace.id },
+        })
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${accessToken}`);
 
@@ -250,11 +300,14 @@ describe('Item E2E', () => {
 
     it('should not create item when not authenticated', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
 
       const response = await request(app.getHttpServer())
         .post('/graphql')
-        .send({ query: createItemMutation, variables: { workspaceId: workspace.id, dto: { title: 'My Item' } } })
+        .send({
+          query: createItemMutation,
+          variables: { dto: { title: 'My Item' }, workspaceId: workspace.id },
+        })
         .set('Content-Type', 'application/json');
 
       expectResponseError(response, { code: ApplicationErrorCode.NO_ACCESS, status: 'FORBIDDEN' });
@@ -262,14 +315,17 @@ describe('Item E2E', () => {
 
     it('should create item when admin', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const admin = await userFactory.create('active', { role: UserRole.ADMIN });
 
       const { accessToken } = await authService.authenticateUser(admin);
 
       const response = await request(app.getHttpServer())
         .post('/graphql')
-        .send({ query: createItemMutation, variables: { workspaceId: workspace.id, dto: { title: 'Admin Item' } } })
+        .send({
+          query: createItemMutation,
+          variables: { dto: { title: 'Admin Item' }, workspaceId: workspace.id },
+        })
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${accessToken}`);
 
@@ -281,14 +337,17 @@ describe('Item E2E', () => {
   describe('updateItem', () => {
     it('should update item when workspace owner', async () => {
       const user = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(user.id);
+      const workspace = await workspaceFactory.create({ ownerId: user.id });
       const item = await itemFactory.create(workspace.id);
 
       const { accessToken } = await authService.authenticateUser(user);
 
       const response = await request(app.getHttpServer())
         .post('/graphql')
-        .send({ query: updateItemMutation, variables: { id: item.id, dto: { title: 'Updated Item' } } })
+        .send({
+          query: updateItemMutation,
+          variables: { dto: { title: 'Updated Item' }, id: item.id },
+        })
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${accessToken}`);
 
@@ -296,17 +355,63 @@ describe('Item E2E', () => {
       expect(response.body.data.updateItem.title).toBe('Updated Item');
     });
 
-    it('should not update item when not workspace owner', async () => {
+    it('should not update item when non-member', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
-      const other = await userFactory.create('active');
+      const stranger = await userFactory.create('active');
 
-      const { accessToken } = await authService.authenticateUser(other);
+      const { accessToken } = await authService.authenticateUser(stranger);
 
       const response = await request(app.getHttpServer())
         .post('/graphql')
-        .send({ query: updateItemMutation, variables: { id: item.id, dto: { title: 'Updated Item' } } })
+        .send({
+          query: updateItemMutation,
+          variables: { dto: { title: 'Updated Item' }, id: item.id },
+        })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expectResponseError(response, { code: ApplicationErrorCode.NO_ACCESS, status: 'FORBIDDEN' });
+    });
+
+    it('should update item when workspace member with UPDATE_ITEM permission', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
+      const item = await itemFactory.create(workspace.id);
+      const member = await userFactory.create('active');
+      await workspaceMemberFactory.create(workspace.id, member.id);
+
+      const { accessToken } = await authService.authenticateUser(member);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({
+          query: updateItemMutation,
+          variables: { dto: { title: 'Member Updated' }, id: item.id },
+        })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expectResponseSuccess(response);
+      expect(response.body.data.updateItem.title).toBe('Member Updated');
+    });
+
+    it('should not update item when workspace member without UPDATE_ITEM permission', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
+      const item = await itemFactory.create(workspace.id);
+      const member = await userFactory.create('active');
+      await workspaceMemberFactory.create(workspace.id, member.id, { permissions: [] });
+
+      const { accessToken } = await authService.authenticateUser(member);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({
+          query: updateItemMutation,
+          variables: { dto: { title: 'Updated Item' }, id: item.id },
+        })
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${accessToken}`);
 
@@ -315,12 +420,15 @@ describe('Item E2E', () => {
 
     it('should not update item when not authenticated', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
 
       const response = await request(app.getHttpServer())
         .post('/graphql')
-        .send({ query: updateItemMutation, variables: { id: item.id, dto: { title: 'Updated Item' } } })
+        .send({
+          query: updateItemMutation,
+          variables: { dto: { title: 'Updated Item' }, id: item.id },
+        })
         .set('Content-Type', 'application/json');
 
       expectResponseError(response, { code: ApplicationErrorCode.NO_ACCESS, status: 'FORBIDDEN' });
@@ -328,7 +436,7 @@ describe('Item E2E', () => {
 
     it('should update item when admin', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
       const admin = await userFactory.create('active', { role: UserRole.ADMIN });
 
@@ -336,7 +444,10 @@ describe('Item E2E', () => {
 
       const response = await request(app.getHttpServer())
         .post('/graphql')
-        .send({ query: updateItemMutation, variables: { id: item.id, dto: { title: 'Admin Updated' } } })
+        .send({
+          query: updateItemMutation,
+          variables: { dto: { title: 'Admin Updated' }, id: item.id },
+        })
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${accessToken}`);
 
@@ -348,7 +459,7 @@ describe('Item E2E', () => {
   describe('deleteItem', () => {
     it('should delete item when workspace owner', async () => {
       const user = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(user.id);
+      const workspace = await workspaceFactory.create({ ownerId: user.id });
       const item = await itemFactory.create(workspace.id);
 
       const { accessToken } = await authService.authenticateUser(user);
@@ -363,13 +474,50 @@ describe('Item E2E', () => {
       expect(response.body.data.deleteItem).toBe(true);
     });
 
-    it('should not delete item when not workspace owner', async () => {
+    it('should not delete item when non-member', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
-      const other = await userFactory.create('active');
+      const stranger = await userFactory.create('active');
 
-      const { accessToken } = await authService.authenticateUser(other);
+      const { accessToken } = await authService.authenticateUser(stranger);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: deleteItemMutation, variables: { id: item.id } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expectResponseError(response, { code: ApplicationErrorCode.NO_ACCESS, status: 'FORBIDDEN' });
+    });
+
+    it('should delete item when workspace member with DELETE_ITEM permission', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
+      const item = await itemFactory.create(workspace.id);
+      const member = await userFactory.create('active');
+      await workspaceMemberFactory.create(workspace.id, member.id);
+
+      const { accessToken } = await authService.authenticateUser(member);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: deleteItemMutation, variables: { id: item.id } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expectResponseSuccess(response);
+      expect(response.body.data.deleteItem).toBe(true);
+    });
+
+    it('should not delete item when workspace member without DELETE_ITEM permission', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
+      const item = await itemFactory.create(workspace.id);
+      const member = await userFactory.create('active');
+      await workspaceMemberFactory.create(workspace.id, member.id, { permissions: [] });
+
+      const { accessToken } = await authService.authenticateUser(member);
 
       const response = await request(app.getHttpServer())
         .post('/graphql')
@@ -382,7 +530,7 @@ describe('Item E2E', () => {
 
     it('should not delete item when not authenticated', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
 
       const response = await request(app.getHttpServer())
@@ -395,7 +543,7 @@ describe('Item E2E', () => {
 
     it('should delete item when admin', async () => {
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create(owner.id);
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
       const admin = await userFactory.create('active', { role: UserRole.ADMIN });
 
