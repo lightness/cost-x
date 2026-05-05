@@ -19,6 +19,9 @@ import User from '../../user/entity/user.entity';
 import { PaymentInDto } from '../dto';
 import Payment from '../entity/payment.entity';
 import { PaymentService } from '../payment.service';
+import { DeepArgs } from '../../graphql/decorator/deep-args.decorator';
+import { WorkspaceMemberByIdPipe } from '../../workspace-membership/pipe/workspace-member-by-id.pipe';
+import { WorkspaceMember } from '../../workspace-membership/entity/workspace-member.entity';
 
 @Resolver()
 @UseGuards(AuthGuard, AccessGuard)
@@ -43,10 +46,12 @@ export class PaymentMutationResolver {
   async createPayment(
     @Args('itemId', { type: () => Int }, ItemByIdPipe) item: Item,
     @Args('dto') dto: PaymentInDto,
-    @CurrentUser() currentUser: User,
+    @DeepArgs('dto.payerId', WorkspaceMemberByIdPipe) payer: WorkspaceMember,
+    @CurrentUser()
+    currentUser: User,
     @Context('tx') tx: Prisma.TransactionClient,
   ) {
-    return this.paymentService.createPayment(item, dto, currentUser, tx);
+    return this.paymentService.createPayment(item, payer, dto, currentUser, tx);
   }
 
   @Mutation(() => Payment)

@@ -1,14 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { JsonObject } from '@prisma/client/runtime/client';
 import { Prisma } from '../../generated/prisma/client';
+import ItemStake from '../item-stake/entity/item-stake.entity';
 import ItemTag from '../item-tag/entity/item-tag.entity';
 import Item from '../item/entity/item.entity';
 import Payment from '../payment/entity/payment.entity';
 import { PrismaService } from '../prisma/prisma.service';
 import Tag from '../tag/entity/tag.entity';
-import { Workspace } from '../workspace/entity/workspace.entity';
 import { WorkspaceInvite } from '../workspace-membership/entity/workspace-invite.entity';
 import { WorkspaceMember } from '../workspace-membership/entity/workspace-member.entity';
+import { Workspace } from '../workspace/entity/workspace.entity';
 import { WorkspaceHistoryFilter } from './dto/workspace-history-filter.type';
 import { WorkspaceHistoryAction } from './entity/workspace-history-action.enum';
 import { WorkspaceHistory } from './entity/workspace-history.entity';
@@ -435,6 +436,43 @@ export class WorkspaceHistoryService {
         actorId,
         newValue: { hostItem: resultItem, mergingItem: null } as unknown as JsonObject,
         oldValue: { hostItem, mergingItem } as unknown as JsonObject,
+        workspaceId,
+      },
+      tx,
+    );
+  }
+
+  async createItemStakeCreated(
+    workspaceId: number,
+    actorId: number,
+    itemStake: ItemStake,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<WorkspaceHistory> {
+    return this.create(
+      {
+        action: WorkspaceHistoryAction.ITEM_STAKE_CREATED,
+        actorId,
+        newValue: itemStake as unknown as JsonObject,
+        oldValue: null,
+        workspaceId,
+      },
+      tx,
+    );
+  }
+
+  async createItemStakeUpdated(
+    workspaceId: number,
+    actorId: number,
+    oldItemStake: ItemStake,
+    newItemStake: ItemStake,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<WorkspaceHistory> {
+    return this.create(
+      {
+        action: WorkspaceHistoryAction.ITEM_STAKE_CREATED,
+        actorId,
+        newValue: newItemStake as unknown as JsonObject,
+        oldValue: oldItemStake as unknown as JsonObject,
         workspaceId,
       },
       tx,

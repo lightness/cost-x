@@ -40,8 +40,9 @@ model ItemTag {
   updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamp(6)
   itemId    Int      @map("item_id")
   tagId     Int      @map("tag_id")
-  item      Item     @relation(fields: [itemId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_item_tag_item_id_item_id")
-  tag       Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_item_tag_tag_id_tag_id")
+
+  item Item @relation(fields: [itemId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_item_tag_item_id_item_id")
+  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_item_tag_tag_id_tag_id")
 
   @@unique([itemId, tagId], map: "UQ_item_tag_item_id_tag_id")
   @@map("item_tag")
@@ -56,7 +57,10 @@ model Payment {
   date      DateTime @db.Date
   title     String?  @db.VarChar
   currency  Currency
-  item      Item     @relation(fields: [itemId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_payment_item_id_item_id")
+  payerId   Int      @map("payer_id")
+
+  item  Item            @relation(fields: [itemId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_payment_item_id_item_id")
+  payer WorkspaceMember @relation(fields: [payerId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_payment_payer_id_workspace_member_id")
 
   @@map("payment")
 }
@@ -149,7 +153,7 @@ enum WorkspacePermission {
   REVOKE_WORKSPACE_PERMISSION
   REMOVE_WORKSPACE_MEMBER
   UPDATE_WORKSPACE_STAKE_RULE
-  CHANGE_ITEM_STAKE
+  OVERRIDE_ITEM_STAKES
 }
 
 model UserWorkspacePermission {
@@ -185,7 +189,7 @@ model Workspace {
   title                    String                    @db.VarChar(255)
   ownerId                  Int                       @map("owner_id")
   defaultCurrency          Currency                  @map("default_currency")
-  stakeRule                StakeRule                 @default(ALL_REPORTER) @map("stake_rule")
+  stakeRule                StakeRule                 @default(ALL_PAYER) @map("stake_rule")
   items                    Item[]
   tags                     Tag[]
   historyEntries           WorkspaceHistory[]
@@ -199,8 +203,8 @@ model Workspace {
 }
 
 enum StakeRule {
-  ALL_REPORTER
-  ALL_OWNER
+  ALL_PAYER
+  ALL_WORKSPACE_OWNER
   EQUALLY
 }
 
@@ -283,6 +287,8 @@ enum WorkspaceHistoryAction {
   WORKSPACE_INVITE_CANCELLED
   WORKSPACE_MEMBER_CREATED
   WORKSPACE_MEMBER_REMOVED
+  ITEM_STAKE_CREATED
+  ITEM_STAKE_UPDATED
 }
 
 model WorkspaceHistory {
@@ -330,25 +336,28 @@ model WorkspaceMember {
   id              Int       @id(map: "PK_workspace_member_id") @default(autoincrement())
   workspaceId     Int       @map("workspace_id")
   userId          Int       @map("user_id")
-  inviteId        Int       @unique @map("invite_id")
+  inviteId        Int?      @unique @map("invite_id")
   joinedAt        DateTime  @default(now()) @map("joined_at") @db.Timestamp(6)
   removedAt       DateTime? @map("removed_at") @db.Timestamp(6)
   removedByUserId Int?      @map("removed_by_user_id")
 
-  workspace     Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_workspace_member_workspace_id_workspace_id")
-  user          User            @relation(name: "workspaceMember", fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_workspace_member_user_id_user_id")
-  invite        WorkspaceInvite @relation(fields: [inviteId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_workspace_member_invite_id_workspace_invite_id")
-  removedByUser User?           @relation(name: "workspaceMemberRemovedBy", fields: [removedByUserId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_workspace_member_removed_by_user_id_user_id")
+  workspace     Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_workspace_member_workspace_id_workspace_id")
+  user          User             @relation(name: "workspaceMember", fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_workspace_member_user_id_user_id")
+  invite        WorkspaceInvite? @relation(fields: [inviteId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_workspace_member_invite_id_workspace_invite_id")
+  removedByUser User?            @relation(name: "workspaceMemberRemovedBy", fields: [removedByUserId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_workspace_member_removed_by_user_id_user_id")
   itemStakes    ItemStake[]
+  payments      Payment[]
 
   @@unique([workspaceId, userId], where: { removedAt: null }, map: "UQ_workspace_member_workspace_id_user_id")
   @@map("workspace_member")
 }
 
 model ItemStake {
-  id                Int   @id(map: "PK_item_stake_id") @default(autoincrement())
-  itemId            Int   @map("item_id")
-  workspaceMemberId Int   @map("workspace_member_id")
+  id                Int      @id(map: "PK_item_stake_id") @default(autoincrement())
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt         DateTime @default(now()) @map("updated_at") @db.Timestamp(6)
+  itemId            Int      @map("item_id")
+  workspaceMemberId Int      @map("workspace_member_id")
   value             Float
 
   item            Item            @relation(fields: [itemId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_item_stake_item_id_item_id")

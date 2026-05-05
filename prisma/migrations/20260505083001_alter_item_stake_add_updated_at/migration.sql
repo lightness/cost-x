@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "item_stake" ADD COLUMN     "updated_at" TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP;

@@ -221,6 +221,8 @@ type Payment {
   id: Int!
   item: Item
   itemId: Int!
+  payer: WorkspaceMember
+  payerId: Int!
   title: String
   updatedAt: DateIso
 }
@@ -229,6 +231,7 @@ input PaymentInDto {
   cost: Decimal!
   currency: Currency!
   date: Date!
+  payerId: Int!
   title: String
 }
 
@@ -292,8 +295,8 @@ input ResetPasswordInDto {
 }
 
 enum StakeRule {
-  ALL_OWNER
-  ALL_REPORTER
+  ALL_PAYER
+  ALL_WORKSPACE_OWNER
   EQUALLY
 }
 
@@ -402,6 +405,8 @@ enum WorkspaceHistoryAction {
   ITEM_DELETED
   ITEM_EXTRACTED
   ITEM_MERGED
+  ITEM_STAKE_CREATED
+  ITEM_STAKE_UPDATED
   ITEM_TAG_ASSIGNED
   ITEM_TAG_UNASSIGNED
   ITEM_UPDATED
@@ -467,7 +472,6 @@ type WorkspaceMember {
 enum WorkspacePermission {
   ASSIGN_TAG
   CANCEL_WORKSPACE_INVITE
-  CHANGE_ITEM_STAKE
   CREATE_ITEM
   CREATE_PAYMENT
   CREATE_TAG
@@ -478,6 +482,7 @@ enum WorkspacePermission {
   EXTRACT_ITEM
   GRANT_WORKSPACE_PERMISSION
   MERGE_ITEMS
+  OVERRIDE_ITEM_STAKES
   REMOVE_WORKSPACE_MEMBER
   REVOKE_WORKSPACE_PERMISSION
   UNASSIGN_TAG

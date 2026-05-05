@@ -10,6 +10,7 @@ import { SpreadsheetService } from '../spreadsheet/spreadsheet.service';
 import Tag from '../tag/entity/tag.entity';
 import { TagService } from '../tag/tag.service';
 import { UserService } from '../user/user.service';
+import { WorkspaceMemberService } from '../workspace-membership/workspace-member.service';
 import { WorkspaceService } from '../workspace/workspace.service';
 import { InquirerService } from './inquirer.service';
 
@@ -26,6 +27,7 @@ export class DataMigrationService {
     private userService: UserService,
     private workspaceService: WorkspaceService,
     private inquirerService: InquirerService,
+    private workspaceMemberService: WorkspaceMemberService,
     private prisma: PrismaService,
   ) {}
 
@@ -37,91 +39,105 @@ export class DataMigrationService {
 
     const transactionStart = hrtime();
 
-    await this.prisma.$transaction(async (tx) => {
-      const user = await this.userService.create(
-        {
-          email: credentials.email.toLowerCase(),
-          name: credentials.name,
-          password: credentials.password,
-        },
-        tx,
-      );
+    await this.prisma.$transaction(
+      async (tx) => {
+        const user = await this.userService.create(
+          {
+            email: credentials.email.toLowerCase(),
+            name: credentials.name,
+            password: credentials.password,
+          },
+          tx,
+        );
 
-      const workspace = await this.workspaceService.create(
-        {
-          defaultCurrency,
-          title: `Imported workspace ${new Date().toISOString()}`,
-        },
-        user,
-        tx,
-      );
+        const workspace = await this.workspaceService.create(
+          {
+            defaultCurrency,
+            title: `Imported workspace ${new Date().toISOString()}`,
+          },
+          user,
+          tx,
+        );
 
-      let globalTag: Tag;
+        const workspaceMember = await this.workspaceMemberService.create(
+          workspace.id,
+          user.id,
+          null,
+          user.id,
+          tx,
+        );
 
-      for (const row of rows) {
-        const { title, usdCost, eurCost, bynCost, date } = row;
+        let globalTag: Tag;
 
-        if (title && !date && !usdCost && !eurCost && !bynCost) {
-          const cleanTitle = title.trim();
+        for (const row of rows) {
+          const { title, usdCost, eurCost, bynCost, date } = row;
 
-          globalTag = await this.tagService.create(
-            workspace.id,
-            {
-              title: cleanTitle,
-            },
-            user,
-            tx,
-          );
+          if (title && !date && !usdCost && !eurCost && !bynCost) {
+            const cleanTitle = title.trim();
 
-          continue;
+            globalTag = await this.tagService.create(
+              workspace.id,
+              {
+                title: cleanTitle,
+              },
+              user,
+              tx,
+            );
+
+            continue;
+          }
+
+          const item = await this.itemService.create(workspace.id, { title }, user, tx);
+
+          if (globalTag) {
+            await this.itemTagService.assignTag(item, globalTag, user, tx);
+          }
+
+          if (usdCost) {
+            await this.paymentService.createPayment(
+              item,
+              workspaceMember,
+              {
+                cost: new Decimal(usdCost),
+                currency: Currency.USD,
+                date: new Date(date),
+              },
+              user,
+              tx,
+            );
+          }
+
+          if (eurCost) {
+            await this.paymentService.createPayment(
+              item,
+              workspaceMember,
+              {
+                cost: new Decimal(eurCost),
+                currency: Currency.EUR,
+                date: new Date(date),
+              },
+              user,
+              tx,
+            );
+          }
+
+          if (bynCost) {
+            await this.paymentService.createPayment(
+              item,
+              workspaceMember,
+              {
+                cost: new Decimal(bynCost),
+                currency: Currency.BYN,
+                date: new Date(date),
+              },
+              user,
+              tx,
+            );
+          }
         }
-
-        const item = await this.itemService.create(workspace.id, { title }, user, tx);
-
-        if (globalTag) {
-          await this.itemTagService.assignTag(item, globalTag, user, tx);
-        }
-
-        if (usdCost) {
-          await this.paymentService.createPayment(
-            item,
-            {
-              cost: new Decimal(usdCost),
-              currency: Currency.USD,
-              date: new Date(date),
-            },
-            user,
-            tx,
-          );
-        }
-
-        if (eurCost) {
-          await this.paymentService.createPayment(
-            item,
-            {
-              cost: new Decimal(eurCost),
-              currency: Currency.EUR,
-              date: new Date(date),
-            },
-            user,
-            tx,
-          );
-        }
-
-        if (bynCost) {
-          await this.paymentService.createPayment(
-            item,
-            {
-              cost: new Decimal(bynCost),
-              currency: Currency.BYN,
-              date: new Date(date),
-            },
-            user,
-            tx,
-          );
-        }
-      }
-    });
+      },
+      { timeout: 10000 },
+    );
 
     this.logger.log(`Done (in ${hrtime(transactionStart).join('.')}s)`);
   }

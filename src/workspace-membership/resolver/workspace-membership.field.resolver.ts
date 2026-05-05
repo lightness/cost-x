@@ -14,7 +14,7 @@ export class WorkspaceMembershipFieldResolver {
 
   @ResolveField(() => [WorkspaceMember])
   async members(@Parent() workspace: Workspace): Promise<WorkspaceMember[]> {
-    return this.workspaceMemberService.listByWorkspaceId(workspace.id);
+    return this.workspaceMemberService.listActiveByWorkspaceId(workspace.id);
   }
 
   @ResolveField(() => [WorkspaceInvite])

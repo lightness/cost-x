@@ -66,13 +66,13 @@ export class ItemService {
     currentUser: User,
     tx: Prisma.TransactionClient = this.prisma,
   ): Promise<Item> {
-    const existingItem = await this.prisma.item.findUnique({ where: { id: itemId } });
+    const existingItem = await tx.item.findUnique({ where: { id: itemId } });
 
     if (!existingItem) {
       throw new ItemNotFoundError(`Item with id ${itemId} not found`);
     }
 
-    const updatedItem = await this.prisma.item.update({
+    const updatedItem = await tx.item.update({
       data: {
         title: dto.title,
       },
@@ -97,13 +97,13 @@ export class ItemService {
     currentUser: User,
     tx: Prisma.TransactionClient = this.prisma,
   ): Promise<void> {
-    const existingItem = await this.prisma.item.findUnique({ where: { id: itemId } });
+    const existingItem = await tx.item.findUnique({ where: { id: itemId } });
 
     if (!existingItem) {
       throw new ItemNotFoundError(`Item with id ${itemId} not found`);
     }
 
-    await this.prisma.item.delete({
+    await tx.item.delete({
       where: { id: itemId },
     });
 

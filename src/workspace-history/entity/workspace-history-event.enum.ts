@@ -21,4 +21,6 @@ export enum WorkspaceHistoryEvent {
   WORKSPACE_INVITE_CANCELLED = 'workspace_invite.cancelled',
   WORKSPACE_MEMBER_CREATED = 'workspace_member.created',
   WORKSPACE_MEMBER_REMOVED = 'workspace_member.removed',
+  ITEM_STAKE_CREATED = 'item_stake.created',
+  ITEM_STAKE_UPDATED = 'item_stake.updated',
 }

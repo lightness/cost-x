@@ -1,4 +1,6 @@
 import { Args, Parent, ResolveField, Resolver } from '@nestjs/graphql';
+import { ItemStakesByItemIdLoader } from '../../item-stake/dataloader/item-stakes-by-item-id.loader.service';
+import ItemStake from '../../item-stake/entity/item-stake.entity';
 import { TagsByItemIdLoader } from '../../item-tag/dataloader/tags-by-item-id.loader.service';
 import { PaymentsByItemIdLoader } from '../../payment/dataloader/payments-by-item-id.loader.service';
 import { PaymentsFilter } from '../../payment/dto';
@@ -17,6 +19,7 @@ export class ItemFieldResolver {
     private paymentService: PaymentService,
     private paymentsByItemIdLoader: PaymentsByItemIdLoader,
     private tagsByItemIdLoader: TagsByItemIdLoader,
+    private itemStakeByItemIdLoader: ItemStakesByItemIdLoader,
   ) {}
 
   @ResolveField(() => [Payment])
@@ -48,5 +51,10 @@ export class ItemFieldResolver {
   @ResolveField(() => Workspace)
   async workspace(@Parent() item: Item) {
     return this.prisma.workspace.findUnique({ where: { id: item.workspaceId } });
+  }
+
+  @ResolveField(() => [ItemStake])
+  async itemStakes(@Parent() item: Item) {
+    return this.itemStakeByItemIdLoader.load(item.id);
   }
 }

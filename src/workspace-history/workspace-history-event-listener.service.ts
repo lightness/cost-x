@@ -5,24 +5,26 @@ import {
   OnItemCreatedEvent,
   OnItemDeletedEvent,
   OnItemExtractedEvent,
+  OnItemMergedEvent,
+  OnItemStakeCreatedEvent,
+  OnItemStakeUpdatedEvent,
   OnItemUpdatedEvent,
+  OnPaymentCreatedEvent,
+  OnPaymentDeletedEvent,
+  OnPaymentUpdatedEvent,
+  OnTagAddedEvent,
+  OnTagCreatedEvent,
+  OnTagDeletedEvent,
+  OnTagRemovedEvent,
+  OnTagUpdatedEvent,
+  OnWorkspaceCreatedEvent,
+  OnWorkspaceDeletedEvent,
   OnWorkspaceInviteAcceptedEvent,
   OnWorkspaceInviteCancelledEvent,
   OnWorkspaceInviteCreatedEvent,
   OnWorkspaceInviteRejectedEvent,
   OnWorkspaceMemberCreatedEvent,
   OnWorkspaceMemberRemovedEvent,
-  OnPaymentCreatedEvent,
-  OnPaymentDeletedEvent,
-  OnPaymentUpdatedEvent,
-  OnTagAddedEvent,
-  OnTagRemovedEvent,
-  OnItemMergedEvent,
-  OnTagCreatedEvent,
-  OnTagDeletedEvent,
-  OnTagUpdatedEvent,
-  OnWorkspaceCreatedEvent,
-  OnWorkspaceDeletedEvent,
   OnWorkspaceUpdatedEvent,
 } from './dto';
 import { WorkspaceHistoryEvent } from './entity/workspace-history-event.enum';
@@ -237,6 +239,27 @@ export class WorkspaceHistoryEventListenerService {
       dto.workspaceId,
       dto.actorId,
       dto.invite,
+      tx,
+    );
+  }
+
+  @OnEvent(WorkspaceHistoryEvent.ITEM_STAKE_CREATED)
+  async onItemStakeCreated({ tx = this.prisma, ...dto }: OnItemStakeCreatedEvent) {
+    return this.workspaceHistoryService.createItemStakeCreated(
+      dto.workspaceId,
+      dto.actorId,
+      dto.itemStake,
+      tx,
+    );
+  }
+
+  @OnEvent(WorkspaceHistoryEvent.ITEM_STAKE_CREATED)
+  async onItemStakeUpdated({ tx = this.prisma, ...dto }: OnItemStakeUpdatedEvent) {
+    return this.workspaceHistoryService.createItemStakeUpdated(
+      dto.workspaceId,
+      dto.actorId,
+      dto.oldItemStake,
+      dto.newItemStake,
       tx,
     );
   }

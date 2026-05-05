@@ -8,6 +8,8 @@ import Item from '../item/entity/item.entity';
 import { PrismaService } from '../prisma/prisma.service';
 import User from '../user/entity/user.entity';
 import { WorkspaceHistoryEvent } from '../workspace-history/entity/workspace-history-event.enum';
+import { WorkspaceMember } from '../workspace-membership/entity/workspace-member.entity';
+import { WorkspaceMemberNotBelongingToWorkspaceError } from '../workspace-membership/error';
 import { PaymentInDto, PaymentsFilter } from './dto';
 import Payment from './entity/payment.entity';
 
@@ -60,16 +62,26 @@ export class PaymentService {
 
   async createPayment(
     item: Item,
-    dto: PaymentInDto,
+    payer: WorkspaceMember,
+    dto: Omit<PaymentInDto, 'payerId'>,
     currentUser: User,
     tx: Prisma.TransactionClient = this.prisma,
   ): Promise<Payment> {
+    if (payer.workspaceId !== item.workspaceId) {
+      throw new WorkspaceMemberNotBelongingToWorkspaceError(payer.id);
+    }
+
     const payment = await tx.payment.create({
       data: {
         ...dto,
         item: {
           connect: {
             id: item.id,
+          },
+        },
+        payer: {
+          connect: {
+            id: payer.id,
           },
         },
       },
@@ -96,6 +108,7 @@ export class PaymentService {
         cost: dto.cost,
         currency: dto.currency,
         date: dto.date,
+        payerId: dto.payerId,
         title: dto.title,
       },
       where: { id: payment.id },

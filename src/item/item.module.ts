@@ -4,6 +4,7 @@ import { AuthModule } from '../auth/auth.module';
 import { CurrencyRateModule } from '../currency-rate/currency-rate.module';
 import { GroupModule } from '../group/group.module';
 import { ItemCostModule } from '../item-cost/default-currency-cost.module';
+import { ItemStakeModule } from '../item-stake/item-stake.module';
 import { ItemTagModule } from '../item-tag/item-tag.module';
 import { PaymentModule } from '../payment/payment.module';
 import { PrismaModule } from '../prisma/prisma.module';
@@ -21,6 +22,7 @@ import { ItemQueryResolver } from './resolver/item.query.resolver';
     PrismaModule,
     ItemTagModule,
     ItemCostModule,
+    ItemStakeModule,
     PaymentModule,
     CurrencyRateModule,
     GroupModule,
