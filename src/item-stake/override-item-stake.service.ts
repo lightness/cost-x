@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { diff } from 'radash';
 import { Prisma, StakeRule } from '../../generated/prisma/client';
 import { unique } from '../common/function/unique';
 import Item from '../item/entity/item.entity';
 import { PrismaService } from '../prisma/prisma.service';
 import User from '../user/entity/user.entity';
-import { WorkspaceMember } from '../workspace-membership/entity/workspace-member.entity';
+import { WorkspaceHistoryEvent } from '../workspace-history/entity/workspace-history-event.enum';
 import { WorkspaceMemberNotBelongingToWorkspaceError } from '../workspace-membership/error';
 import { WorkspaceMemberService } from '../workspace-membership/workspace-member.service';
 import { MemberStake } from './entity';
@@ -19,14 +20,94 @@ export class OverrideItemStakeService {
     private itemStakeService: ItemStakeService,
     private prisma: PrismaService,
     private workspaceMemberService: WorkspaceMemberService,
+    private eventEmitter: EventEmitter2,
   ) {}
 
-  async updateItemStakes(
+  async setItemStakes(
     item: Item,
     stakes: MemberStake[],
     currentUser: User,
     tx: Prisma.TransactionClient = this.prisma,
   ): Promise<ItemStake[]> {
+    await this.validateStakes(item, stakes, tx);
+
+    const existingItemStakes = await this.itemStakeService.getByItemId(item.id, tx);
+
+    // set item stakes
+    const newItemStakes = await this.itemStakeService.bulkCreateOrUpdate(item, stakes, tx);
+
+    // set stakeRule to null
+    const updatedItem = item.stakeRule
+      ? await tx.item.update({
+          data: { stakeRule: null },
+          where: { id: item.id },
+        })
+      : item;
+
+    await this.eventEmitter.emitAsync(WorkspaceHistoryEvent.ITEM_STAKES_CHANGED, {
+      actorId: currentUser.id,
+      newValue: {
+        itemId: item.id,
+        stakeRule: updatedItem.stakeRule,
+        stakes: newItemStakes,
+      },
+      oldValue: {
+        itemId: item.id,
+        stakeRule: item.stakeRule,
+        stakes: existingItemStakes,
+      },
+      tx,
+      workspaceId: item.workspaceId,
+    });
+
+    return newItemStakes;
+  }
+
+  async setItemStakeRule(
+    item: Item,
+    stakeRule: StakeRule,
+    currentUser: User,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<Item> {
+    if (item.stakeRule === stakeRule) {
+      return item;
+    }
+
+    const existingItemStakes = await this.itemStakeService.getByItemId(item.id, tx);
+
+    // set stakeRule to item
+    const updatedItem = await tx.item.update({
+      data: { stakeRule },
+      where: { id: item.id },
+    });
+
+    // remove itemStakes
+    await this.itemStakeService.bulkDelete(item, tx);
+
+    await this.eventEmitter.emitAsync(WorkspaceHistoryEvent.ITEM_STAKES_CHANGED, {
+      actorId: currentUser.id,
+      newValue: {
+        itemId: item.id,
+        stakeRule: updatedItem.stakeRule,
+        stakes: null,
+      },
+      oldValue: {
+        itemId: item.id,
+        stakeRule: item.stakeRule,
+        stakes: existingItemStakes,
+      },
+      tx,
+      workspaceId: item.workspaceId,
+    });
+
+    return updatedItem;
+  }
+
+  private async validateStakes(
+    item: Item,
+    stakes: MemberStake[],
+    tx: Prisma.TransactionClient = this.prisma,
+  ) {
     const receivedMemberIds = stakes.map((stake) => stake.workspaceMemberId).filter(unique);
     const allActiveMembers = await this.workspaceMemberService.listActiveByWorkspaceId(
       item.workspaceId,
@@ -43,69 +124,6 @@ export class OverrideItemStakeService {
 
     if (extraMemberIds.length > 0) {
       throw new WorkspaceMemberNotBelongingToWorkspaceError(extraMemberIds);
-    }
-
-    return Promise.all(
-      stakes.map((stake) => this.itemStakeService.update(item, stake, currentUser, tx)),
-    );
-  }
-
-  async updateItemStakesByRule(
-    item: Item,
-    stakeRule: StakeRule,
-    reporterMember: WorkspaceMember,
-    currentUser: User,
-    tx: Prisma.TransactionClient = this.prisma,
-  ) {
-    if (item.workspaceId !== reporterMember.workspaceId) {
-      throw new WorkspaceMemberNotBelongingToWorkspaceError([reporterMember.id]);
-    }
-
-    const workspace = await tx.workspace.findFirst({ where: { id: item.workspaceId } });
-
-    const allActiveMembers = await this.workspaceMemberService.listActiveByWorkspaceId(
-      item.workspaceId,
-      tx,
-    );
-
-    const ownerMember = allActiveMembers.find(
-      (workspaceMember) => workspaceMember.userId === workspace.ownerId,
-    );
-
-    const stakes = this.calculateStakesBasedOnRule(
-      stakeRule,
-      allActiveMembers,
-      reporterMember,
-      ownerMember,
-    );
-
-    return Promise.all(
-      stakes.map((stake) => this.itemStakeService.update(item, stake, currentUser, tx)),
-    );
-  }
-
-  private calculateStakesBasedOnRule(
-    stakeRule: StakeRule,
-    allActiveMembers: WorkspaceMember[],
-    reporterMember: WorkspaceMember,
-    ownerMember: WorkspaceMember,
-  ): MemberStake[] {
-    switch (stakeRule) {
-      case StakeRule.EQUALLY:
-        return allActiveMembers.map((workspaceMember) => ({
-          value: 1,
-          workspaceMemberId: workspaceMember.id,
-        }));
-      case StakeRule.ALL_PAYER:
-        return allActiveMembers.map((workspaceMember) => ({
-          value: workspaceMember.id === reporterMember.id ? 1 : 0,
-          workspaceMemberId: workspaceMember.id,
-        }));
-      case StakeRule.ALL_WORKSPACE_OWNER:
-        return allActiveMembers.map((workspaceMember) => ({
-          value: workspaceMember.id === ownerMember.id ? 1 : 0,
-          workspaceMemberId: workspaceMember.id,
-        }));
     }
   }
 }

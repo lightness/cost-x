@@ -1,6 +1,6 @@
-import { Field, Float, Int, ObjectType } from '@nestjs/graphql';
+import { Field, Float, InputType, Int } from '@nestjs/graphql';
 
-@ObjectType()
+@InputType()
 export class MemberStake {
   @Field(() => Int)
   workspaceMemberId: number;

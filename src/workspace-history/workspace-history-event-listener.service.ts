@@ -6,8 +6,7 @@ import {
   OnItemDeletedEvent,
   OnItemExtractedEvent,
   OnItemMergedEvent,
-  OnItemStakeCreatedEvent,
-  OnItemStakeUpdatedEvent,
+  OnItemStakesChangedEvent,
   OnItemUpdatedEvent,
   OnPaymentCreatedEvent,
   OnPaymentDeletedEvent,
@@ -243,23 +242,13 @@ export class WorkspaceHistoryEventListenerService {
     );
   }
 
-  @OnEvent(WorkspaceHistoryEvent.ITEM_STAKE_CREATED)
-  async onItemStakeCreated({ tx = this.prisma, ...dto }: OnItemStakeCreatedEvent) {
-    return this.workspaceHistoryService.createItemStakeCreated(
+  @OnEvent(WorkspaceHistoryEvent.ITEM_STAKES_CHANGED)
+  async onItemStakesChanged({ tx = this.prisma, ...dto }: OnItemStakesChangedEvent) {
+    return this.workspaceHistoryService.createItemStakesChanged(
       dto.workspaceId,
       dto.actorId,
-      dto.itemStake,
-      tx,
-    );
-  }
-
-  @OnEvent(WorkspaceHistoryEvent.ITEM_STAKE_CREATED)
-  async onItemStakeUpdated({ tx = this.prisma, ...dto }: OnItemStakeUpdatedEvent) {
-    return this.workspaceHistoryService.createItemStakeUpdated(
-      dto.workspaceId,
-      dto.actorId,
-      dto.oldItemStake,
-      dto.newItemStake,
+      dto.oldValue,
+      dto.newValue,
       tx,
     );
   }

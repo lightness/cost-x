@@ -6,9 +6,9 @@ import { PaymentsFilter } from '../payment/dto';
 import { PrismaService } from '../prisma/prisma.service';
 import User from '../user/entity/user.entity';
 import { WorkspaceHistoryEvent } from '../workspace-history/entity/workspace-history-event.enum';
+import { Workspace } from '../workspace/entity/workspace.entity';
 import { ItemInDto, ItemsFilter } from './dto';
 import Item from './entity/item.entity';
-import { ItemNotFoundError } from './error';
 
 @Injectable()
 export class ItemService {
@@ -23,7 +23,7 @@ export class ItemService {
     return item;
   }
 
-  async list(
+  async listByWorkspaceIds(
     workspaceIds: number[],
     itemsFilter: ItemsFilter,
     paymentsFilter: PaymentsFilter,
@@ -33,18 +33,25 @@ export class ItemService {
     });
   }
 
+  async list(itemsFilter: ItemsFilter): Promise<Item[]> {
+    return this.prisma.item.findMany({
+      where: this.getWhereClause([], itemsFilter, {}),
+    });
+  }
+
   async create(
-    workspaceId: number,
+    workspace: Workspace,
     dto: ItemInDto,
     currentUser: User,
     tx: Prisma.TransactionClient = this.prisma,
   ): Promise<Item> {
     const item = await tx.item.create({
       data: {
+        stakeRule: workspace.stakeRule,
         title: dto.title,
         workspace: {
           connect: {
-            id: workspaceId,
+            id: workspace.id,
           },
         },
       },
@@ -54,64 +61,52 @@ export class ItemService {
       actorId: currentUser.id,
       item,
       tx,
-      workspaceId,
+      workspaceId: workspace.id,
     });
 
     return item;
   }
 
   async update(
-    itemId: number,
-    dto: ItemInDto,
+    item: Item,
+    patch: Partial<Pick<Item, 'title'>>,
     currentUser: User,
     tx: Prisma.TransactionClient = this.prisma,
   ): Promise<Item> {
-    const existingItem = await tx.item.findUnique({ where: { id: itemId } });
-
-    if (!existingItem) {
-      throw new ItemNotFoundError(`Item with id ${itemId} not found`);
-    }
-
     const updatedItem = await tx.item.update({
       data: {
-        title: dto.title,
+        title: patch.title || item.title,
       },
       where: {
-        id: itemId,
+        id: item.id,
       },
     });
 
     await this.eventEmitter.emitAsync(WorkspaceHistoryEvent.ITEM_UPDATED, {
       actorId: currentUser.id,
       newItem: updatedItem,
-      oldItem: existingItem,
+      oldItem: item,
       tx,
-      workspaceId: existingItem.workspaceId,
+      workspaceId: item.workspaceId,
     });
 
     return updatedItem;
   }
 
   async delete(
-    itemId: number,
+    item: Item,
     currentUser: User,
     tx: Prisma.TransactionClient = this.prisma,
   ): Promise<void> {
-    const existingItem = await tx.item.findUnique({ where: { id: itemId } });
-
-    if (!existingItem) {
-      throw new ItemNotFoundError(`Item with id ${itemId} not found`);
-    }
-
     await tx.item.delete({
-      where: { id: itemId },
+      where: { id: item.id },
     });
 
     await this.eventEmitter.emitAsync(WorkspaceHistoryEvent.ITEM_DELETED, {
       actorId: currentUser.id,
-      item: existingItem,
+      item: item,
       tx,
-      workspaceId: existingItem.workspaceId,
+      workspaceId: item.workspaceId,
     });
   }
 
@@ -122,19 +117,20 @@ export class ItemService {
     itemsFilter: ItemsFilter,
     paymentsFilter: PaymentsFilter,
   ): ItemWhereInput {
-    const { title, tagIds } = itemsFilter;
+    const { title, tagIds, ids: itemIds } = itemsFilter;
     const { dateFrom: paymentDateFrom, dateTo: paymentDateTo } = paymentsFilter;
 
     const withTagIds = (tagIds || []).length > 0;
     const withPayments = Boolean(paymentDateFrom || paymentDateTo);
 
     return {
+      id: itemIds ? { in: itemIds } : undefined,
       itemTag: withTagIds ? { some: { tagId: { in: tagIds } } } : undefined,
       payment: withPayments
         ? { some: { date: { gte: paymentDateFrom, lte: paymentDateTo } } }
         : undefined,
       title: title ? { contains: title, mode: 'insensitive' } : undefined,
-      workspaceId: { in: workspaceIds },
+      workspaceId: workspaceIds.length > 0 ? { in: workspaceIds } : undefined,
     };
   }
 }

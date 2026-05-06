@@ -45,6 +45,8 @@ export class WorkspaceHistoryMessageService {
         return `${actorName} updated workspace #${this.extractId(oldValue)} '${this.extractTitle(oldValue)}'`;
       case WorkspaceHistoryAction.WORKSPACE_DELETED:
         return `${actorName} deleted workspace #${this.extractId(oldValue)} '${this.extractTitle(oldValue)}'`;
+      case WorkspaceHistoryAction.ITEM_STAKES_CHANGED:
+        return `${actorName} changed stakes for item #${this.extract<number>(oldValue, 'itemId')}`;
     }
   }
 

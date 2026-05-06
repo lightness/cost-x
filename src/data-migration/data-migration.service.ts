@@ -87,7 +87,7 @@ export class DataMigrationService {
             continue;
           }
 
-          const item = await this.itemService.create(workspace.id, { title }, user, tx);
+          const item = await this.itemService.create(workspace, { title }, user, tx);
 
           if (globalTag) {
             await this.itemTagService.assignTag(item, globalTag, user, tx);

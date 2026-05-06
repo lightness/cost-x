@@ -14,6 +14,7 @@ import { WorkspaceByIdPipe } from '../../common/pipe/workspace-by-id.pipe';
 import { WorkspaceByItemPipe } from '../../common/pipe/workspace-by-item.pipe';
 import { UserRole } from '../../user/entity/user-role.enum';
 import User from '../../user/entity/user.entity';
+import { Workspace } from '../../workspace/entity/workspace.entity';
 import { ItemInDto } from '../dto';
 import Item from '../entity/item.entity';
 import { ItemService } from '../item.service';
@@ -38,12 +39,12 @@ export class ItemMutationResolver {
   })
   @Infer('workspace', { from: fromArg('workspaceId'), pipes: [WorkspaceByIdPipe] })
   async createItem(
-    @Args('workspaceId', { type: () => Int }) workspaceId: number,
-    @Args('dto', { type: () => ItemInDto }) dto: ItemInDto,
+    @Args('workspaceId', { type: () => Int }, WorkspaceByIdPipe) workspace: Workspace,
+    @Args('dto') dto: ItemInDto,
     @CurrentUser() currentUser: User,
     @Context('tx') tx: Prisma.TransactionClient,
   ) {
-    return this.itemService.create(workspaceId, dto, currentUser, tx);
+    return this.itemService.create(workspace, dto, currentUser, tx);
   }
 
   @Mutation(() => Item)
@@ -61,12 +62,12 @@ export class ItemMutationResolver {
   @Infer('item', { from: fromArg('id'), pipes: [ItemByIdPipe] })
   @Infer('workspace', { from: 'item', pipes: [WorkspaceByItemPipe] })
   async updateItem(
-    @Args('id', { type: () => Int }) id: number,
-    @Args('dto', { type: () => ItemInDto }) dto: ItemInDto,
+    @Args('id', { type: () => Int }, ItemByIdPipe) item: Item,
+    @Args('dto') dto: ItemInDto,
     @CurrentUser() currentUser: User,
     @Context('tx') tx: Prisma.TransactionClient,
   ) {
-    return this.itemService.update(id, dto, currentUser, tx);
+    return this.itemService.update(item, dto, currentUser, tx);
   }
 
   @Mutation(() => Boolean)
@@ -84,11 +85,11 @@ export class ItemMutationResolver {
   @Infer('item', { from: fromArg('id'), pipes: [ItemByIdPipe] })
   @Infer('workspace', { from: 'item', pipes: [WorkspaceByItemPipe] })
   async deleteItem(
-    @Args('id', { type: () => Int }) id: number,
+    @Args('id', { type: () => Int }, ItemByIdPipe) item: Item,
     @CurrentUser() currentUser: User,
     @Context('tx') tx: Prisma.TransactionClient,
   ) {
-    await this.itemService.delete(id, currentUser, tx);
+    await this.itemService.delete(item, currentUser, tx);
 
     return true;
   }

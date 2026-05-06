@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { AccessModule } from '../access/access.module';
 import { AuthModule } from '../auth/auth.module';
 import { CurrencyRateModule } from '../currency-rate/currency-rate.module';
@@ -8,6 +8,7 @@ import { ItemStakeModule } from '../item-stake/item-stake.module';
 import { ItemTagModule } from '../item-tag/item-tag.module';
 import { PaymentModule } from '../payment/payment.module';
 import { PrismaModule } from '../prisma/prisma.module';
+import { ItemByIdLoader } from './dataloader/item-by-id.loader.service';
 import { ItemsByWorkspaceIdLoader } from './dataloader/items-by-workspace-id.loader.service';
 import { ItemService } from './item.service';
 import { ItemFieldResolver } from './resolver/item.field.resolver';
@@ -15,14 +16,14 @@ import { ItemMutationResolver } from './resolver/item.mutation.resolver';
 import { ItemQueryResolver } from './resolver/item.query.resolver';
 
 @Module({
-  exports: [ItemService, ItemsByWorkspaceIdLoader],
+  exports: [ItemService, ItemsByWorkspaceIdLoader, ItemByIdLoader],
   imports: [
     AuthModule,
     AccessModule,
     PrismaModule,
     ItemTagModule,
     ItemCostModule,
-    ItemStakeModule,
+    forwardRef(() => ItemStakeModule),
     PaymentModule,
     CurrencyRateModule,
     GroupModule,
@@ -34,7 +35,9 @@ import { ItemQueryResolver } from './resolver/item.query.resolver';
     ItemFieldResolver,
     ItemQueryResolver,
     ItemMutationResolver,
+    // dataloader
     ItemsByWorkspaceIdLoader,
+    ItemByIdLoader,
   ],
 })
 export class ItemModule {}

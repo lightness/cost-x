@@ -20,11 +20,12 @@ model CurrencyRate {
 }
 
 model Item {
-  id          Int      @id(map: "PK_item_id") @default(autoincrement())
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(6)
-  updatedAt   DateTime @default(now()) @map("updated_at") @db.Timestamp(6)
-  title       String   @db.VarChar(255)
-  workspaceId Int      @map("workspace_id")
+  id          Int        @id(map: "PK_item_id") @default(autoincrement())
+  createdAt   DateTime   @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt   DateTime   @default(now()) @map("updated_at") @db.Timestamp(6)
+  title       String     @db.VarChar(255)
+  workspaceId Int        @map("workspace_id")
+  stakeRule   StakeRule? @map("stake_rule")
 
   itemTag    ItemTag[]
   payment    Payment[]
@@ -287,8 +288,7 @@ enum WorkspaceHistoryAction {
   WORKSPACE_INVITE_CANCELLED
   WORKSPACE_MEMBER_CREATED
   WORKSPACE_MEMBER_REMOVED
-  ITEM_STAKE_CREATED
-  ITEM_STAKE_UPDATED
+  ITEM_STAKES_CHANGED
 }
 
 model WorkspaceHistory {

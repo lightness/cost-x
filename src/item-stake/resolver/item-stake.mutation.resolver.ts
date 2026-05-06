@@ -14,8 +14,6 @@ import { WorkspaceByItemPipe } from '../../common/pipe/workspace-by-item.pipe';
 import Item from '../../item/entity/item.entity';
 import { UserRole } from '../../user/entity/user-role.enum';
 import User from '../../user/entity/user.entity';
-import { WorkspaceMember } from '../../workspace-membership/entity/workspace-member.entity';
-import { WorkspaceMemberByIdPipe } from '../../workspace-membership/pipe/workspace-member-by-id.pipe';
 import { MemberStake } from '../entity';
 import ItemStake from '../entity/item-stake.entity';
 import { OverrideItemStakeService } from '../override-item-stake.service';
@@ -40,16 +38,16 @@ export class ItemStakeMutationResolver {
   })
   @Infer('item', { from: fromArg('itemId'), pipes: [ItemByIdPipe] })
   @Infer('workspace', { from: 'item', pipes: [WorkspaceByItemPipe] })
-  async updateItemStakes(
+  async setItemStakes(
     @Args('itemId', { type: () => Int }, ItemByIdPipe) item: Item,
-    @Args('stakes') stakes: MemberStake[],
+    @Args('stakes', { type: () => [MemberStake] }) stakes: MemberStake[],
     @CurrentUser() currentUser: User,
     @Context('tx') tx: Prisma.TransactionClient,
   ) {
-    return this.overrideItemStakeService.updateItemStakes(item, stakes, currentUser, tx);
+    return this.overrideItemStakeService.setItemStakes(item, stakes, currentUser, tx);
   }
 
-  @Mutation(() => [ItemStake])
+  @Mutation(() => Item)
   @Access.allow({
     or: [
       { owner: 'workspace', scope: AccessScope.WORKSPACE },
@@ -63,20 +61,12 @@ export class ItemStakeMutationResolver {
   })
   @Infer('item', { from: fromArg('itemId'), pipes: [ItemByIdPipe] })
   @Infer('workspace', { from: 'item', pipes: [WorkspaceByItemPipe] })
-  async updateItemStakesByRule(
+  async setItemStakeRule(
     @Args('itemId', { type: () => Int }, ItemByIdPipe) item: Item,
     @Args('stakeRule') stakeRule: StakeRule,
-    @Args('reporterMemberId', { nullable: true, type: () => Int }, WorkspaceMemberByIdPipe)
-    reporterMember: WorkspaceMember,
     @CurrentUser() currentUser: User,
     @Context('tx') tx: Prisma.TransactionClient,
   ) {
-    return this.overrideItemStakeService.updateItemStakesByRule(
-      item,
-      stakeRule,
-      reporterMember,
-      currentUser,
-      tx,
-    );
+    return this.overrideItemStakeService.setItemStakeRule(item, stakeRule, currentUser, tx);
   }
 }
