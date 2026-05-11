@@ -25,7 +25,7 @@ export class PaymentService {
     itemIds: number[],
     filter: PaymentsFilter,
   ): Promise<Map<number, Payment[]>> {
-    const { dateFrom, dateTo } = filter || {};
+    const { dateFrom, dateTo, ids } = filter || {};
 
     const payments = await this.prisma.payment.findMany({
       where: {
@@ -33,6 +33,7 @@ export class PaymentService {
           gte: dateFrom,
           lte: dateTo,
         },
+        id: ids ? { in: ids } : undefined,
         itemId: { in: itemIds },
       },
     });
@@ -145,26 +146,29 @@ export class PaymentService {
   }
 
   async getItemPayments(itemId: number, filter: PaymentsFilter): Promise<Payment[]> {
-    const { dateFrom, dateTo } = filter || {};
+    const { dateFrom, dateTo, ids } = filter || {};
 
-    const payments = await this.prisma.payment.findMany({
+    return this.prisma.payment.findMany({
       where: {
         date: {
           gte: dateFrom,
           lte: dateTo,
         },
+        id: ids ? { in: ids } : undefined,
         itemId,
       },
     });
-
-    return payments;
   }
 
   filterPayments<T extends PaymentLike>(payments: T[], filters: PaymentsFilter): T[] {
-    const { dateFrom, dateTo } = filters || {};
+    const { dateFrom, dateTo, ids } = filters || {};
 
-    return payments.filter(({ date }) => {
-      return (dateFrom ? dateFrom <= date : true) && (dateTo ? dateTo > date : true);
+    return payments.filter(({ id, date }) => {
+      return (
+        (dateFrom ? dateFrom <= date : true) &&
+        (dateTo ? dateTo > date : true) &&
+        (ids ? ids.includes(id) : true)
+      );
     });
   }
 
