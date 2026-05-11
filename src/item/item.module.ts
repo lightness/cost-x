@@ -7,6 +7,7 @@ import { ItemCostModule } from '../item-cost/default-currency-cost.module';
 import { PaymentModule } from '../payment/payment.module';
 import { PrismaModule } from '../prisma/prisma.module';
 import { ItemByIdLoader } from './dataloader/item-by-id.loader.service';
+import { ItemByPaymentIdLoader } from './dataloader/item-by-payment-id.loader.service';
 import { ItemsByWorkspaceIdLoader } from './dataloader/items-by-workspace-id.loader.service';
 import { WorkspaceByItemIdLoader } from './dataloader/workspace-by-item-id.loader.service';
 import { ItemService } from './item.service';
@@ -39,6 +40,7 @@ import { WorkspaceItemsFieldResolver } from './resolver/workspace-items.field.re
     // dataloader
     ItemsByWorkspaceIdLoader,
     ItemByIdLoader,
+    ItemByPaymentIdLoader,
     WorkspaceByItemIdLoader,
   ],
 })
