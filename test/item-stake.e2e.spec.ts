@@ -532,6 +532,92 @@ describe('Item Stake E2E', () => {
   });
 
   // ---------------------------------------------------------------------------
+  // stake resolution priority
+  // ---------------------------------------------------------------------------
+
+  describe('stake resolution priority', () => {
+    it('should preserve item stakeRule override when workspace default changes', async () => {
+      // Assume — item inherits ALL_PAYER, then gets explicitly overridden to EQUALLY
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
+      const item = await itemFactory.create(workspace.id);
+      const { accessToken } = await authService.authenticateUser(owner);
+
+      await request(app.getHttpServer())
+        .post('/graphql')
+        .send({
+          query: setItemStakeRuleMutation,
+          variables: { itemId: item.id, stakeRule: StakeRule.EQUALLY },
+        })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Act — change workspace default back to ALL_PAYER
+      await request(app.getHttpServer())
+        .post('/graphql')
+        .send({
+          query: updateWorkspaceStakeRuleMutation,
+          variables: { stakeRule: StakeRule.ALL_PAYER, workspaceId: workspace.id },
+        })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert — item keeps its override
+      const itemResponse = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: itemQuery, variables: { id: item.id } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expectResponseSuccess(itemResponse);
+      expect(itemResponse.body.data.item.stakeRule).toBe(StakeRule.EQUALLY);
+    });
+
+    it('should preserve individual stakes when workspace default changes', async () => {
+      // Assume — set individual stakes on item (clears stakeRule)
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
+      const item = await itemFactory.create(workspace.id);
+      const memberRecord = await workspaceMemberFactory.create(workspace.id, owner.id);
+      const { accessToken } = await authService.authenticateUser(owner);
+
+      await request(app.getHttpServer())
+        .post('/graphql')
+        .send({
+          query: setItemStakesMutation,
+          variables: {
+            itemId: item.id,
+            stakes: [{ value: 1.0, workspaceMemberId: memberRecord.id }],
+          },
+        })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Act — change workspace default
+      await request(app.getHttpServer())
+        .post('/graphql')
+        .send({
+          query: updateWorkspaceStakeRuleMutation,
+          variables: { stakeRule: StakeRule.EQUALLY, workspaceId: workspace.id },
+        })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert — item retains individual stakes and null stakeRule
+      const itemResponse = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: itemQuery, variables: { id: item.id } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expectResponseSuccess(itemResponse);
+      expect(itemResponse.body.data.item.stakeRule).toBeNull();
+      expect(itemResponse.body.data.item.itemStakes).toHaveLength(1);
+      expect(itemResponse.body.data.item.itemStakes[0].workspaceMemberId).toBe(memberRecord.id);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
   // helpers
   // ---------------------------------------------------------------------------
 
