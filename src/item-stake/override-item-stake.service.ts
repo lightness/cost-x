@@ -9,7 +9,7 @@ import User from '../user/entity/user.entity';
 import { WorkspaceHistoryEvent } from '../workspace-history/entity/workspace-history-event.enum';
 import { WorkspaceMemberNotBelongingToWorkspaceError } from '../workspace-membership/error';
 import { WorkspaceMemberService } from '../workspace-membership/workspace-member.service';
-import { MemberStake } from './entity';
+import { MemberStake } from './dto';
 import ItemStake from './entity/item-stake.entity';
 import { WorkspaceMemberStakeNotSpecifiedError } from './error';
 import { ItemStakeService } from './item-stake.service';

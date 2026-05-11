@@ -75,7 +75,7 @@ export class ItemService {
   ): Promise<Item> {
     const updatedItem = await tx.item.update({
       data: {
-        title: patch.title || item.title,
+        title: patch.title ?? item.title,
       },
       where: {
         id: item.id,

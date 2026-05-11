@@ -100,22 +100,27 @@ export class PaymentService {
 
   async updatePayment(
     payment: Payment,
-    dto: PaymentInDto,
+    payer: WorkspaceMember,
+    dto: Omit<PaymentInDto, 'payerId'>,
     currentUser: User,
     tx: Prisma.TransactionClient = this.prisma,
   ): Promise<Payment> {
+    const item = await tx.item.findUniqueOrThrow({ where: { id: payment.itemId } });
+
+    if (payer.workspaceId !== item.workspaceId) {
+      throw new WorkspaceMemberNotBelongingToWorkspaceError(payer.id);
+    }
+
     const updatedPayment = await tx.payment.update({
       data: {
         cost: dto.cost,
         currency: dto.currency,
         date: dto.date,
-        payerId: dto.payerId,
+        payerId: payer.id,
         title: dto.title,
       },
       where: { id: payment.id },
     });
-
-    const item = await tx.item.findUniqueOrThrow({ where: { id: payment.itemId } });
 
     await this.eventEmitter.emitAsync(WorkspaceHistoryEvent.PAYMENT_UPDATED, {
       actorId: currentUser.id,

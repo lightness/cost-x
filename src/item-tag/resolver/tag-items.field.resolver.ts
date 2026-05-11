@@ -1,4 +1,5 @@
 import { Args, Parent, ResolveField, Resolver } from '@nestjs/graphql';
+import Item from '../../item/entity/item.entity';
 import { ItemsFilter } from '../../item/dto';
 import { PaymentsFilter } from '../../payment/dto';
 import Tag from '../../tag/entity/tag.entity';
@@ -8,7 +9,7 @@ import { ItemsByTagIdLoader } from '../dataloader/items-by-tag-id.loader.service
 export class TagItemsFieldResolver {
   constructor(private itemsByTagIdLoader: ItemsByTagIdLoader) {}
 
-  @ResolveField(() => [Tag])
+  @ResolveField(() => [Item])
   async items(
     @Parent() tag: Tag,
     @Args('itemsFilter', { nullable: true }) itemsFilter: ItemsFilter,

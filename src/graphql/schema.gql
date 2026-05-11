@@ -136,11 +136,11 @@ input ItemInDto {
 }
 
 type ItemStake {
-  createdAt: DateIso
+  createdAt: DateIso!
   id: Int!
   item: Item
   itemId: Int!
-  updatedAt: DateIso
+  updatedAt: DateIso!
   value: Float!
   workspaceMember: WorkspaceMember
   workspaceMemberId: Int!

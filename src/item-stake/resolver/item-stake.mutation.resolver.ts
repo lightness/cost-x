@@ -15,7 +15,7 @@ import { WorkspaceByItemPipe } from '../../common/pipe/workspace-by-item.pipe';
 import Item from '../../item/entity/item.entity';
 import { UserRole } from '../../user/entity/user-role.enum';
 import User from '../../user/entity/user.entity';
-import { MemberStake } from '../entity';
+import { MemberStake } from '../dto';
 import ItemStake from '../entity/item-stake.entity';
 import { OverrideItemStakeService } from '../override-item-stake.service';
 

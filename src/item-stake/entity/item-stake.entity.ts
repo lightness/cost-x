@@ -9,10 +9,10 @@ class ItemStake implements PrismaItemStake {
   @Field(() => Int)
   id: number;
 
-  @Field(() => DateIsoScalar, { nullable: true })
+  @Field(() => DateIsoScalar)
   createdAt: Date;
 
-  @Field(() => DateIsoScalar, { nullable: true })
+  @Field(() => DateIsoScalar)
   updatedAt: Date;
 
   @Field(() => Int)

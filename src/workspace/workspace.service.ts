@@ -85,9 +85,7 @@ export class WorkspaceService {
       workspace,
     });
 
-    const deletedWorkspace = await tx.workspace.delete({ where: { id: workspace.id } });
-
-    return deletedWorkspace;
+    return tx.workspace.delete({ where: { id: workspace.id } });
   }
 
   // private

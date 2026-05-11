@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '../../generated/prisma/client';
 import Item from '../item/entity/item.entity';
 import { PrismaService } from '../prisma/prisma.service';
-import { MemberStake } from './entity';
+import { MemberStake } from './dto';
 import ItemStake from './entity/item-stake.entity';
 
 @Injectable()

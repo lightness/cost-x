@@ -72,10 +72,13 @@ export class PaymentMutationResolver {
   async updatePayment(
     @Args('paymentId', { type: () => Int }, PaymentByIdPipe) payment: Payment,
     @Args('dto') dto: PaymentInDto,
+    @DeepArgs('dto.payerId', WorkspaceMemberByIdPipe) payer: WorkspaceMember,
     @CurrentUser() currentUser: User,
     @Context('tx') tx: Prisma.TransactionClient,
   ) {
-    return this.paymentService.updatePayment(payment, dto, currentUser, tx);
+    const { payerId: _payerId, ...paymentDto } = dto;
+
+    return this.paymentService.updatePayment(payment, payer, paymentDto, currentUser, tx);
   }
 
   @Mutation(() => Boolean)

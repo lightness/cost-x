@@ -1,4 +1,4 @@
-import { StakeRule } from '../../../generated/prisma/browser';
+import { StakeRule } from '../../workspace-stake/entity/stake-rule.enum';
 import ItemStake from '../../item-stake/entity/item-stake.entity';
 import { BaseWorkspaceHistoryEvent } from './base-workspace-history.event';
 
