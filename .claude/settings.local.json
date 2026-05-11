@@ -40,7 +40,8 @@
       "Bash(gh pr *)",
       "mcp__github__pull_request_read",
       "Bash(xargs cat *)",
-      "mcp__github__pull_request_review_write"
+      "mcp__github__pull_request_review_write",
+      "Bash(grep -v \"^--$\")"
     ]
   },
   "hooks": {

@@ -1,4 +1,4 @@
-import { forwardRef, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { AccessModule } from '../access/access.module';
 import { AuthModule } from '../auth/auth.module';
 import { GroupModule } from '../group/group.module';
@@ -20,7 +20,7 @@ import { ItemStakeMutationResolver } from './resolver/item-stake.mutation.resolv
     AccessModule,
     GroupModule,
     WorkspaceMembershipModule,
-    forwardRef(() => ItemModule),
+    ItemModule,
   ],
   providers: [
     ItemStakeService,

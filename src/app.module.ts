@@ -33,6 +33,7 @@ import { WorkspaceModule } from './workspace/workspace.module';
     AccessModule,
     TagModule,
     ItemModule,
+    ItemStakeModule,
     ItemTagModule,
     ItemMergeModule,
     ItemExtractModule,
