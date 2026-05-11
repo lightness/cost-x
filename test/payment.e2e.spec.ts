@@ -7,7 +7,6 @@ import { configureApp } from '../src/configure-app';
 import { GraphqlModule } from '../src/graphql/graphql.module';
 import { PaymentModule } from '../src/payment/payment.module';
 import { UserRole } from '../src/user/entity/user-role.enum';
-import { WorkspacePermission } from '../generated/prisma/client';
 import { FactoryModule } from './factory/factory.module';
 import { ItemFactoryService } from './factory/item-factory.service';
 import { PaymentFactoryService } from './factory/payment-factory.service';
@@ -235,12 +234,16 @@ describe('Payment E2E', () => {
       const user = await userFactory.create('active');
       const workspace = await workspaceFactory.create({ ownerId: user.id });
       const item = await itemFactory.create(workspace.id);
+      const ownerMember = await workspaceMemberFactory.create(workspace.id, user.id);
 
       const { accessToken } = await authService.authenticateUser(user);
 
       const response = await request(app.getHttpServer())
         .post('/graphql')
-        .send({ query: createPaymentMutation, variables: { itemId: item.id, dto: PAYMENT_DTO } })
+        .send({
+          query: createPaymentMutation,
+          variables: { dto: { ...PAYMENT_DTO, payerId: ownerMember.id }, itemId: item.id },
+        })
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${accessToken}`);
 
@@ -258,7 +261,10 @@ describe('Payment E2E', () => {
 
       const response = await request(app.getHttpServer())
         .post('/graphql')
-        .send({ query: createPaymentMutation, variables: { itemId: item.id, dto: PAYMENT_DTO } })
+        .send({
+          query: createPaymentMutation,
+          variables: { dto: { ...PAYMENT_DTO, payerId: 1 }, itemId: item.id },
+        })
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${accessToken}`);
 
@@ -270,13 +276,16 @@ describe('Payment E2E', () => {
       const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
       const member = await userFactory.create('active');
-      await workspaceMemberFactory.create(workspace.id, member.id);
+      const memberRecord = await workspaceMemberFactory.create(workspace.id, member.id);
 
       const { accessToken } = await authService.authenticateUser(member);
 
       const response = await request(app.getHttpServer())
         .post('/graphql')
-        .send({ query: createPaymentMutation, variables: { itemId: item.id, dto: PAYMENT_DTO } })
+        .send({
+          query: createPaymentMutation,
+          variables: { dto: { ...PAYMENT_DTO, payerId: memberRecord.id }, itemId: item.id },
+        })
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${accessToken}`);
 
@@ -295,7 +304,10 @@ describe('Payment E2E', () => {
 
       const response = await request(app.getHttpServer())
         .post('/graphql')
-        .send({ query: createPaymentMutation, variables: { itemId: item.id, dto: PAYMENT_DTO } })
+        .send({
+          query: createPaymentMutation,
+          variables: { dto: { ...PAYMENT_DTO, payerId: 1 }, itemId: item.id },
+        })
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${accessToken}`);
 
@@ -309,7 +321,10 @@ describe('Payment E2E', () => {
 
       const response = await request(app.getHttpServer())
         .post('/graphql')
-        .send({ query: createPaymentMutation, variables: { itemId: item.id, dto: PAYMENT_DTO } })
+        .send({
+          query: createPaymentMutation,
+          variables: { dto: { ...PAYMENT_DTO, payerId: 1 }, itemId: item.id },
+        })
         .set('Content-Type', 'application/json');
 
       expectResponseError(response, { code: ApplicationErrorCode.NO_ACCESS, status: 'FORBIDDEN' });
@@ -319,13 +334,17 @@ describe('Payment E2E', () => {
       const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
+      const ownerMember = await workspaceMemberFactory.create(workspace.id, owner.id);
       const admin = await userFactory.create('active', { role: UserRole.ADMIN });
 
       const { accessToken } = await authService.authenticateUser(admin);
 
       const response = await request(app.getHttpServer())
         .post('/graphql')
-        .send({ query: createPaymentMutation, variables: { itemId: item.id, dto: PAYMENT_DTO } })
+        .send({
+          query: createPaymentMutation,
+          variables: { dto: { ...PAYMENT_DTO, payerId: ownerMember.id }, itemId: item.id },
+        })
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${accessToken}`);
 
@@ -345,7 +364,13 @@ describe('Payment E2E', () => {
 
       const response = await request(app.getHttpServer())
         .post('/graphql')
-        .send({ query: updatePaymentMutation, variables: { paymentId: payment.id, dto: { ...PAYMENT_DTO, currency: 'EUR' } } })
+        .send({
+          query: updatePaymentMutation,
+          variables: {
+            dto: { ...PAYMENT_DTO, currency: 'EUR', payerId: payment.payerId },
+            paymentId: payment.id,
+          },
+        })
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${accessToken}`);
 
@@ -364,7 +389,10 @@ describe('Payment E2E', () => {
 
       const response = await request(app.getHttpServer())
         .post('/graphql')
-        .send({ query: updatePaymentMutation, variables: { paymentId: payment.id, dto: PAYMENT_DTO } })
+        .send({
+          query: updatePaymentMutation,
+          variables: { dto: { ...PAYMENT_DTO, payerId: 1 }, paymentId: payment.id },
+        })
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${accessToken}`);
 
@@ -383,7 +411,13 @@ describe('Payment E2E', () => {
 
       const response = await request(app.getHttpServer())
         .post('/graphql')
-        .send({ query: updatePaymentMutation, variables: { paymentId: payment.id, dto: { ...PAYMENT_DTO, currency: 'EUR' } } })
+        .send({
+          query: updatePaymentMutation,
+          variables: {
+            dto: { ...PAYMENT_DTO, currency: 'EUR', payerId: payment.payerId },
+            paymentId: payment.id,
+          },
+        })
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${accessToken}`);
 
@@ -403,7 +437,10 @@ describe('Payment E2E', () => {
 
       const response = await request(app.getHttpServer())
         .post('/graphql')
-        .send({ query: updatePaymentMutation, variables: { paymentId: payment.id, dto: PAYMENT_DTO } })
+        .send({
+          query: updatePaymentMutation,
+          variables: { dto: { ...PAYMENT_DTO, payerId: 1 }, paymentId: payment.id },
+        })
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${accessToken}`);
 
@@ -418,7 +455,10 @@ describe('Payment E2E', () => {
 
       const response = await request(app.getHttpServer())
         .post('/graphql')
-        .send({ query: updatePaymentMutation, variables: { paymentId: payment.id, dto: PAYMENT_DTO } })
+        .send({
+          query: updatePaymentMutation,
+          variables: { dto: { ...PAYMENT_DTO, payerId: 1 }, paymentId: payment.id },
+        })
         .set('Content-Type', 'application/json');
 
       expectResponseError(response, { code: ApplicationErrorCode.NO_ACCESS, status: 'FORBIDDEN' });
@@ -435,7 +475,13 @@ describe('Payment E2E', () => {
 
       const response = await request(app.getHttpServer())
         .post('/graphql')
-        .send({ query: updatePaymentMutation, variables: { paymentId: payment.id, dto: { ...PAYMENT_DTO, currency: 'EUR' } } })
+        .send({
+          query: updatePaymentMutation,
+          variables: {
+            dto: { ...PAYMENT_DTO, currency: 'EUR', payerId: payment.payerId },
+            paymentId: payment.id,
+          },
+        })
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${accessToken}`);
 

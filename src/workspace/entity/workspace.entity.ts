@@ -1,9 +1,6 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
-import {
-  Currency,
-  Workspace as PrismaWorkspace,
-  StakeRule,
-} from '../../../generated/prisma/client';
+import { Currency, Workspace as PrismaWorkspace } from '../../../generated/prisma/client';
+import { StakeRule } from '../../workspace-stake/entity/stake-rule.enum';
 import { DateIsoScalar } from '../../graphql/scalar';
 
 @ObjectType()

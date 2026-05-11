@@ -79,13 +79,13 @@ export class WorkspaceService {
     currentUser: User,
     tx: Prisma.TransactionClient = this.prisma,
   ): Promise<Workspace> {
-    const deletedWorkspace = await tx.workspace.delete({ where: { id: workspace.id } });
-
     await this.eventEmitter.emitAsync(WorkspaceHistoryEvent.WORKSPACE_DELETED, {
       actorId: currentUser.id,
       tx,
       workspace,
     });
+
+    const deletedWorkspace = await tx.workspace.delete({ where: { id: workspace.id } });
 
     return deletedWorkspace;
   }

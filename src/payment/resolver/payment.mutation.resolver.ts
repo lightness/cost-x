@@ -13,15 +13,15 @@ import { ItemByIdPipe } from '../../common/pipe/item-by-id.pipe';
 import { PaymentByIdPipe } from '../../common/pipe/payment-by-id.pipe';
 import { WorkspaceByItemPipe } from '../../common/pipe/workspace-by-item.pipe';
 import { WorkspaceByPaymentPipe } from '../../common/pipe/workspace-by-payment.pipe';
+import { DeepArgs } from '../../graphql/decorator/deep-args.decorator';
 import Item from '../../item/entity/item.entity';
 import { UserRole } from '../../user/entity/user-role.enum';
 import User from '../../user/entity/user.entity';
+import { WorkspaceMember } from '../../workspace-membership/entity/workspace-member.entity';
+import { WorkspaceMemberByIdPipe } from '../../workspace-membership/pipe/workspace-member-by-id.pipe';
 import { PaymentInDto } from '../dto';
 import Payment from '../entity/payment.entity';
 import { PaymentService } from '../payment.service';
-import { DeepArgs } from '../../graphql/decorator/deep-args.decorator';
-import { WorkspaceMemberByIdPipe } from '../../workspace-membership/pipe/workspace-member-by-id.pipe';
-import { WorkspaceMember } from '../../workspace-membership/entity/workspace-member.entity';
 
 @Resolver()
 @UseGuards(AuthGuard, AccessGuard)
@@ -47,11 +47,12 @@ export class PaymentMutationResolver {
     @Args('itemId', { type: () => Int }, ItemByIdPipe) item: Item,
     @Args('dto') dto: PaymentInDto,
     @DeepArgs('dto.payerId', WorkspaceMemberByIdPipe) payer: WorkspaceMember,
-    @CurrentUser()
-    currentUser: User,
+    @CurrentUser() currentUser: User,
     @Context('tx') tx: Prisma.TransactionClient,
   ) {
-    return this.paymentService.createPayment(item, payer, dto, currentUser, tx);
+    const { payerId: _payerId, ...paymentDto } = dto;
+
+    return this.paymentService.createPayment(item, payer, paymentDto, currentUser, tx);
   }
 
   @Mutation(() => Payment)
