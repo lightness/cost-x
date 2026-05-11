@@ -14,13 +14,13 @@ export class ItemByPaymentIdLoader extends BaseLoader<number, Item> {
   }
 
   protected async loaderFn(paymentIds: number[]): Promise<Item[]> {
-    const payments = await this.prisma.payment.findMany({ where: { id: { in: paymentIds } } });
-    const itemIds = payments.map((payment) => payment.itemId);
-    const items = await this.prisma.item.findMany({ where: { id: { in: itemIds } } });
+    const payments = await this.prisma.payment.findMany({
+      include: { item: true },
+      where: { id: { in: paymentIds } },
+    });
 
     const paymentById = this.groupService.mapBy(payments, 'id');
-    const itemById = this.groupService.mapBy(items, 'id');
 
-    return paymentIds.map((paymentId) => itemById.get(paymentById.get(paymentId)?.itemId) || null);
+    return paymentIds.map((paymentId) => paymentById.get(paymentId)?.item ?? null);
   }
 }
