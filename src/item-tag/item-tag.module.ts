@@ -9,9 +9,11 @@ import { TagsByItemIdLoader } from './dataloader/tags-by-item-id.loader.service'
 import { ItemTagService } from './item-tag.service';
 import { ItemTagFieldResolver } from './resolver/item-tag.field.resolver';
 import { ItemTagMutationResolver } from './resolver/item-tag.mutation.resolver';
+import { ItemTagsFieldResolver } from './resolver/item-tags.field.resolver';
+import { TagItemsFieldResolver } from './resolver/tag-items.field.resolver';
 
 @Module({
-  exports: [ItemTagService, ItemsByTagIdLoader, TagsByItemIdLoader],
+  exports: [ItemTagService],
   imports: [PrismaModule, AuthModule, AccessModule, GroupModule, ConsistencyModule],
   providers: [
     ItemTagService,
@@ -21,6 +23,8 @@ import { ItemTagMutationResolver } from './resolver/item-tag.mutation.resolver';
     // resolvers
     ItemTagFieldResolver,
     ItemTagMutationResolver,
+    ItemTagsFieldResolver,
+    TagItemsFieldResolver,
   ],
 })
 export class ItemTagModule {}

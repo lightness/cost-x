@@ -267,6 +267,7 @@ type PaymentsAggregation {
 input PaymentsFilter {
   dateFrom: Date
   dateTo: Date
+  ids: [Int!]
 }
 
 enum Permission {

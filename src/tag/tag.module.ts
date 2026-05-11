@@ -9,10 +9,11 @@ import { TagsByWorkspaceIdLoader } from './dataloader/tags-by-workspace-id.loade
 import { TagFieldResolver } from './resolver/tag.field.resolver';
 import { TagMutationResolver } from './resolver/tag.mutation.resolver';
 import { TagQueryResolver } from './resolver/tag.query.resolver';
+import { WorkspaceTagsFieldResolver } from './resolver/workspace-tags.field.resolver';
 import { TagService } from './tag.service';
 
 @Module({
-  exports: [TagService, TagsByWorkspaceIdLoader],
+  exports: [TagService],
   imports: [
     PrismaModule,
     AuthModule,
@@ -27,6 +28,7 @@ import { TagService } from './tag.service';
     TagFieldResolver,
     TagQueryResolver,
     TagMutationResolver,
+    WorkspaceTagsFieldResolver,
     // dataloaders
     TagsByWorkspaceIdLoader,
   ],

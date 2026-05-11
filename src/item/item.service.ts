@@ -118,16 +118,23 @@ export class ItemService {
     paymentsFilter: PaymentsFilter,
   ): ItemWhereInput {
     const { title, tagIds, ids: itemIds } = itemsFilter;
-    const { dateFrom: paymentDateFrom, dateTo: paymentDateTo } = paymentsFilter;
+    const { dateFrom: paymentDateFrom, dateTo: paymentDateTo, ids: paymentIds } = paymentsFilter;
 
     const withTagIds = (tagIds || []).length > 0;
-    const withPayments = Boolean(paymentDateFrom || paymentDateTo);
+    const withPaymentIdFilter = (paymentIds || []).length > 0;
+    const withPaymentFilter =
+      Boolean(paymentDateFrom) || Boolean(paymentDateTo) || withPaymentIdFilter;
 
     return {
       id: itemIds ? { in: itemIds } : undefined,
       itemTag: withTagIds ? { some: { tagId: { in: tagIds } } } : undefined,
-      payment: withPayments
-        ? { some: { date: { gte: paymentDateFrom, lte: paymentDateTo } } }
+      payment: withPaymentFilter
+        ? {
+            some: {
+              date: { gte: paymentDateFrom, lte: paymentDateTo },
+              id: withPaymentIdFilter ? { in: paymentIds } : undefined,
+            },
+          }
         : undefined,
       title: title ? { contains: title, mode: 'insensitive' } : undefined,
       workspaceId: workspaceIds.length > 0 ? { in: workspaceIds } : undefined,

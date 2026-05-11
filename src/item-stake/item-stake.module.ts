@@ -8,6 +8,7 @@ import { WorkspaceMembershipModule } from '../workspace-membership/workspace-mem
 import { ItemStakesByItemIdLoader } from './dataloader/item-stakes-by-item-id.loader.service';
 import { ItemStakeService } from './item-stake.service';
 import { OverrideItemStakeService } from './override-item-stake.service';
+import { ItemItemStakesFieldResolver } from './resolver/item-item-stakes.field.resolver';
 import { ItemStakeFieldResolver } from './resolver/item-stake.field.resolver';
 import { ItemStakeMutationResolver } from './resolver/item-stake.mutation.resolver';
 
@@ -27,6 +28,7 @@ import { ItemStakeMutationResolver } from './resolver/item-stake.mutation.resolv
     // resolver
     ItemStakeMutationResolver,
     ItemStakeFieldResolver,
+    ItemItemStakesFieldResolver,
     // dataloader
     ItemStakesByItemIdLoader,
   ],
