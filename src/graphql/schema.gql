@@ -221,7 +221,7 @@ type Mutation {
   resendForgotPasswordEmail(dto: ForgotPasswordInDto!): ResendEmailOutDto!
   resetPassword(dto: ResetPasswordInDto!): Boolean!
   revokeWorkspaceMemberPermissions(memberId: Int!, permissions: [WorkspacePermission!]!): Boolean!
-  setItemStakeRule(itemId: Int!, stakeRule: String!): Item!
+  setItemStakeRule(itemId: Int!, stakeRule: StakeRule!): Item!
   setItemStakes(itemId: Int!, stakes: [MemberStake!]!): [ItemStake!]!
   unassignTag(dto: UnassignTagInDto!): Boolean!
   unbanUser(id: Int!): User!

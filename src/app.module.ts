@@ -10,6 +10,7 @@ import { DataMigrationModule } from './data-migration/data-migration.module';
 import { GraphqlModule } from './graphql/graphql.module';
 import { ItemExtractModule } from './item-extract/item-extract.module';
 import { ItemMergeModule } from './item-merge/item-merge.module';
+import { ItemStakeModule } from './item-stake/item-stake.module';
 import { ItemTagModule } from './item-tag/item-tag.module';
 import { ItemModule } from './item/item.module';
 import { ItemsAggregationModule } from './items-aggregation/items-aggregation.module';

@@ -1,6 +1,7 @@
 import { UseGuards, UseInterceptors } from '@nestjs/common';
 import { Args, Context, Int, Mutation, Resolver } from '@nestjs/graphql';
-import { Prisma, StakeRule } from '../../../generated/prisma/client';
+import { Prisma } from '../../../generated/prisma/client';
+import { StakeRule } from '../../workspace-stake/entity/stake-rule.enum';
 import { Access } from '../../access/decorator/access.decorator';
 import { fromArg } from '../../access/function/from-arg.function';
 import { AccessGuard } from '../../access/guard/access.guard';
@@ -63,7 +64,7 @@ export class ItemStakeMutationResolver {
   @Infer('workspace', { from: 'item', pipes: [WorkspaceByItemPipe] })
   async setItemStakeRule(
     @Args('itemId', { type: () => Int }, ItemByIdPipe) item: Item,
-    @Args('stakeRule') stakeRule: StakeRule,
+    @Args('stakeRule', { type: () => StakeRule }) stakeRule: StakeRule,
     @CurrentUser() currentUser: User,
     @Context('tx') tx: Prisma.TransactionClient,
   ) {
