@@ -68,6 +68,9 @@ NestJS modules are organized by domain under `src/`. Each domain typically has:
 | `currency-rate` | Historical exchange rates (BYN/USD/EUR) |
 | `items-aggregation` / `payments-aggregation` | Aggregated cost/payment summaries |
 | `item-merge` | Merges multiple items into one |
+| `item-stake` | Per-member expense stakes on an item; `OverrideItemStakeService` validates and applies stakes, `ItemStakeService` handles DB upserts |
+| `workspace-stake` | Workspace-level `stakeRule` setting (`ALL_PAYER` / per-member) with mutation to update it |
+| `data-migration` | One-time spreadsheet-to-DB import utility (registered in `AppModule`, triggered manually) |
 | `prisma` | Shared `PrismaService` — import this for all DB access |
 | `redis` | Shared `RedisService` — used for token invalidation and caching |
 
