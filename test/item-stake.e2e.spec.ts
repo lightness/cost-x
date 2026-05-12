@@ -379,20 +379,20 @@ describe('Item Stake E2E', () => {
       const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
+      const member = await workspaceMemberFactory.create(workspace.id, owner.id);
       const { accessToken } = await authService.authenticateUser(owner);
 
-      // No workspace members → empty stakes is valid
       const response = await request(app.getHttpServer())
         .post('/graphql')
         .send({
           query: setItemStakesMutation,
-          variables: { itemId: item.id, stakes: [] },
+          variables: { itemId: item.id, stakes: [{ value: 1.0, workspaceMemberId: member.id }] },
         })
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${accessToken}`);
 
       expectResponseSuccess(response);
-      expect(response.body.data.setItemStakes).toEqual([]);
+      expect(response.body.data.setItemStakes).toHaveLength(1);
     });
 
     it('should set item stakes when member has OVERRIDE_ITEM_STAKES permission', async () => {
@@ -479,6 +479,7 @@ describe('Item Stake E2E', () => {
       const owner = await userFactory.create('active');
       const workspace = await workspaceFactory.create({ ownerId: owner.id });
       const item = await itemFactory.create(workspace.id);
+      const member = await workspaceMemberFactory.create(workspace.id, owner.id);
       const admin = await userFactory.create('active', { role: UserRole.ADMIN });
       const { accessToken } = await authService.authenticateUser(admin);
 
@@ -486,13 +487,13 @@ describe('Item Stake E2E', () => {
         .post('/graphql')
         .send({
           query: setItemStakesMutation,
-          variables: { itemId: item.id, stakes: [] },
+          variables: { itemId: item.id, stakes: [{ value: 1.0, workspaceMemberId: member.id }] },
         })
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${accessToken}`);
 
       expectResponseSuccess(response);
-      expect(response.body.data.setItemStakes).toEqual([]);
+      expect(response.body.data.setItemStakes).toHaveLength(1);
     });
 
     it('should set item.stakeRule to null when stakes are set', async () => {
@@ -528,6 +529,352 @@ describe('Item Stake E2E', () => {
 
       expectResponseSuccess(itemResponse);
       expect(itemResponse.body.data.item.stakeRule).toBeNull();
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // setItemStakes validation
+  // ---------------------------------------------------------------------------
+
+  describe('setItemStakes validation', () => {
+    const removeWorkspaceMemberMutation = `
+      mutation RemoveWorkspaceMember($memberId: Int!) {
+        removeWorkspaceMember(memberId: $memberId) {
+          id
+        }
+      }
+    `;
+
+    // --- happy paths ---
+
+    it('should accept stakes for all active members with positive values', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
+      const item = await itemFactory.create(workspace.id);
+      const user1 = await userFactory.create('active');
+      const user2 = await userFactory.create('active');
+      const member1 = await workspaceMemberFactory.create(workspace.id, user1.id);
+      const member2 = await workspaceMemberFactory.create(workspace.id, user2.id);
+      const { accessToken } = await authService.authenticateUser(owner);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({
+          query: setItemStakesMutation,
+          variables: {
+            itemId: item.id,
+            stakes: [
+              { value: 3.0, workspaceMemberId: member1.id },
+              { value: 1.0, workspaceMemberId: member2.id },
+            ],
+          },
+        })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expectResponseSuccess(response);
+      expect(response.body.data.setItemStakes).toHaveLength(2);
+    });
+
+    it('should accept stakes with some zero values when total is positive', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
+      const item = await itemFactory.create(workspace.id);
+      const user1 = await userFactory.create('active');
+      const user2 = await userFactory.create('active');
+      const member1 = await workspaceMemberFactory.create(workspace.id, user1.id);
+      const member2 = await workspaceMemberFactory.create(workspace.id, user2.id);
+      const { accessToken } = await authService.authenticateUser(owner);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({
+          query: setItemStakesMutation,
+          variables: {
+            itemId: item.id,
+            stakes: [
+              { value: 1.0, workspaceMemberId: member1.id },
+              { value: 0.0, workspaceMemberId: member2.id },
+            ],
+          },
+        })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expectResponseSuccess(response);
+      expect(response.body.data.setItemStakes).toHaveLength(2);
+    });
+
+    it('should be idempotent — calling setItemStakes twice produces the same result', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
+      const item = await itemFactory.create(workspace.id);
+      const user1 = await userFactory.create('active');
+      const member1 = await workspaceMemberFactory.create(workspace.id, user1.id);
+      const { accessToken } = await authService.authenticateUser(owner);
+
+      const stakes = [{ value: 1.0, workspaceMemberId: member1.id }];
+
+      const first = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: setItemStakesMutation, variables: { itemId: item.id, stakes } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      const second = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: setItemStakesMutation, variables: { itemId: item.id, stakes } })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expectResponseSuccess(first);
+      expectResponseSuccess(second);
+      expect(second.body.data.setItemStakes).toHaveLength(1);
+      expect(second.body.data.setItemStakes[0].workspaceMemberId).toBe(member1.id);
+      expect(second.body.data.setItemStakes[0].value).toBe(1.0);
+    });
+
+    // --- validation failures (checked in declaration order) ---
+
+    it('should reject duplicate workspaceMemberId', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
+      const item = await itemFactory.create(workspace.id);
+      const user1 = await userFactory.create('active');
+      const member1 = await workspaceMemberFactory.create(workspace.id, user1.id);
+      const { accessToken } = await authService.authenticateUser(owner);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({
+          query: setItemStakesMutation,
+          variables: {
+            itemId: item.id,
+            stakes: [
+              { value: 1.0, workspaceMemberId: member1.id },
+              { value: 2.0, workspaceMemberId: member1.id },
+            ],
+          },
+        })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expectResponseError(response, {
+        code: ApplicationErrorCode.WORKSPACE_MEMBER_STAKE_DUPLICATED,
+        status: 'BAD_REQUEST',
+      });
+    });
+
+    it('should reject when an active member is missing from stakes', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
+      const item = await itemFactory.create(workspace.id);
+      const user1 = await userFactory.create('active');
+      const user2 = await userFactory.create('active');
+      const member1 = await workspaceMemberFactory.create(workspace.id, user1.id);
+      await workspaceMemberFactory.create(workspace.id, user2.id);
+      const { accessToken } = await authService.authenticateUser(owner);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({
+          query: setItemStakesMutation,
+          variables: {
+            itemId: item.id,
+            stakes: [{ value: 1.0, workspaceMemberId: member1.id }],
+          },
+        })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expectResponseError(response, {
+        code: ApplicationErrorCode.WORKSPACE_MEMBER_STAKE_NOT_SPECIFIED,
+        status: 'BAD_REQUEST',
+      });
+    });
+
+    it('should reject when stakes include a non-member id', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
+      const item = await itemFactory.create(workspace.id);
+      const user1 = await userFactory.create('active');
+      const member1 = await workspaceMemberFactory.create(workspace.id, user1.id);
+      const { accessToken } = await authService.authenticateUser(owner);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({
+          query: setItemStakesMutation,
+          variables: {
+            itemId: item.id,
+            stakes: [
+              { value: 1.0, workspaceMemberId: member1.id },
+              { value: 1.0, workspaceMemberId: 999999 },
+            ],
+          },
+        })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expectResponseError(response, {
+        code: ApplicationErrorCode.WORKSPACE_MEMBER_NOT_BELONGING_TO_WORKSPACE,
+        status: 'NOT_FOUND',
+      });
+    });
+
+    it('should reject when stakes include an inactive (removed) member id', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
+      const item = await itemFactory.create(workspace.id);
+      const user1 = await userFactory.create('active');
+      const user2 = await userFactory.create('active');
+      const member1 = await workspaceMemberFactory.create(workspace.id, user1.id);
+      const member2 = await workspaceMemberFactory.create(workspace.id, user2.id);
+      const { accessToken } = await authService.authenticateUser(owner);
+
+      await request(app.getHttpServer())
+        .post('/graphql')
+        .send({
+          query: removeWorkspaceMemberMutation,
+          variables: { memberId: member2.id },
+        })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({
+          query: setItemStakesMutation,
+          variables: {
+            itemId: item.id,
+            stakes: [
+              { value: 1.0, workspaceMemberId: member1.id },
+              { value: 1.0, workspaceMemberId: member2.id },
+            ],
+          },
+        })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expectResponseError(response, {
+        code: ApplicationErrorCode.WORKSPACE_MEMBER_NOT_BELONGING_TO_WORKSPACE,
+        status: 'NOT_FOUND',
+      });
+    });
+
+    it('should reject a negative stake value', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
+      const item = await itemFactory.create(workspace.id);
+      const user1 = await userFactory.create('active');
+      const member1 = await workspaceMemberFactory.create(workspace.id, user1.id);
+      const { accessToken } = await authService.authenticateUser(owner);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({
+          query: setItemStakesMutation,
+          variables: {
+            itemId: item.id,
+            stakes: [{ value: -1.0, workspaceMemberId: member1.id }],
+          },
+        })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expectResponseError(response, {
+        code: ApplicationErrorCode.WORKSPACE_MEMBER_STAKE_HAS_NEGATIVE_VALUE,
+        status: 'BAD_REQUEST',
+      });
+    });
+
+    it('should reject when all stake values are zero (sum = 0)', async () => {
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
+      const item = await itemFactory.create(workspace.id);
+      const user1 = await userFactory.create('active');
+      const member1 = await workspaceMemberFactory.create(workspace.id, user1.id);
+      const { accessToken } = await authService.authenticateUser(owner);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({
+          query: setItemStakesMutation,
+          variables: {
+            itemId: item.id,
+            stakes: [{ value: 0, workspaceMemberId: member1.id }],
+          },
+        })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expectResponseError(response, {
+        code: ApplicationErrorCode.NON_POSITIVE_SUM_OF_STAKE_VALUES,
+        status: 'BAD_REQUEST',
+      });
+    });
+
+    // --- edge cases: validation check ordering ---
+
+    it('should report missing member before negative value', async () => {
+      // member1 has a negative value AND member2 is missing — missing check fires first
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
+      const item = await itemFactory.create(workspace.id);
+      const user1 = await userFactory.create('active');
+      const user2 = await userFactory.create('active');
+      const member1 = await workspaceMemberFactory.create(workspace.id, user1.id);
+      await workspaceMemberFactory.create(workspace.id, user2.id);
+      const { accessToken } = await authService.authenticateUser(owner);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({
+          query: setItemStakesMutation,
+          variables: {
+            itemId: item.id,
+            stakes: [{ value: -1.0, workspaceMemberId: member1.id }],
+          },
+        })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expectResponseError(response, {
+        code: ApplicationErrorCode.WORKSPACE_MEMBER_STAKE_NOT_SPECIFIED,
+        status: 'BAD_REQUEST',
+      });
+    });
+
+    it('should report negative value before non-positive sum', async () => {
+      // member1: -1, member2: 5 — sum is 4 > 0, but negative check fires first
+      const owner = await userFactory.create('active');
+      const workspace = await workspaceFactory.create({ ownerId: owner.id });
+      const item = await itemFactory.create(workspace.id);
+      const user1 = await userFactory.create('active');
+      const user2 = await userFactory.create('active');
+      const member1 = await workspaceMemberFactory.create(workspace.id, user1.id);
+      const member2 = await workspaceMemberFactory.create(workspace.id, user2.id);
+      const { accessToken } = await authService.authenticateUser(owner);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({
+          query: setItemStakesMutation,
+          variables: {
+            itemId: item.id,
+            stakes: [
+              { value: -1.0, workspaceMemberId: member1.id },
+              { value: 5.0, workspaceMemberId: member2.id },
+            ],
+          },
+        })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expectResponseError(response, {
+        code: ApplicationErrorCode.WORKSPACE_MEMBER_STAKE_HAS_NEGATIVE_VALUE,
+        status: 'BAD_REQUEST',
+      });
     });
   });
 
