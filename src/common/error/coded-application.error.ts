@@ -53,6 +53,9 @@ export enum ApplicationErrorCode {
   INSUFFICIENT_ACTOR_PERMISSIONS = 'insufficient_actor_permissions',
   // stake
   WORKSPACE_MEMBER_STAKE_NOT_SPECIFIED = 'workspace_member_stake_not_specified',
+  WORKSPACE_MEMBER_STAKE_HAS_NEGATIVE_VALUE = 'workspace_member_stake_has_negative_value',
+  WORKSPACE_MEMBER_STAKE_DUPLICATED = 'workspace_member_stake_duplicated',
+  NON_POSITIVE_SUM_OF_STAKE_VALUES = 'non_positive_sum_of_stake_values',
 }
 
 @HttpErrorCode(HttpStatus.INTERNAL_SERVER_ERROR)

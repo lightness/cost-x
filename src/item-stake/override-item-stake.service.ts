@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { diff } from 'radash';
 import { Prisma, StakeRule } from '../../generated/prisma/client';
-import { unique } from '../common/function/unique';
+import { duplicates } from '../common/function/duplicates';
 import Item from '../item/entity/item.entity';
 import { PrismaService } from '../prisma/prisma.service';
 import User from '../user/entity/user.entity';
@@ -11,7 +11,12 @@ import { WorkspaceMemberNotBelongingToWorkspaceError } from '../workspace-member
 import { WorkspaceMemberService } from '../workspace-membership/workspace-member.service';
 import { MemberStake } from './dto';
 import ItemStake from './entity/item-stake.entity';
-import { WorkspaceMemberStakeNotSpecifiedError } from './error';
+import {
+  NonPositiveSumOfStakeValuesError,
+  WorkspaceMemberStakeDuplicatedError,
+  WorkspaceMemberStakeHasNegativeValueError,
+  WorkspaceMemberStakeNotSpecifiedError,
+} from './error';
 import { ItemStakeService } from './item-stake.service';
 
 @Injectable()
@@ -108,7 +113,13 @@ export class OverrideItemStakeService {
     stakes: MemberStake[],
     tx: Prisma.TransactionClient = this.prisma,
   ) {
-    const receivedMemberIds = stakes.map((stake) => stake.workspaceMemberId).filter(unique);
+    const receivedMemberIds = stakes.map((stake) => stake.workspaceMemberId);
+    const duplicatedMemberIds = receivedMemberIds.filter(duplicates);
+
+    if (duplicatedMemberIds.length > 0) {
+      throw new WorkspaceMemberStakeDuplicatedError(duplicatedMemberIds);
+    }
+
     const allActiveMembers = await this.workspaceMemberService.listActiveByWorkspaceId(
       item.workspaceId,
       tx,
@@ -124,6 +135,20 @@ export class OverrideItemStakeService {
 
     if (extraMemberIds.length > 0) {
       throw new WorkspaceMemberNotBelongingToWorkspaceError(extraMemberIds);
+    }
+
+    const negativeValueMemberIds = stakes
+      .filter((stake) => stake.value < 0)
+      .map((stake) => stake.workspaceMemberId);
+
+    if (negativeValueMemberIds.length > 0) {
+      throw new WorkspaceMemberStakeHasNegativeValueError(negativeValueMemberIds);
+    }
+
+    const sumOfStakeValues = stakes.map((stake) => stake.value).reduce((acc, cur) => acc + cur, 0);
+
+    if (sumOfStakeValues <= 0) {
+      throw new NonPositiveSumOfStakeValuesError(sumOfStakeValues);
     }
   }
 }
