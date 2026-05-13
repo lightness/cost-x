@@ -13,9 +13,12 @@ import { ItemByIdPipe } from '../../common/pipe/item-by-id.pipe';
 import { PaymentByIdPipe } from '../../common/pipe/payment-by-id.pipe';
 import { WorkspaceByItemPipe } from '../../common/pipe/workspace-by-item.pipe';
 import { WorkspaceByPaymentPipe } from '../../common/pipe/workspace-by-payment.pipe';
+import { DeepArgs } from '../../graphql/decorator/deep-args.decorator';
 import Item from '../../item/entity/item.entity';
 import { UserRole } from '../../user/entity/user-role.enum';
 import User from '../../user/entity/user.entity';
+import { WorkspaceMember } from '../../workspace-membership/entity/workspace-member.entity';
+import { WorkspaceMemberByIdPipe } from '../../workspace-membership/pipe/workspace-member-by-id.pipe';
 import { PaymentInDto } from '../dto';
 import Payment from '../entity/payment.entity';
 import { PaymentService } from '../payment.service';
@@ -43,10 +46,13 @@ export class PaymentMutationResolver {
   async createPayment(
     @Args('itemId', { type: () => Int }, ItemByIdPipe) item: Item,
     @Args('dto') dto: PaymentInDto,
+    @DeepArgs('dto.payerId', WorkspaceMemberByIdPipe) payer: WorkspaceMember,
     @CurrentUser() currentUser: User,
     @Context('tx') tx: Prisma.TransactionClient,
   ) {
-    return this.paymentService.createPayment(item, dto, currentUser, tx);
+    const { payerId: _payerId, ...paymentDto } = dto;
+
+    return this.paymentService.createPayment(item, payer, paymentDto, currentUser, tx);
   }
 
   @Mutation(() => Payment)
@@ -66,10 +72,13 @@ export class PaymentMutationResolver {
   async updatePayment(
     @Args('paymentId', { type: () => Int }, PaymentByIdPipe) payment: Payment,
     @Args('dto') dto: PaymentInDto,
+    @DeepArgs('dto.payerId', WorkspaceMemberByIdPipe) payer: WorkspaceMember,
     @CurrentUser() currentUser: User,
     @Context('tx') tx: Prisma.TransactionClient,
   ) {
-    return this.paymentService.updatePayment(payment, dto, currentUser, tx);
+    const { payerId: _payerId, ...paymentDto } = dto;
+
+    return this.paymentService.updatePayment(payment, payer, paymentDto, currentUser, tx);
   }
 
   @Mutation(() => Boolean)

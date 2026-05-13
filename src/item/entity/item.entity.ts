@@ -1,5 +1,6 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
 import { Item as PrismaItem } from '../../../generated/prisma/client';
+import { StakeRule } from '../../workspace-stake/entity/stake-rule.enum';
 import { DateIsoScalar } from '../../graphql/scalar';
 import Payment from '../../payment/entity/payment.entity';
 import { PaymentsAggregation } from '../../payments-aggregation/entity/payments-aggregation.entity';
@@ -25,6 +26,9 @@ class Item implements PrismaItem {
 
   @Field(() => Workspace, { nullable: true })
   workspace?: Workspace;
+
+  @Field(() => StakeRule, { nullable: true })
+  stakeRule: StakeRule | null;
 
   @Field(() => [Payment], { nullable: true })
   payments?: Payment[];

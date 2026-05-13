@@ -120,8 +120,10 @@ input InvitesFilter {
 type Item {
   createdAt: DateIso!
   id: Int!
+  itemStakes: [ItemStake!]!
   payments(paymentsFilter: PaymentsFilter): [Payment!]
   paymentsAggregation(paymentsFilter: PaymentsFilter): PaymentsAggregation
+  stakeRule: StakeRule
   tags: [Tag!]
   title: String!
   updatedAt: DateIso!
@@ -131,6 +133,17 @@ type Item {
 
 input ItemInDto {
   title: String!
+}
+
+type ItemStake {
+  createdAt: DateIso!
+  id: Int!
+  item: Item
+  itemId: Int!
+  updatedAt: DateIso!
+  value: Float!
+  workspaceMember: WorkspaceMember
+  workspaceMemberId: Int!
 }
 
 type ItemTag {
@@ -149,6 +162,7 @@ type ItemsAggregation {
 }
 
 input ItemsFilter {
+  ids: [Int!]
   tagIds: [Int!]
   title: String
 }
@@ -162,6 +176,11 @@ scalar JSON
 The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
 """
 scalar Json
+
+input MemberStake {
+  value: Float!
+  workspaceMemberId: Int!
+}
 
 input MergeItemsInDto {
   hostItemId: Int!
@@ -202,6 +221,8 @@ type Mutation {
   resendForgotPasswordEmail(dto: ForgotPasswordInDto!): ResendEmailOutDto!
   resetPassword(dto: ResetPasswordInDto!): Boolean!
   revokeWorkspaceMemberPermissions(memberId: Int!, permissions: [WorkspacePermission!]!): Boolean!
+  setItemStakeRule(itemId: Int!, stakeRule: StakeRule!): Item!
+  setItemStakes(itemId: Int!, stakes: [MemberStake!]!): [ItemStake!]!
   unassignTag(dto: UnassignTagInDto!): Boolean!
   unbanUser(id: Int!): User!
   unblockUser(dto: RemoveUserBlockInDto!): UserBlock!
@@ -210,6 +231,7 @@ type Mutation {
   updateTag(dto: TagInDto!, id: Int!): Tag!
   updateUser(dto: UpdateUserInDto!, id: Int!): User!
   updateWorkspace(dto: WorkspaceInDto!, id: Int!): Workspace!
+  updateWorkspaceStakeRule(stakeRule: StakeRule!, workspaceId: Int!): Workspace!
 }
 
 type Payment {
@@ -220,6 +242,8 @@ type Payment {
   id: Int!
   item: Item
   itemId: Int!
+  payer: WorkspaceMember
+  payerId: Int!
   title: String
   updatedAt: DateIso
 }
@@ -228,6 +252,7 @@ input PaymentInDto {
   cost: Decimal!
   currency: Currency!
   date: Date!
+  payerId: Int!
   title: String
 }
 
@@ -242,6 +267,7 @@ type PaymentsAggregation {
 input PaymentsFilter {
   dateFrom: Date
   dateTo: Date
+  ids: [Int!]
 }
 
 enum Permission {
@@ -288,6 +314,12 @@ type ResendEmailOutDto {
 input ResetPasswordInDto {
   password: String!
   token: String!
+}
+
+enum StakeRule {
+  ALL_PAYER
+  ALL_WORKSPACE_OWNER
+  EQUALLY
 }
 
 type Tag {
@@ -371,6 +403,7 @@ type Workspace {
   members: [WorkspaceMember!]!
   ownerId: Int!
   pendingInvites: [WorkspaceInvite!]!
+  stakeRule: StakeRule!
   tags(tagsFilter: TagsFilter): [Tag!]!
   title: String!
   updatedAt: DateIso!
@@ -394,6 +427,7 @@ enum WorkspaceHistoryAction {
   ITEM_DELETED
   ITEM_EXTRACTED
   ITEM_MERGED
+  ITEM_STAKES_CHANGED
   ITEM_TAG_ASSIGNED
   ITEM_TAG_UNASSIGNED
   ITEM_UPDATED
@@ -469,12 +503,14 @@ enum WorkspacePermission {
   EXTRACT_ITEM
   GRANT_WORKSPACE_PERMISSION
   MERGE_ITEMS
+  OVERRIDE_ITEM_STAKES
   REMOVE_WORKSPACE_MEMBER
   REVOKE_WORKSPACE_PERMISSION
   UNASSIGN_TAG
   UPDATE_ITEM
   UPDATE_PAYMENT
   UPDATE_TAG
+  UPDATE_WORKSPACE_STAKE_RULE
 }
 
 input WorkspacesFilter {

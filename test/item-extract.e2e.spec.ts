@@ -44,7 +44,13 @@ describe('ItemExtract E2E', () => {
 
   beforeAll(async () => {
     moduleRef = await Test.createTestingModule({
-      imports: [TestConfigModule, TestGraphqlModule, FactoryModule, ItemExtractModule, GraphqlModule],
+      imports: [
+        TestConfigModule,
+        TestGraphqlModule,
+        FactoryModule,
+        ItemExtractModule,
+        GraphqlModule,
+      ],
     }).compile();
 
     app = moduleRef.createNestApplication();
@@ -81,7 +87,9 @@ describe('ItemExtract E2E', () => {
       .post('/graphql')
       .send({
         query: extractAsItemMutation,
-        variables: { dto: { itemId: sourceItem.id, paymentIds: [payment1.id], title: 'Extracted' } },
+        variables: {
+          dto: { itemId: sourceItem.id, paymentIds: [payment1.id], title: 'Extracted' },
+        },
       })
       .set('Content-Type', 'application/json')
       .set('Authorization', `Bearer ${accessToken}`);
@@ -156,7 +164,9 @@ describe('ItemExtract E2E', () => {
       .post('/graphql')
       .send({
         query: extractAsItemMutation,
-        variables: { dto: { itemId: sourceItem.id, paymentIds: [payment1.id], title: 'Extracted' } },
+        variables: {
+          dto: { itemId: sourceItem.id, paymentIds: [payment1.id], title: 'Extracted' },
+        },
       })
       .set('Content-Type', 'application/json')
       .set('Authorization', `Bearer ${accessToken}`);
@@ -207,7 +217,9 @@ describe('ItemExtract E2E', () => {
       .post('/graphql')
       .send({
         query: extractAsItemMutation,
-        variables: { dto: { itemId: sourceItem.id, paymentIds: [payment1.id], title: 'Extracted' } },
+        variables: {
+          dto: { itemId: sourceItem.id, paymentIds: [payment1.id], title: 'Extracted' },
+        },
       })
       .set('Content-Type', 'application/json')
       .set('Authorization', `Bearer ${accessToken}`);
@@ -236,7 +248,10 @@ describe('ItemExtract E2E', () => {
       .set('Authorization', `Bearer ${accessToken}`);
 
     // Assert
-    expectResponseError(response, { code: ApplicationErrorCode.EXTRACT_PAYMENTS_EMPTY, status: 'BAD_REQUEST' });
+    expectResponseError(response, {
+      code: ApplicationErrorCode.EXTRACT_PAYMENTS_EMPTY,
+      status: 'BAD_REQUEST',
+    });
   });
 
   it('should not extract when a payment does not belong to the item', async () => {
@@ -255,13 +270,18 @@ describe('ItemExtract E2E', () => {
       .post('/graphql')
       .send({
         query: extractAsItemMutation,
-        variables: { dto: { itemId: sourceItem.id, paymentIds: [foreignPayment.id], title: 'Extracted' } },
+        variables: {
+          dto: { itemId: sourceItem.id, paymentIds: [foreignPayment.id], title: 'Extracted' },
+        },
       })
       .set('Content-Type', 'application/json')
       .set('Authorization', `Bearer ${accessToken}`);
 
     // Assert
-    expectResponseError(response, { code: ApplicationErrorCode.PAYMENT_NOT_BELONG_TO_ITEM, status: 'BAD_REQUEST' });
+    expectResponseError(response, {
+      code: ApplicationErrorCode.PAYMENT_NOT_BELONG_TO_ITEM,
+      status: 'BAD_REQUEST',
+    });
   });
 
   it('should not extract when all payments of the item are selected', async () => {
@@ -279,13 +299,22 @@ describe('ItemExtract E2E', () => {
       .post('/graphql')
       .send({
         query: extractAsItemMutation,
-        variables: { dto: { itemId: sourceItem.id, paymentIds: [payment1.id, payment2.id], title: 'Extracted' } },
+        variables: {
+          dto: {
+            itemId: sourceItem.id,
+            paymentIds: [payment1.id, payment2.id],
+            title: 'Extracted',
+          },
+        },
       })
       .set('Content-Type', 'application/json')
       .set('Authorization', `Bearer ${accessToken}`);
 
     // Assert
-    expectResponseError(response, { code: ApplicationErrorCode.EXTRACT_ALL_PAYMENTS, status: 'BAD_REQUEST' });
+    expectResponseError(response, {
+      code: ApplicationErrorCode.EXTRACT_ALL_PAYMENTS,
+      status: 'BAD_REQUEST',
+    });
   });
 
   it('should copy source item tags to the extracted item', async () => {
@@ -307,7 +336,9 @@ describe('ItemExtract E2E', () => {
       .post('/graphql')
       .send({
         query: extractAsItemMutation,
-        variables: { dto: { itemId: sourceItem.id, paymentIds: [payment1.id], title: 'Extracted' } },
+        variables: {
+          dto: { itemId: sourceItem.id, paymentIds: [payment1.id], title: 'Extracted' },
+        },
       })
       .set('Content-Type', 'application/json')
       .set('Authorization', `Bearer ${accessToken}`);

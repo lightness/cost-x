@@ -1,14 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { JsonObject } from '@prisma/client/runtime/client';
+import { cmp } from 'type-comparator';
 import { Prisma } from '../../generated/prisma/client';
+import ItemStake from '../item-stake/entity/item-stake.entity';
 import ItemTag from '../item-tag/entity/item-tag.entity';
 import Item from '../item/entity/item.entity';
 import Payment from '../payment/entity/payment.entity';
 import { PrismaService } from '../prisma/prisma.service';
 import Tag from '../tag/entity/tag.entity';
-import { Workspace } from '../workspace/entity/workspace.entity';
 import { WorkspaceInvite } from '../workspace-membership/entity/workspace-invite.entity';
 import { WorkspaceMember } from '../workspace-membership/entity/workspace-member.entity';
+import { Workspace } from '../workspace/entity/workspace.entity';
+import { ItemStakesChangedEventPayload } from './dto';
 import { WorkspaceHistoryFilter } from './dto/workspace-history-filter.type';
 import { WorkspaceHistoryAction } from './entity/workspace-history-action.enum';
 import { WorkspaceHistory } from './entity/workspace-history.entity';
@@ -439,5 +442,42 @@ export class WorkspaceHistoryService {
       },
       tx,
     );
+  }
+
+  async createItemStakesChanged(
+    workspaceId: number,
+    actorId: number,
+    oldValue: ItemStakesChangedEventPayload,
+    newValue: ItemStakesChangedEventPayload,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<WorkspaceHistory> {
+    return this.create(
+      {
+        action: WorkspaceHistoryAction.ITEM_STAKES_CHANGED,
+        actorId,
+        newValue: { ...newValue, stakes: this.formatStakes(newValue.stakes) },
+        oldValue: { ...oldValue, stakes: this.formatStakes(oldValue.stakes) },
+        workspaceId,
+      },
+      tx,
+    );
+  }
+
+  private formatStakes(itemStakes: ItemStake[] | null): string | null {
+    if (!itemStakes || itemStakes.length === 0) {
+      return null;
+    }
+
+    const accumulated = [...itemStakes].sort(this.byWorkspaceMemberIdAsc).reduce((acc, cur) => {
+      return { ...acc, [cur.workspaceMemberId]: cur.value };
+    }, {});
+
+    return JSON.stringify(accumulated);
+  }
+
+  private get byWorkspaceMemberIdAsc() {
+    return cmp()
+      .map((x) => x.workspaceMemberId)
+      .asc();
   }
 }

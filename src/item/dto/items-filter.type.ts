@@ -7,4 +7,7 @@ export class ItemsFilter {
 
   @Field(() => String, { nullable: true })
   title?: string;
+
+  @Field(() => [Int], { nullable: true })
+  ids?: number[];
 }

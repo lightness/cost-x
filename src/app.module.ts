@@ -10,6 +10,7 @@ import { DataMigrationModule } from './data-migration/data-migration.module';
 import { GraphqlModule } from './graphql/graphql.module';
 import { ItemExtractModule } from './item-extract/item-extract.module';
 import { ItemMergeModule } from './item-merge/item-merge.module';
+import { ItemStakeModule } from './item-stake/item-stake.module';
 import { ItemTagModule } from './item-tag/item-tag.module';
 import { ItemModule } from './item/item.module';
 import { ItemsAggregationModule } from './items-aggregation/items-aggregation.module';
@@ -21,6 +22,7 @@ import { TagModule } from './tag/tag.module';
 import { UserModule } from './user/user.module';
 import { WorkspaceHistoryModule } from './workspace-history/workspace-history.module';
 import { WorkspaceMembershipModule } from './workspace-membership/workspace-membership.module';
+import { WorkspaceStakeModule } from './workspace-stake/workspace-stake.module';
 import { WorkspaceModule } from './workspace/workspace.module';
 
 @Module({
@@ -32,6 +34,7 @@ import { WorkspaceModule } from './workspace/workspace.module';
     AccessModule,
     TagModule,
     ItemModule,
+    ItemStakeModule,
     ItemTagModule,
     ItemMergeModule,
     ItemExtractModule,
@@ -44,6 +47,7 @@ import { WorkspaceModule } from './workspace/workspace.module';
     WorkspaceModule,
     WorkspaceMembershipModule,
     WorkspaceHistoryModule,
+    WorkspaceStakeModule,
     ResetPasswordModule,
     ResendEmailModule,
     ContactModule,

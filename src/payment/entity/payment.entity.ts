@@ -3,6 +3,7 @@ import { Decimal } from '@prisma/client/runtime/client';
 import { type Payment as PrismaPayment, Currency } from '../../../generated/prisma/client';
 import { DateIsoScalar, DateScalar, DecimalScalar } from '../../graphql/scalar';
 import Item from '../../item/entity/item.entity';
+import { WorkspaceMember } from '../../workspace-membership/entity/workspace-member.entity';
 
 @ObjectType()
 class Payment implements PrismaPayment {
@@ -32,6 +33,12 @@ class Payment implements PrismaPayment {
 
   @Field(() => Int)
   itemId: number;
+
+  @Field(() => WorkspaceMember, { nullable: true })
+  payer?: WorkspaceMember;
+
+  @Field(() => Int)
+  payerId: number;
 }
 
 export default Payment;

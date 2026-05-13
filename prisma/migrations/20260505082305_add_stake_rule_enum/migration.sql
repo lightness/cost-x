@@ -1,0 +1,2 @@
+-- CreateEnum
+CREATE TYPE "StakeRule" AS ENUM ('ALL_PAYER', 'ALL_WORKSPACE_OWNER', 'EQUALLY');

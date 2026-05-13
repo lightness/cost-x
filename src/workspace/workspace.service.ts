@@ -51,45 +51,41 @@ export class WorkspaceService {
   }
 
   async update(
-    id: number,
+    workspace: Workspace,
     dto: WorkspaceInDto,
     currentUser: User,
     tx: Prisma.TransactionClient = this.prisma,
   ): Promise<Workspace> {
-    const oldWorkspace = await tx.workspace.findUniqueOrThrow({ where: { id } });
-
-    const newWorkspace = await tx.workspace.update({
+    const updatedWorkspace = await tx.workspace.update({
       data: {
         defaultCurrency: dto.defaultCurrency,
         title: dto.title,
       },
-      where: { id },
+      where: { id: workspace.id },
     });
 
     await this.eventEmitter.emitAsync(WorkspaceHistoryEvent.WORKSPACE_UPDATED, {
       actorId: currentUser.id,
-      newWorkspace,
-      oldWorkspace,
+      newWorkspace: updatedWorkspace,
+      oldWorkspace: workspace,
       tx,
     });
 
-    return newWorkspace;
+    return updatedWorkspace;
   }
 
   async delete(
-    id: number,
+    workspace: Workspace,
     currentUser: User,
     tx: Prisma.TransactionClient = this.prisma,
   ): Promise<Workspace> {
-    const workspace = await tx.workspace.findUniqueOrThrow({ where: { id } });
-
     await this.eventEmitter.emitAsync(WorkspaceHistoryEvent.WORKSPACE_DELETED, {
       actorId: currentUser.id,
       tx,
       workspace,
     });
 
-    return tx.workspace.delete({ where: { id } });
+    return tx.workspace.delete({ where: { id: workspace.id } });
   }
 
   // private

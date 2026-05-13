@@ -47,9 +47,15 @@ export enum ApplicationErrorCode {
   USER_ALREADY_WORKSPACE_MEMBER = 'user_already_workspace_member',
   INSUFFICIENT_INVITER_PERMISSIONS = 'insufficient_inviter_permissions',
   WORKSPACE_MEMBER_NOT_FOUND = 'workspace_member_not_found',
+  WORKSPACE_MEMBER_NOT_BELONGING_TO_WORKSPACE = 'workspace_member_not_belonging_to_workspace',
   WORKSPACE_MEMBER_ALREADY_REMOVED = 'workspace_member_already_removed',
   CANNOT_REMOVE_WORKSPACE_OWNER = 'cannot_remove_workspace_owner',
   INSUFFICIENT_ACTOR_PERMISSIONS = 'insufficient_actor_permissions',
+  // stake
+  WORKSPACE_MEMBER_STAKE_NOT_SPECIFIED = 'workspace_member_stake_not_specified',
+  WORKSPACE_MEMBER_STAKE_HAS_NEGATIVE_VALUE = 'workspace_member_stake_has_negative_value',
+  WORKSPACE_MEMBER_STAKE_DUPLICATED = 'workspace_member_stake_duplicated',
+  NON_POSITIVE_SUM_OF_STAKE_VALUES = 'non_positive_sum_of_stake_values',
 }
 
 @HttpErrorCode(HttpStatus.INTERNAL_SERVER_ERROR)

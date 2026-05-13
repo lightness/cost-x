@@ -24,10 +24,10 @@ export class WorkspaceMemberService {
   ): Promise<WorkspaceMember> {
     const member = await tx.workspaceMember.create({
       data: {
-        invite: { connect: { id: inviteId } },
         joinedAt: new Date(),
         user: { connect: { id: userId } },
         workspace: { connect: { id: workspaceId } },
+        ...(inviteId !== null ? { invite: { connect: { id: inviteId } } } : {}),
       },
     });
 
@@ -73,7 +73,7 @@ export class WorkspaceMemberService {
     return removedMember;
   }
 
-  async listByWorkspaceId(
+  async listActiveByWorkspaceId(
     workspaceId: number,
     tx: Prisma.TransactionClient = this.prisma,
   ): Promise<WorkspaceMember[]> {

@@ -21,7 +21,7 @@ export class ItemsByWorkspaceIdLoader extends NestedLoader<number, Item[], Filte
   }
 
   protected async loaderWithOptionsFn(workspaceIds: number[], filter: Filter): Promise<Item[][]> {
-    const items = await this.itemService.list(
+    const items = await this.itemService.listByWorkspaceIds(
       workspaceIds,
       filter.itemsFilter,
       filter.paymentsFilter,

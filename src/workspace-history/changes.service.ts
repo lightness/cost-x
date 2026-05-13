@@ -4,6 +4,7 @@ import ItemTag from '../item-tag/entity/item-tag.entity';
 import Item from '../item/entity/item.entity';
 import Payment from '../payment/entity/payment.entity';
 import Tag from '../tag/entity/tag.entity';
+import { StakeRule } from '../workspace-stake/entity/stake-rule.enum';
 import { Workspace } from '../workspace/entity/workspace.entity';
 import { WorkspaceHistoryAction } from './entity/workspace-history-action.enum';
 import { WorkspaceHistory } from './entity/workspace-history.entity';
@@ -51,6 +52,11 @@ export class ChangesService {
           workspaceHistory.oldValue as unknown as Workspace,
           workspaceHistory.newValue as unknown as Workspace,
         );
+      case WorkspaceHistoryAction.ITEM_STAKES_CHANGED:
+        return this.getItemStakesDiff(
+          workspaceHistory.oldValue as unknown as { stakeRule: StakeRule; stakes: string },
+          workspaceHistory.newValue as unknown as { stakeRule: StakeRule; stakes: string },
+        );
       default:
         throw new Error(`Unsupported workspace history action: ${workspaceHistory.action}`);
     }
@@ -92,7 +98,7 @@ export class ChangesService {
   }
 
   getWorkspaceDiff(oldWorkspace: Workspace, newWorkspace: Workspace) {
-    return this.getDiff(oldWorkspace, newWorkspace, ['title', 'defaultCurrency']);
+    return this.getDiff(oldWorkspace, newWorkspace, ['title', 'defaultCurrency', 'stakeRule']);
   }
 
   getMergedItemDiff(
@@ -100,5 +106,12 @@ export class ChangesService {
     newValue: { hostItem: Item; mergingItem: Item },
   ): Record<string, { oldValue: unknown; newValue: unknown }> {
     return this.getDiff(oldValue, newValue, ['hostItem.title', 'mergingItem.title']);
+  }
+
+  getItemStakesDiff(
+    oldValue: { stakeRule: StakeRule; stakes: string },
+    newValue: { stakeRule: StakeRule; stakes: string },
+  ): Record<string, { oldValue: unknown; newValue: unknown }> {
+    return this.getDiff(oldValue, newValue, ['stakeRule', 'stakes']);
   }
 }

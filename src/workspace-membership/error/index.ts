@@ -6,4 +6,5 @@ export * from './user-already-workspace-member.error';
 export * from './workspace-invite-already-exists.error';
 export * from './workspace-invite-not-found.error';
 export * from './workspace-member-already-removed.error';
+export * from './workspace-member-not-belonging-to-workspace.error';
 export * from './workspace-member-not-found.error';

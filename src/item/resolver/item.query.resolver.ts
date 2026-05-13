@@ -54,6 +54,6 @@ export class ItemQueryResolver {
     @Args('itemsFilter', { nullable: true }) itemsFilter: ItemsFilter,
     @Args('paymentsFilter', { nullable: true }) paymentsFilter: PaymentsFilter,
   ): Promise<Item[]> {
-    return this.itemService.list([workspaceId], itemsFilter, paymentsFilter);
+    return this.itemService.listByWorkspaceIds([workspaceId], itemsFilter, paymentsFilter);
   }
 }

@@ -1,7 +1,7 @@
-import { Field, InputType } from '@nestjs/graphql';
+import { Field, InputType, Int } from '@nestjs/graphql';
 import { Transform, Type } from 'class-transformer';
 import { Decimal } from '@prisma/client/runtime/client';
-import { IsDate, IsEnum, IsOptional, IsString } from 'class-validator';
+import { IsDate, IsEnum, IsInt, IsOptional, IsString } from 'class-validator';
 import { Currency } from '../../currency-rate/entity/currency.enum';
 import { DateScalar, DecimalScalar } from '../../graphql/scalar';
 
@@ -25,4 +25,8 @@ export class PaymentInDto {
   @Transform(({ value }) => new Date(value))
   @Field(() => DateScalar)
   date: Date;
+
+  @IsInt()
+  @Field(() => Int)
+  payerId: number;
 }

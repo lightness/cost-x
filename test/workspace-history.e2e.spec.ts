@@ -15,6 +15,7 @@ import { PaymentFactoryService } from './factory/payment-factory.service';
 import { TagFactoryService } from './factory/tag-factory.service';
 import { UserFactoryService } from './factory/user-factory.service';
 import { WorkspaceFactoryService } from './factory/workspace-factory.service';
+import { WorkspaceMemberFactoryService } from './factory/workspace-member-factory.service';
 import { TestConfigModule } from './test-config.module';
 
 describe('WorkspaceHistory E2E', () => {
@@ -28,6 +29,7 @@ describe('WorkspaceHistory E2E', () => {
   let itemFactory: ItemFactoryService;
   let paymentFactory: PaymentFactoryService;
   let tagFactory: TagFactoryService;
+  let workspaceMemberFactory: WorkspaceMemberFactoryService;
 
   beforeAll(async () => {
     moduleRef = await Test.createTestingModule({
@@ -46,6 +48,7 @@ describe('WorkspaceHistory E2E', () => {
     itemFactory = moduleRef.get(ItemFactoryService);
     paymentFactory = moduleRef.get(PaymentFactoryService);
     tagFactory = moduleRef.get(TagFactoryService);
+    workspaceMemberFactory = moduleRef.get(WorkspaceMemberFactoryService);
   });
 
   afterAll(async () => {
@@ -226,13 +229,17 @@ describe('WorkspaceHistory E2E', () => {
       const user = await userFactory.create('active');
       const workspace = await workspaceFactory.create({ ownerId: user.id });
       const item = await itemFactory.create(workspace.id);
+      const ownerMember = await workspaceMemberFactory.create(workspace.id, user.id);
       const { accessToken } = await authService.authenticateUser(user);
 
       const response = await gql(app, accessToken)(
         `mutation CreatePayment($itemId: Int!, $dto: PaymentInDto!) {
           createPayment(itemId: $itemId, dto: $dto) { id }
         }`,
-        { dto: { cost: '25.00', currency: 'USD', date: '2024-06-01' }, itemId: item.id },
+        {
+          dto: { cost: '25.00', currency: 'USD', date: '2024-06-01', payerId: ownerMember.id },
+          itemId: item.id,
+        },
       );
 
       expect(response.status).toBe(200);
@@ -258,7 +265,10 @@ describe('WorkspaceHistory E2E', () => {
         `mutation UpdatePayment($paymentId: Int!, $dto: PaymentInDto!) {
           updatePayment(paymentId: $paymentId, dto: $dto) { id }
         }`,
-        { dto: { cost: '50.00', currency: 'EUR', date: '2024-06-01' }, paymentId: payment.id },
+        {
+          dto: { cost: '50.00', currency: 'EUR', date: '2024-06-01', payerId: payment.payerId },
+          paymentId: payment.id,
+        },
       );
 
       expect(response.status).toBe(200);

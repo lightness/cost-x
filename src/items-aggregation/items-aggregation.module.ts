@@ -4,16 +4,22 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { ItemsAggregationsByTagIdLoader } from './dataloader/items-aggregations-by-tag-id.loader.service';
 import { ItemsAggregationsByWorkspaceIdLoader } from './dataloader/items-aggregations-by-workspace-id.loader.service';
 import { ItemsAggregationService } from './items-aggregation.service';
-import { ItemsAggregationResolver } from './resolver/items-aggregation.resolver';
+import { ItemsAggregationFieldResolver } from './resolver/items-aggregation.field.resolver';
+import { ItemsAggregationQueryResolver } from './resolver/items-aggregation.query.resolver';
+import { TagItemsAggregationFieldResolver } from './resolver/tag-items-aggregation.field.resolver';
+import { WorkspaceItemsAggregationFieldResolver } from './resolver/workspace-items-aggregation.field.resolver';
 
 @Module({
-  exports: [ItemsAggregationsByTagIdLoader, ItemsAggregationsByWorkspaceIdLoader],
+  exports: [],
   imports: [PrismaModule, GroupModule],
   providers: [
     // service
     ItemsAggregationService,
     // resolver
-    ItemsAggregationResolver,
+    ItemsAggregationFieldResolver,
+    ItemsAggregationQueryResolver,
+    TagItemsAggregationFieldResolver,
+    WorkspaceItemsAggregationFieldResolver,
     // dataloader
     ItemsAggregationsByTagIdLoader,
     ItemsAggregationsByWorkspaceIdLoader,
