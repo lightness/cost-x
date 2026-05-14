@@ -6,7 +6,7 @@
   "scripts": {
     "start:dev": "nest start --watch",
     "data:migrate": "nest start --entryFile migrate-data.entrypoint",
-    "test": "jest --verbose --runInBand --detectOpenHandles",
+    "test": "jest --runInBand --detectOpenHandles --logHeapUsage",
     "docker:up": "docker compose -f ./docker/compose.yml up -d",
     "lint:fix": "biome check ./src --write ",
     "prisma:studio": "prisma studio --config ./prisma.config.ts",

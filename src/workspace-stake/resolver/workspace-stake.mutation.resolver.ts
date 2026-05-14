@@ -13,6 +13,7 @@ import { WorkspaceByIdPipe } from '../../common/pipe/workspace-by-id.pipe';
 import { UserRole } from '../../user/entity/user-role.enum';
 import User from '../../user/entity/user.entity';
 import { Workspace } from '../../workspace/entity/workspace.entity';
+import { BalanceCurrencyMode } from '../entity/balance-currency-mode.enum';
 import { StakeRule } from '../entity/stake-rule.enum';
 import { WorkspaceStakeService } from '../workspace-stake.service';
 
@@ -44,6 +45,28 @@ export class WorkspaceStakeMutationResolver {
     return this.workspaceStakeService.updateWorkspaceStakeRule(
       workspace,
       stakeRule,
+      currentUser,
+      tx,
+    );
+  }
+
+  @Mutation(() => Workspace)
+  @Access.allow({
+    or: [
+      { owner: 'workspace', scope: AccessScope.WORKSPACE },
+      { role: [UserRole.ADMIN], scope: AccessScope.USER },
+    ],
+  })
+  @Infer('workspace', { from: fromArg('workspaceId'), pipes: [WorkspaceByIdPipe] })
+  async updateWorkspaceBalanceCurrencyMode(
+    @Args('workspaceId', { type: () => Int }, WorkspaceByIdPipe) workspace: Workspace,
+    @Args('mode', { type: () => BalanceCurrencyMode }) mode: BalanceCurrencyMode,
+    @CurrentUser() currentUser: User,
+    @Context('tx') tx: Prisma.TransactionClient,
+  ) {
+    return this.workspaceStakeService.updateWorkspaceBalanceCurrencyMode(
+      workspace,
+      mode,
       currentUser,
       tx,
     );

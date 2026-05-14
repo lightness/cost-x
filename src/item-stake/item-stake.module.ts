@@ -3,6 +3,7 @@ import { AccessModule } from '../access/access.module';
 import { AuthModule } from '../auth/auth.module';
 import { GroupModule } from '../group/group.module';
 import { ItemModule } from '../item/item.module';
+import { PaymentBalanceModule } from '../payment-balance/payment-balance.module';
 import { PrismaModule } from '../prisma/prisma.module';
 import { WorkspaceMembershipModule } from '../workspace-membership/workspace-membership.module';
 import { ItemStakesByItemIdLoader } from './dataloader/item-stakes-by-item-id.loader.service';
@@ -21,6 +22,7 @@ import { ItemStakeMutationResolver } from './resolver/item-stake.mutation.resolv
     GroupModule,
     WorkspaceMembershipModule,
     ItemModule,
+    PaymentBalanceModule,
   ],
   providers: [
     ItemStakeService,

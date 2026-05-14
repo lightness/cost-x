@@ -7,6 +7,11 @@ input AssignTagInDto {
   tagId: Int!
 }
 
+enum BalanceCurrencyMode {
+  DEFAULT_CURRENCY
+  PAYMENT_CURRENCY
+}
+
 type Contact {
   createdAt: DateIso!
   id: Int!
@@ -231,10 +236,12 @@ type Mutation {
   updateTag(dto: TagInDto!, id: Int!): Tag!
   updateUser(dto: UpdateUserInDto!, id: Int!): User!
   updateWorkspace(dto: WorkspaceInDto!, id: Int!): Workspace!
+  updateWorkspaceBalanceCurrencyMode(mode: BalanceCurrencyMode!, workspaceId: Int!): Workspace!
   updateWorkspaceStakeRule(stakeRule: StakeRule!, workspaceId: Int!): Workspace!
 }
 
 type Payment {
+  balanceChanges: [PaymentBalanceChange!]!
   cost: Decimal!
   createdAt: DateIso
   currency: Currency!
@@ -246,6 +253,12 @@ type Payment {
   payerId: Int!
   title: String
   updatedAt: DateIso
+}
+
+type PaymentBalanceChange {
+  currency: Currency!
+  value: Decimal!
+  workspaceMemberId: Int!
 }
 
 input PaymentInDto {
@@ -394,6 +407,7 @@ enum UserRole {
 }
 
 type Workspace {
+  balanceCurrencyMode: BalanceCurrencyMode!
   createdAt: DateIso!
   defaultCurrency: Currency!
   history(workspaceHistoryFilter: WorkspaceHistoryFilter): [WorkspaceHistory!]!

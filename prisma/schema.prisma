@@ -60,8 +60,9 @@ model Payment {
   currency  Currency
   payerId   Int      @map("payer_id")
 
-  item  Item            @relation(fields: [itemId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_payment_item_id_item_id")
-  payer WorkspaceMember @relation(fields: [payerId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_payment_payer_id_workspace_member_id")
+  item                  Item                   @relation(fields: [itemId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_payment_item_id_item_id")
+  payer                 WorkspaceMember        @relation(fields: [payerId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_payment_payer_id_workspace_member_id")
+  paymentBalanceChanges PaymentBalanceChange[]
 
   @@map("payment")
 }
@@ -191,6 +192,7 @@ model Workspace {
   ownerId                  Int                       @map("owner_id")
   defaultCurrency          Currency                  @map("default_currency")
   stakeRule                StakeRule                 @default(ALL_PAYER) @map("stake_rule")
+  balanceCurrencyMode      BalanceCurrencyMode       @default(PAYMENT_CURRENCY) @map("balance_currency_mode")
   items                    Item[]
   tags                     Tag[]
   historyEntries           WorkspaceHistory[]
@@ -207,6 +209,11 @@ enum StakeRule {
   ALL_PAYER
   ALL_WORKSPACE_OWNER
   EQUALLY
+}
+
+enum BalanceCurrencyMode {
+  PAYMENT_CURRENCY
+  DEFAULT_CURRENCY
 }
 
 enum InviteStatus {
@@ -341,12 +348,13 @@ model WorkspaceMember {
   removedAt       DateTime? @map("removed_at") @db.Timestamp(6)
   removedByUserId Int?      @map("removed_by_user_id")
 
-  workspace     Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_workspace_member_workspace_id_workspace_id")
-  user          User             @relation(name: "workspaceMember", fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_workspace_member_user_id_user_id")
-  invite        WorkspaceInvite? @relation(fields: [inviteId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_workspace_member_invite_id_workspace_invite_id")
-  removedByUser User?            @relation(name: "workspaceMemberRemovedBy", fields: [removedByUserId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_workspace_member_removed_by_user_id_user_id")
-  itemStakes    ItemStake[]
-  payments      Payment[]
+  workspace             Workspace              @relation(fields: [workspaceId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_workspace_member_workspace_id_workspace_id")
+  user                  User                   @relation(name: "workspaceMember", fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_workspace_member_user_id_user_id")
+  invite                WorkspaceInvite?       @relation(fields: [inviteId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_workspace_member_invite_id_workspace_invite_id")
+  removedByUser         User?                  @relation(name: "workspaceMemberRemovedBy", fields: [removedByUserId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_workspace_member_removed_by_user_id_user_id")
+  itemStakes            ItemStake[]
+  payments              Payment[]
+  paymentBalanceChanges PaymentBalanceChange[]
 
   @@unique([workspaceId, userId], where: { removedAt: null }, map: "UQ_workspace_member_workspace_id_user_id")
   @@map("workspace_member")
@@ -365,4 +373,20 @@ model ItemStake {
 
   @@unique([itemId, workspaceMemberId], map: "UQ_item_stake_item_id_workspace_member_id")
   @@map("item_stake")
+}
+
+model PaymentBalanceChange {
+  id                Int      @id(map: "PK_payment_balance_change_id") @default(autoincrement())
+  paymentId         Int      @map("payment_id")
+  workspaceMemberId Int      @map("workspace_member_id")
+  value             Decimal  @db.Decimal
+  currency          Currency
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt         DateTime @default(now()) @map("updated_at") @db.Timestamp(6)
+
+  payment         Payment         @relation(fields: [paymentId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_payment_balance_change_payment_id_payment_id")
+  workspaceMember WorkspaceMember @relation(fields: [workspaceMemberId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_pbc_workspace_member_id_workspace_member_id")
+
+  @@unique([paymentId, workspaceMemberId], map: "UQ_payment_balance_change_payment_id_workspace_member_id")
+  @@map("payment_balance_change")
 }

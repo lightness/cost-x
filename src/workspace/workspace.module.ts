@@ -4,6 +4,7 @@ import { AuthModule } from '../auth/auth.module';
 import { GroupModule } from '../group/group.module';
 import { ItemModule } from '../item/item.module';
 import { ItemsAggregationModule } from '../items-aggregation/items-aggregation.module';
+import { PaymentBalanceModule } from '../payment-balance/payment-balance.module';
 import { PrismaModule } from '../prisma/prisma.module';
 import { TagModule } from '../tag/tag.module';
 import { WorkspaceHistoriesByWorkspaceIdLoader } from '../workspace-history/dataloader/workspace-histories-by-workspace-id.loader.service';
@@ -24,6 +25,7 @@ import { WorkspaceService } from './workspace.service';
     ItemsAggregationModule,
     GroupModule,
     WorkspaceHistoryModule,
+    PaymentBalanceModule,
   ],
   providers: [
     WorkspaceService,

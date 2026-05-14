@@ -4,6 +4,7 @@ import { diff } from 'radash';
 import { Prisma, StakeRule } from '../../generated/prisma/client';
 import { duplicates } from '../common/function/duplicates';
 import Item from '../item/entity/item.entity';
+import { PaymentBalanceService } from '../payment-balance/payment-balance.service';
 import { PrismaService } from '../prisma/prisma.service';
 import User from '../user/entity/user.entity';
 import { WorkspaceHistoryEvent } from '../workspace-history/entity/workspace-history-event.enum';
@@ -26,6 +27,7 @@ export class OverrideItemStakeService {
     private prisma: PrismaService,
     private workspaceMemberService: WorkspaceMemberService,
     private eventEmitter: EventEmitter2,
+    private paymentBalanceService: PaymentBalanceService,
   ) {}
 
   async setItemStakes(
@@ -64,6 +66,8 @@ export class OverrideItemStakeService {
       tx,
       workspaceId: item.workspaceId,
     });
+
+    await this.paymentBalanceService.syncItemBalance(item.id, tx);
 
     return newItemStakes;
   }
@@ -104,6 +108,8 @@ export class OverrideItemStakeService {
       tx,
       workspaceId: item.workspaceId,
     });
+
+    await this.paymentBalanceService.syncItemBalance(item.id, tx);
 
     return updatedItem;
   }

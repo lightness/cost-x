@@ -14,6 +14,7 @@ import { ItemStakeModule } from './item-stake/item-stake.module';
 import { ItemTagModule } from './item-tag/item-tag.module';
 import { ItemModule } from './item/item.module';
 import { ItemsAggregationModule } from './items-aggregation/items-aggregation.module';
+import { PaymentBalanceModule } from './payment-balance/payment-balance.module';
 import { PaymentModule } from './payment/payment.module';
 import { PaymentsAggregationModule } from './payments-aggregation/payments-aggregation.module';
 import { ResendEmailModule } from './resend-email/resend-email.module';
@@ -39,6 +40,7 @@ import { WorkspaceModule } from './workspace/workspace.module';
     ItemMergeModule,
     ItemExtractModule,
     PaymentModule,
+    PaymentBalanceModule,
     CurrencyRateModule,
     DataMigrationModule,
     PaymentsAggregationModule,

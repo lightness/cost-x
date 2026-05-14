@@ -4,6 +4,7 @@ import { AuthModule } from '../auth/auth.module';
 import { ConsistencyModule } from '../consistency/consistency.module';
 import { CurrencyRateModule } from '../currency-rate/currency-rate.module';
 import { ItemCostModule } from '../item-cost/default-currency-cost.module';
+import { PaymentBalanceModule } from '../payment-balance/payment-balance.module';
 import { PrismaModule } from '../prisma/prisma.module';
 import { PaymentsByItemIdLoader } from './dataloader/payments-by-item-id.loader.service';
 import { PaymentService } from './payment.service';
@@ -20,6 +21,7 @@ import { PaymentQueryResolver } from './resolver/payment.query.resolver';
     ConsistencyModule,
     ItemCostModule,
     CurrencyRateModule,
+    PaymentBalanceModule,
   ],
   providers: [
     PaymentService,

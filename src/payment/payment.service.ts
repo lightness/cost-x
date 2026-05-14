@@ -5,6 +5,7 @@ import { Prisma } from '../../generated/prisma/client';
 import { ConsistencyService } from '../consistency/consistency.service';
 import { PaymentLike } from '../item-cost/interfaces';
 import Item from '../item/entity/item.entity';
+import { PaymentBalanceService } from '../payment-balance/payment-balance.service';
 import { PrismaService } from '../prisma/prisma.service';
 import User from '../user/entity/user.entity';
 import { WorkspaceHistoryEvent } from '../workspace-history/entity/workspace-history-event.enum';
@@ -19,6 +20,7 @@ export class PaymentService {
     private prisma: PrismaService,
     private consistencyService: ConsistencyService,
     private eventEmitter: EventEmitter2,
+    private paymentBalanceService: PaymentBalanceService,
   ) {}
 
   async getPaymentsByItemIds(
@@ -95,6 +97,8 @@ export class PaymentService {
       workspaceId: item.workspaceId,
     });
 
+    await this.paymentBalanceService.syncPaymentBalance(payment.id, tx);
+
     return payment;
   }
 
@@ -129,6 +133,8 @@ export class PaymentService {
       tx,
       workspaceId: item.workspaceId,
     });
+
+    await this.paymentBalanceService.syncPaymentBalance(updatedPayment.id, tx);
 
     return updatedPayment;
   }

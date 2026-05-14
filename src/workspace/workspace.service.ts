@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { Prisma } from '../../generated/prisma/client';
+import { BalanceCurrencyMode, Prisma } from '../../generated/prisma/client';
 import { WorkspaceWhereInput } from '../../generated/prisma/models';
+import { PaymentBalanceService } from '../payment-balance/payment-balance.service';
 import { PrismaService } from '../prisma/prisma.service';
 import User from '../user/entity/user.entity';
 import { WorkspaceHistoryEvent } from '../workspace-history/entity/workspace-history-event.enum';
@@ -13,6 +14,7 @@ export class WorkspaceService {
   constructor(
     private prisma: PrismaService,
     private eventEmitter: EventEmitter2,
+    private paymentBalanceService: PaymentBalanceService,
   ) {}
 
   async listByOwnerIds(ownerIds: number[], filters: WorkspacesFilter): Promise<Workspace[]> {
@@ -70,6 +72,13 @@ export class WorkspaceService {
       oldWorkspace: workspace,
       tx,
     });
+
+    if (
+      workspace.balanceCurrencyMode === BalanceCurrencyMode.DEFAULT_CURRENCY &&
+      dto.defaultCurrency !== workspace.defaultCurrency
+    ) {
+      await this.paymentBalanceService.syncWorkspaceBalance(workspace.id, tx);
+    }
 
     return updatedWorkspace;
   }

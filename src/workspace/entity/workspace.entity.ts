@@ -1,5 +1,6 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
 import { Currency, Workspace as PrismaWorkspace } from '../../../generated/prisma/client';
+import { BalanceCurrencyMode } from '../../workspace-stake/entity/balance-currency-mode.enum';
 import { StakeRule } from '../../workspace-stake/entity/stake-rule.enum';
 import { DateIsoScalar } from '../../graphql/scalar';
 
@@ -25,4 +26,7 @@ export class Workspace implements PrismaWorkspace {
 
   @Field(() => StakeRule)
   stakeRule: StakeRule;
+
+  @Field(() => BalanceCurrencyMode)
+  balanceCurrencyMode: BalanceCurrencyMode;
 }

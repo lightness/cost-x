@@ -11,28 +11,17 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   constructor(adapter: PrismaPg, configService: ConfigService) {
     const needLogQuery = configService.get<boolean>('db.logQuery') || false;
 
-    const options: PrismaClientOptions = { adapter };
-
-    if (needLogQuery) {
-      options.log = [
-        {
-          emit: 'event',
-          level: 'query',
-        },
-        {
-          emit: 'stdout',
-          level: 'error',
-        },
-        {
-          emit: 'stdout',
-          level: 'info',
-        },
-        {
-          emit: 'stdout',
-          level: 'warn',
-        },
-      ];
-    }
+    const options: PrismaClientOptions = {
+      adapter,
+      log: needLogQuery
+        ? [
+            { emit: 'event', level: 'query' },
+            { emit: 'stdout', level: 'error' },
+            { emit: 'stdout', level: 'info' },
+            { emit: 'stdout', level: 'warn' },
+          ]
+        : [],
+    };
 
     super(options);
 
