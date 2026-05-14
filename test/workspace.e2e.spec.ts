@@ -85,7 +85,7 @@ describe('Workspace E2E', () => {
         .post('/graphql')
         .send({
           query: createWorkspaceMutation,
-          variables: { dto: { title: 'My Workspace', defaultCurrency: Currency.USD } },
+          variables: { dto: { defaultCurrency: Currency.USD, title: 'My Workspace' } },
         })
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${accessToken}`);
@@ -103,13 +103,45 @@ describe('Workspace E2E', () => {
       expect(workspace.ownerId).toBe(user.id);
     });
 
+    it('should create a workspace member for the owner', async () => {
+      // Assume
+      const user = await userFactory.create('active');
+
+      // Act
+      const { accessToken } = await authService.authenticateUser(user);
+
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({
+          query: createWorkspaceMutation,
+          variables: { dto: { defaultCurrency: Currency.USD, title: 'My Workspace' } },
+        })
+        .set('Content-Type', 'application/json')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      // Assert
+      expectResponseSuccess(response);
+
+      const member = await prisma.workspaceMember.findFirst({
+        where: {
+          removedAt: null,
+          userId: user.id,
+          workspaceId: response.body.data.createWorkspace.id,
+        },
+      });
+
+      expect(member).toBeDefined();
+      expect(member.userId).toBe(user.id);
+      expect(member.inviteId).toBeNull();
+    });
+
     it('should not create workspace when not authenticated', async () => {
       // Act
       const response = await request(app.getHttpServer())
         .post('/graphql')
         .send({
           query: createWorkspaceMutation,
-          variables: { dto: { title: 'My Workspace', defaultCurrency: Currency.USD } },
+          variables: { dto: { defaultCurrency: Currency.USD, title: 'My Workspace' } },
         })
         .set('Content-Type', 'application/json');
 
@@ -122,7 +154,11 @@ describe('Workspace E2E', () => {
     it('should update workspace when user is the owner', async () => {
       // Assume
       const owner = await userFactory.create('active');
-      const workspace = await workspaceFactory.create({ ownerId: owner.id, title: 'Old Title', defaultCurrency: Currency.USD });
+      const workspace = await workspaceFactory.create({
+        defaultCurrency: Currency.USD,
+        ownerId: owner.id,
+        title: 'Old Title',
+      });
 
       // Act
       const { accessToken } = await authService.authenticateUser(owner);
@@ -131,7 +167,10 @@ describe('Workspace E2E', () => {
         .post('/graphql')
         .send({
           query: updateWorkspaceMutation,
-          variables: { id: workspace.id, dto: { title: 'New Title', defaultCurrency: Currency.EUR } },
+          variables: {
+            dto: { defaultCurrency: Currency.EUR, title: 'New Title' },
+            id: workspace.id,
+          },
         })
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${accessToken}`);
@@ -152,7 +191,10 @@ describe('Workspace E2E', () => {
         .post('/graphql')
         .send({
           query: updateWorkspaceMutation,
-          variables: { id: workspace.id, dto: { title: 'New Title', defaultCurrency: Currency.USD } },
+          variables: {
+            dto: { defaultCurrency: Currency.USD, title: 'New Title' },
+            id: workspace.id,
+          },
         })
         .set('Content-Type', 'application/json');
 
@@ -173,7 +215,10 @@ describe('Workspace E2E', () => {
         .post('/graphql')
         .send({
           query: updateWorkspaceMutation,
-          variables: { id: workspace.id, dto: { title: 'New Title', defaultCurrency: Currency.USD } },
+          variables: {
+            dto: { defaultCurrency: Currency.USD, title: 'New Title' },
+            id: workspace.id,
+          },
         })
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${accessToken}`);
@@ -196,7 +241,10 @@ describe('Workspace E2E', () => {
         .post('/graphql')
         .send({
           query: updateWorkspaceMutation,
-          variables: { id: workspace.id, dto: { title: 'New Title', defaultCurrency: Currency.USD } },
+          variables: {
+            dto: { defaultCurrency: Currency.USD, title: 'New Title' },
+            id: workspace.id,
+          },
         })
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${accessToken}`);
@@ -218,7 +266,10 @@ describe('Workspace E2E', () => {
         .post('/graphql')
         .send({
           query: updateWorkspaceMutation,
-          variables: { id: workspace.id, dto: { title: 'New Title', defaultCurrency: Currency.EUR } },
+          variables: {
+            dto: { defaultCurrency: Currency.EUR, title: 'New Title' },
+            id: workspace.id,
+          },
         })
         .set('Content-Type', 'application/json')
         .set('Authorization', `Bearer ${accessToken}`);

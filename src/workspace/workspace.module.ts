@@ -9,6 +9,7 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { TagModule } from '../tag/tag.module';
 import { WorkspaceHistoriesByWorkspaceIdLoader } from '../workspace-history/dataloader/workspace-histories-by-workspace-id.loader.service';
 import { WorkspaceHistoryModule } from '../workspace-history/workspace-history.module';
+import { WorkspaceMembershipModule } from '../workspace-membership/workspace-membership.module';
 import { WorkspacesByUserIdLoader } from './dataloader/workspaces-by-user-id.loader';
 import { WorkspaceHistoryFieldResolver } from './resolver/workspace-history.field.resolver';
 import { WorkspaceMutationResolver } from './resolver/workspace.mutation.resolver';
@@ -25,6 +26,7 @@ import { WorkspaceService } from './workspace.service';
     ItemsAggregationModule,
     GroupModule,
     WorkspaceHistoryModule,
+    WorkspaceMembershipModule,
     PaymentBalanceModule,
   ],
   providers: [

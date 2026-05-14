@@ -6,6 +6,7 @@ import { PaymentBalanceService } from '../payment-balance/payment-balance.servic
 import { PrismaService } from '../prisma/prisma.service';
 import User from '../user/entity/user.entity';
 import { WorkspaceHistoryEvent } from '../workspace-history/entity/workspace-history-event.enum';
+import { WorkspaceMemberService } from '../workspace-membership/workspace-member.service';
 import { WorkspaceInDto, WorkspacesFilter } from './dto';
 import { Workspace } from './entity/workspace.entity';
 
@@ -15,6 +16,7 @@ export class WorkspaceService {
     private prisma: PrismaService,
     private eventEmitter: EventEmitter2,
     private paymentBalanceService: PaymentBalanceService,
+    private workspaceMemberService: WorkspaceMemberService,
   ) {}
 
   async listByOwnerIds(ownerIds: number[], filters: WorkspacesFilter): Promise<Workspace[]> {
@@ -42,6 +44,14 @@ export class WorkspaceService {
         owner: true,
       },
     });
+
+    await this.workspaceMemberService.create(
+      workspace.id,
+      currentUser.id,
+      null,
+      currentUser.id,
+      tx,
+    );
 
     await this.eventEmitter.emitAsync(WorkspaceHistoryEvent.WORKSPACE_CREATED, {
       actorId: currentUser.id,
