@@ -235,8 +235,9 @@ type Mutation {
   updatePayment(dto: PaymentInDto!, paymentId: Int!): Payment!
   updateTag(dto: TagInDto!, id: Int!): Tag!
   updateUser(dto: UpdateUserInDto!, id: Int!): User!
-  updateWorkspace(dto: WorkspaceInDto!, id: Int!): Workspace!
+  updateWorkspace(dto: WorkspaceUpdateInDto!, id: Int!): Workspace!
   updateWorkspaceBalanceCurrencyMode(mode: BalanceCurrencyMode!, workspaceId: Int!): Workspace!
+  updateWorkspaceDefaultCurrency(defaultCurrency: Currency!, workspaceId: Int!): Workspace!
   updateWorkspaceStakeRule(stakeRule: StakeRule!, workspaceId: Int!): Workspace!
 }
 
@@ -524,7 +525,12 @@ enum WorkspacePermission {
   UPDATE_ITEM
   UPDATE_PAYMENT
   UPDATE_TAG
+  UPDATE_WORKSPACE_DEFAULT_CURRENCY
   UPDATE_WORKSPACE_STAKE_RULE
+}
+
+input WorkspaceUpdateInDto {
+  title: String!
 }
 
 input WorkspacesFilter {

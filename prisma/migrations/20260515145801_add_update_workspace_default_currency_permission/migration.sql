@@ -1,0 +1,2 @@
+-- AlterEnum
+ALTER TYPE "WorkspacePermission" ADD VALUE 'UPDATE_WORKSPACE_DEFAULT_CURRENCY';

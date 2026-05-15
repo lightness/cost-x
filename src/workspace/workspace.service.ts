@@ -1,13 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { BalanceCurrencyMode, Prisma } from '../../generated/prisma/client';
+import { Prisma } from '../../generated/prisma/client';
 import { WorkspaceWhereInput } from '../../generated/prisma/models';
-import { PaymentBalanceService } from '../payment-balance/payment-balance.service';
 import { PrismaService } from '../prisma/prisma.service';
 import User from '../user/entity/user.entity';
 import { WorkspaceHistoryEvent } from '../workspace-history/entity/workspace-history-event.enum';
 import { WorkspaceMemberService } from '../workspace-membership/workspace-member.service';
-import { WorkspaceInDto, WorkspacesFilter } from './dto';
+import { WorkspaceInDto, WorkspaceUpdateInDto, WorkspacesFilter } from './dto';
 import { Workspace } from './entity/workspace.entity';
 
 @Injectable()
@@ -15,7 +14,6 @@ export class WorkspaceService {
   constructor(
     private prisma: PrismaService,
     private eventEmitter: EventEmitter2,
-    private paymentBalanceService: PaymentBalanceService,
     private workspaceMemberService: WorkspaceMemberService,
   ) {}
 
@@ -64,15 +62,12 @@ export class WorkspaceService {
 
   async update(
     workspace: Workspace,
-    dto: WorkspaceInDto,
+    dto: WorkspaceUpdateInDto,
     currentUser: User,
     tx: Prisma.TransactionClient = this.prisma,
   ): Promise<Workspace> {
     const updatedWorkspace = await tx.workspace.update({
-      data: {
-        defaultCurrency: dto.defaultCurrency,
-        title: dto.title,
-      },
+      data: { title: dto.title },
       where: { id: workspace.id },
     });
 
@@ -82,13 +77,6 @@ export class WorkspaceService {
       oldWorkspace: workspace,
       tx,
     });
-
-    if (
-      workspace.balanceCurrencyMode === BalanceCurrencyMode.DEFAULT_CURRENCY &&
-      dto.defaultCurrency !== workspace.defaultCurrency
-    ) {
-      await this.paymentBalanceService.syncWorkspaceBalance(workspace.id, tx);
-    }
 
     return updatedWorkspace;
   }

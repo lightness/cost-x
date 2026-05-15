@@ -23,6 +23,7 @@ import { TagModule } from './tag/tag.module';
 import { UserModule } from './user/user.module';
 import { WorkspaceHistoryModule } from './workspace-history/workspace-history.module';
 import { WorkspaceMembershipModule } from './workspace-membership/workspace-membership.module';
+import { WorkspaceCurrencyModule } from './workspace-currency/workspace-currency.module';
 import { WorkspaceStakeModule } from './workspace-stake/workspace-stake.module';
 import { WorkspaceModule } from './workspace/workspace.module';
 
@@ -50,6 +51,7 @@ import { WorkspaceModule } from './workspace/workspace.module';
     WorkspaceMembershipModule,
     WorkspaceHistoryModule,
     WorkspaceStakeModule,
+    WorkspaceCurrencyModule,
     ResetPasswordModule,
     ResendEmailModule,
     ContactModule,

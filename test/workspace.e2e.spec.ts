@@ -27,11 +27,10 @@ const createWorkspaceMutation = `
 `;
 
 const updateWorkspaceMutation = `
-  mutation UpdateWorkspace($id: Int!, $dto: WorkspaceInDto!) {
+  mutation UpdateWorkspace($id: Int!, $dto: WorkspaceUpdateInDto!) {
     updateWorkspace(id: $id, dto: $dto) {
       id
       title
-      defaultCurrency
     }
   }
 `;
@@ -168,7 +167,7 @@ describe('Workspace E2E', () => {
         .send({
           query: updateWorkspaceMutation,
           variables: {
-            dto: { defaultCurrency: Currency.EUR, title: 'New Title' },
+            dto: { title: 'New Title' },
             id: workspace.id,
           },
         })
@@ -178,7 +177,6 @@ describe('Workspace E2E', () => {
       // Assert
       expectResponseSuccess(response);
       expect(response.body.data.updateWorkspace.title).toBe('New Title');
-      expect(response.body.data.updateWorkspace.defaultCurrency).toBe(Currency.EUR);
     });
 
     it('should not update when not authenticated', async () => {
@@ -192,7 +190,7 @@ describe('Workspace E2E', () => {
         .send({
           query: updateWorkspaceMutation,
           variables: {
-            dto: { defaultCurrency: Currency.USD, title: 'New Title' },
+            dto: { title: 'New Title' },
             id: workspace.id,
           },
         })
@@ -216,7 +214,7 @@ describe('Workspace E2E', () => {
         .send({
           query: updateWorkspaceMutation,
           variables: {
-            dto: { defaultCurrency: Currency.USD, title: 'New Title' },
+            dto: { title: 'New Title' },
             id: workspace.id,
           },
         })
@@ -242,7 +240,7 @@ describe('Workspace E2E', () => {
         .send({
           query: updateWorkspaceMutation,
           variables: {
-            dto: { defaultCurrency: Currency.USD, title: 'New Title' },
+            dto: { title: 'New Title' },
             id: workspace.id,
           },
         })
@@ -267,7 +265,7 @@ describe('Workspace E2E', () => {
         .send({
           query: updateWorkspaceMutation,
           variables: {
-            dto: { defaultCurrency: Currency.EUR, title: 'New Title' },
+            dto: { title: 'New Title' },
             id: workspace.id,
           },
         })

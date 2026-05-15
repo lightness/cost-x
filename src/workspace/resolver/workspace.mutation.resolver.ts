@@ -13,7 +13,7 @@ import { TransactionInterceptor } from '../../common/interceptor/transaction.int
 import { WorkspaceByIdPipe } from '../../common/pipe/workspace-by-id.pipe';
 import { UserRole } from '../../user/entity/user-role.enum';
 import User from '../../user/entity/user.entity';
-import { WorkspaceInDto } from '../dto';
+import { WorkspaceInDto, WorkspaceUpdateInDto } from '../dto';
 import { Workspace } from '../entity/workspace.entity';
 import { WorkspaceService } from '../workspace.service';
 
@@ -48,7 +48,7 @@ export class WorkspaceMutationResolver {
   @Infer('workspace', { from: fromArg('id'), pipes: [WorkspaceByIdPipe] })
   async updateWorkspace(
     @Args('id', { type: () => Int }, WorkspaceByIdPipe) workspace: Workspace,
-    @Args('dto') dto: WorkspaceInDto,
+    @Args('dto') dto: WorkspaceUpdateInDto,
     @CurrentUser() currentUser: User,
     @Context('tx') tx: Prisma.TransactionClient,
   ) {
