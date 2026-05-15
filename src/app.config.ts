@@ -1,71 +1,109 @@
-const asInteger = (env: string | undefined, defaultValue: number) => {
-  return env ? parseInt(env, 10) : defaultValue;
-};
+import { bool, cleanEnv, num, str } from 'envalid';
+
+const env = cleanEnv(process.env, {
+  ACCESS_JWT_EXPIRES_IN: str({ default: '180min' }),
+  ACCESS_JWT_REDIS_PREFIX: str({ default: 'expired:access:' }),
+  ACCESS_JWT_SECRET: str({ default: 'AccessTopSecret' }),
+
+  CONFIRM_EMAIL_JWT_EXPIRES_IN: str({ default: '7d' }),
+  CONFIRM_EMAIL_JWT_REDIS_PREFIX: str({ default: 'expired:confirm-email:' }),
+  CONFIRM_EMAIL_JWT_SECRET: str({ default: 'TopSECRET' }),
+  CONFIRM_EMAIL_LINK_URL: str({ default: undefined }),
+  CONFIRM_EMAIL_STRATEGY: str({ default: 'manual' }),
+
+  DATABASE_URL: str(),
+
+  EMAIL_INVITE_JWT_EXPIRES_IN: str({ default: '7d' }),
+  EMAIL_INVITE_JWT_REDIS_PREFIX: str({ default: 'expired:email-invite:' }),
+  EMAIL_INVITE_JWT_SECRET: str({ default: 'EmailInviteTopSecret' }),
+  EMAIL_INVITE_LINK_URL: str({ default: undefined }),
+  EMAIL_INVITE_REJECT_LINK_URL: str({ default: undefined }),
+
+  GRAPHQL_WRITE_SCHEMA: bool({ default: true }),
+
+  PORT: num({ default: 8080 }),
+
+  REDIS_URL: str(),
+
+  REFRESH_JWT_EXPIRES_IN: str({ default: '181min' }),
+  REFRESH_JWT_REDIS_PREFIX: str({ default: 'expired:refresh:' }),
+  REFRESH_JWT_SECRET: str({ default: 'RefreshTopSecret' }),
+
+  RESET_PASSWORD_JWT_EXPIRES_IN: str({ default: '5min' }),
+  RESET_PASSWORD_JWT_REDIS_PREFIX: str({ default: 'expired:reset-password:' }),
+  RESET_PASSWORD_JWT_SECRET: str({ default: 'ResetPasswordTopSecret' }),
+  RESET_PASSWORD_LINK_URL: str({ default: undefined }),
+
+  SENDER_EMAIL: str({ default: 'no-reply@cost-x.local' }),
+  SMTP_HOST: str({ default: 'localhost' }),
+  SMTP_PORT: num({ default: 1025 }),
+  SMTP_STUB: bool({ default: false }),
+});
 
 export default () => ({
   authenticate: {
     access: {
       jwt: {
-        expiresIn: process.env.ACCESS_JWT_EXPIRES_IN || '180min',
-        redisPrefix: process.env.ACCESS_JWT_REDIS_PREFIX || 'expired:access:',
-        secret: process.env.ACCESS_JWT_SECRET || 'AccessTopSecret',
+        expiresIn: env.ACCESS_JWT_EXPIRES_IN,
+        redisPrefix: env.ACCESS_JWT_REDIS_PREFIX,
+        secret: env.ACCESS_JWT_SECRET,
       },
     },
     refresh: {
       jwt: {
-        expiresIn: process.env.REFRESH_JWT_EXPIRES_IN || '181min',
-        redisPrefix: process.env.REFRESH_JWT_REDIS_PREFIX || 'expired:refresh:',
-        secret: process.env.REFRESH_JWT_SECRET || 'RefreshTopSecret',
+        expiresIn: env.REFRESH_JWT_EXPIRES_IN,
+        redisPrefix: env.REFRESH_JWT_REDIS_PREFIX,
+        secret: env.REFRESH_JWT_SECRET,
       },
     },
   },
   confirmEmail: {
     jwt: {
-      expiresIn: process.env.CONFIRM_EMAIL_JWT_EXPIRES_IN || '7d',
-      redisPrefix: process.env.CONFIRM_EMAIL_JWT_REDIS_PREFIX || 'expired:confirm-email:',
-      secret: process.env.CONFIRM_EMAIL_JWT_SECRET || 'TopSECRET',
+      expiresIn: env.CONFIRM_EMAIL_JWT_EXPIRES_IN,
+      redisPrefix: env.CONFIRM_EMAIL_JWT_REDIS_PREFIX,
+      secret: env.CONFIRM_EMAIL_JWT_SECRET,
     },
-    linkUrl: process.env.CONFIRM_EMAIL_LINK_URL,
-    strategy: process.env.CONFIRM_EMAIL_STRATEGY || 'manual',
+    linkUrl: env.CONFIRM_EMAIL_LINK_URL,
+    strategy: env.CONFIRM_EMAIL_STRATEGY,
   },
   db: {
     logQuery: true,
-    url: process.env.DATABASE_URL,
+    url: env.DATABASE_URL,
   },
   emailInvite: {
     jwt: {
-      expiresIn: process.env.EMAIL_INVITE_JWT_EXPIRES_IN || '7d',
-      redisPrefix: process.env.EMAIL_INVITE_JWT_REDIS_PREFIX || 'expired:email-invite:',
-      secret: process.env.EMAIL_INVITE_JWT_SECRET || 'EmailInviteTopSecret',
+      expiresIn: env.EMAIL_INVITE_JWT_EXPIRES_IN,
+      redisPrefix: env.EMAIL_INVITE_JWT_REDIS_PREFIX,
+      secret: env.EMAIL_INVITE_JWT_SECRET,
     },
-    linkUrl: process.env.EMAIL_INVITE_LINK_URL,
-    rejectLinkUrl: process.env.EMAIL_INVITE_REJECT_LINK_URL,
+    linkUrl: env.EMAIL_INVITE_LINK_URL,
+    rejectLinkUrl: env.EMAIL_INVITE_REJECT_LINK_URL,
   },
   graphql: {
     logTime: true,
-    writeSchema: process.env.GRAPHQL_WRITE_SCHEMA !== 'false',
+    writeSchema: env.GRAPHQL_WRITE_SCHEMA,
   },
-  port: asInteger(process.env.PORT, 8080),
+  port: env.PORT,
   redis: {
     logQuery: true,
-    url: process.env.REDIS_URL,
+    url: env.REDIS_URL,
   },
   resetPassword: {
     jwt: {
-      expiresIn: process.env.RESET_PASSWORD_JWT_EXPIRES_IN || '5min',
-      redisPrefix: process.env.RESET_PASSWORD_JWT_REDIS_PREFIX || 'expired:reset-password:',
-      secret: process.env.RESET_PASSWORD_JWT_SECRET || 'ResetPasswordTopSecret',
+      expiresIn: env.RESET_PASSWORD_JWT_EXPIRES_IN,
+      redisPrefix: env.RESET_PASSWORD_JWT_REDIS_PREFIX,
+      secret: env.RESET_PASSWORD_JWT_SECRET,
     },
-    linkUrl: process.env.RESET_PASSWORD_LINK_URL,
+    linkUrl: env.RESET_PASSWORD_LINK_URL,
   },
   smtp: {
-    host: process.env.SMTP_HOST || 'localhost',
-    port: asInteger(process.env.SMTP_PORT, 1025),
+    host: env.SMTP_HOST,
+    port: env.SMTP_PORT,
     sender: {
-      email: process.env.SENDER_EMAIL || 'no-reply@cost-x.local',
+      email: env.SENDER_EMAIL,
       name: 'Cost-X',
     },
-    stub: process.env.SMTP_STUB === 'true',
+    stub: env.SMTP_STUB,
   },
   spreadsheet: {
     columnNames: ['title', 'date', 'bynCost', 'usdCost', 'eurCost'],

@@ -38,6 +38,7 @@
     "cookie-parser": "1.4.7",
     "dataloader": "2.2.3",
     "dotenv": "17.2.3",
+    "envalid": "8.1.1",
     "express": "5.2.1",
     "google-auth-library": "10.5.0",
     "google-spreadsheet": "5.2.0",
