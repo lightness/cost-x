@@ -6,7 +6,6 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { SpreadsheetModule } from '../spreadsheet/spreadsheet.module';
 import { TagModule } from '../tag/tag.module';
 import { UserModule } from '../user/user.module';
-import { WorkspaceMembershipModule } from '../workspace-membership/workspace-membership.module';
 import { WorkspaceModule } from '../workspace/workspace.module';
 import { DataMigrationService } from './data-migration.service';
 import { InquirerService } from './inquirer.service';
@@ -21,7 +20,6 @@ import { InquirerService } from './inquirer.service';
     UserModule,
     WorkspaceModule,
     PrismaModule,
-    WorkspaceMembershipModule,
   ],
   providers: [DataMigrationService, InquirerService],
 })

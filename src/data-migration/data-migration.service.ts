@@ -10,7 +10,6 @@ import { SpreadsheetService } from '../spreadsheet/spreadsheet.service';
 import Tag from '../tag/entity/tag.entity';
 import { TagService } from '../tag/tag.service';
 import { UserService } from '../user/user.service';
-import { WorkspaceMemberService } from '../workspace-membership/workspace-member.service';
 import { WorkspaceService } from '../workspace/workspace.service';
 import { InquirerService } from './inquirer.service';
 
@@ -27,7 +26,6 @@ export class DataMigrationService {
     private userService: UserService,
     private workspaceService: WorkspaceService,
     private inquirerService: InquirerService,
-    private workspaceMemberService: WorkspaceMemberService,
     private prisma: PrismaService,
   ) {}
 
@@ -59,13 +57,9 @@ export class DataMigrationService {
           tx,
         );
 
-        const workspaceMember = await this.workspaceMemberService.create(
-          workspace.id,
-          user.id,
-          null,
-          user.id,
-          tx,
-        );
+        const workspaceMember = await tx.workspaceMember.findFirst({
+          where: { userId: user.id, workspaceId: workspace.id },
+        });
 
         let globalTag: Tag;
 

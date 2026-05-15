@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import inquirer from 'inquirer';
 import { Currency } from '../currency-rate/entity/currency.enum';
+import { PrismaService } from '../prisma/prisma.service';
 import { Credentials } from './interfaces';
 
 @Injectable()
@@ -8,6 +9,8 @@ export class InquirerService {
   private readonly logger = new Logger(InquirerService.name);
 
   private emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  constructor(private prisma: PrismaService) {}
 
   async askForDefaultCurrency(message: string = 'Pick workspace currency:'): Promise<Currency> {
     const questions = [
@@ -65,8 +68,16 @@ export class InquirerService {
         message,
         name: 'email',
         type: 'input',
-        validate: (input: string) => {
-          return this.emailRegex.test(input) || 'Please enter a valid email address';
+        validate: async (input: string) => {
+          if (!this.emailRegex.test(input)) {
+            return 'Please enter a valid email address';
+          }
+
+          const existing = await this.prisma.user.findUnique({
+            where: { email: input.toLowerCase() },
+          });
+
+          return existing ? 'Email is already taken' : true;
         },
       },
     ];
