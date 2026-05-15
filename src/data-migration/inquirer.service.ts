@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import inquirer from 'inquirer';
 import { Currency } from '../currency-rate/entity/currency.enum';
+import { PasswordValidationService } from '../password/password-validation.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { Credentials } from './interfaces';
 
@@ -8,7 +9,10 @@ import { Credentials } from './interfaces';
 export class InquirerService {
   private emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private passwordValidation: PasswordValidationService,
+  ) {}
 
   async askForDefaultCurrency(message: string = 'Pick workspace currency:'): Promise<Currency> {
     const questions = [
@@ -83,9 +87,7 @@ export class InquirerService {
         message,
         name: 'password',
         type: 'password',
-        validate: (input: string) => {
-          return input.length >= 6 || 'Password must be at least 6 characters long';
-        },
+        validate: (input: string) => this.passwordValidation.validate(input),
       },
     ]);
 

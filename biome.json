@@ -62,6 +62,7 @@
         "noAccumulatingSpread": "off"
       },
       "style": {
+        "useBlockStatements": "error",
         "useImportType": "off"
       }
     }

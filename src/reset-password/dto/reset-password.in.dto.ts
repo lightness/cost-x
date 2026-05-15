@@ -1,5 +1,6 @@
 import { Field, InputType } from '@nestjs/graphql';
-import { IsJWT, IsString } from 'class-validator';
+import { IsJWT } from 'class-validator';
+import { IsValidPassword } from '../../password/is-valid-password.decorator';
 
 @InputType()
 export class ResetPasswordInDto {
@@ -7,7 +8,7 @@ export class ResetPasswordInDto {
   @Field()
   token: string;
 
-  @IsString()
+  @IsValidPassword()
   @Field()
   password: string;
 }

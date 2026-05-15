@@ -4,9 +4,7 @@ import User from '../../user/entity/user.entity';
 import { WorkspaceMember } from '../entity/workspace-member.entity';
 
 @Injectable()
-export class UserByWorkspaceMemberPipe
-  implements PipeTransform<WorkspaceMember, Promise<User>>
-{
+export class UserByWorkspaceMemberPipe implements PipeTransform<WorkspaceMember, Promise<User>> {
   constructor(private prisma: PrismaService) {}
 
   async transform(member: WorkspaceMember): Promise<User> {
